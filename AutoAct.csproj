@@ -1,0 +1,45 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>library</OutputType>
+    <TargetFramework>net472</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Plugins.UI">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Plugins.UI.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Plugins.BaseCore">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Plugins.BaseCore.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Elin">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Elin.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="BepInEx.Core">
+      <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\BepInEx.Core.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="BepInEx.Unity">
+      <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\BepInEx.Unity.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="HarmonyLib">
+      <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\0Harmony.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+  </ItemGroup>
+</Project>
