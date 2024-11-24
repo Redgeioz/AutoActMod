@@ -120,7 +120,11 @@ namespace AutoAct
     {
         static public string GetText(string text)
         {
-            return langData[EClass.core.config.lang][text];
+            string lang = EClass.core.config.lang;
+            if (!langData.ContainsKey(lang)) {
+                lang = "EN";
+            }
+            return langData[lang][text];
         }
 
         static readonly Dictionary<string, Dictionary<string, string>> langData = new Dictionary<string, Dictionary<string, string>> {

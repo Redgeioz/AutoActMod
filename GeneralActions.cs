@@ -38,6 +38,27 @@ namespace AutoAct
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(TaskDrawWater), "OnCreateProgress")]
+        static void TaskDrawWater_Patch(TaskDrawWater __instance)
+        {
+            AutoAct.UpdateState(__instance);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(TaskPourWater), "OnCreateProgress")]
+        static void TaskPourWater_Patch(TaskPourWater __instance)
+        {
+            if (AutoAct.active && AutoAct.targetType != __instance.pos.sourceFloor.id)
+            {
+                __instance.Cancel();
+            }
+            else
+            {
+                AutoAct.UpdateState(__instance);
+            }
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(AI_Shear), "Run")]
         static void AIShear_Patch(AI_Shear __instance)
         {
@@ -58,7 +79,6 @@ namespace AutoAct
             }
 
             // Debug.Log($"Prev AI {EClass.pc.ai}, status {EClass.pc.ai.status}");
-
             bool lastActionSucceed = EClass.pc.ai != null && EClass.pc.ai.status == AIAct.Status.Running;
             if (!lastActionSucceed)
             {
@@ -85,6 +105,14 @@ namespace AutoAct
             else if (ai is TaskHarvest)
             {
                 ContinueHarvest();
+            }
+            else if (ai is TaskDrawWater)
+            {
+                ContinueDrawWater();
+            }
+            else if (ai is TaskPourWater)
+            {
+                ContinuePourWater();
             }
         }
 
@@ -128,7 +156,6 @@ namespace AutoAct
             if (lastTask.harvestType == BaseTaskHarvest.HarvestType.Thing)
             {
                 Thing thing = GetNextThingTarget();
-
                 if (thing == null)
                 {
                     return;
@@ -154,9 +181,8 @@ namespace AutoAct
             }
             else
             {
-                targetPoint = GetNextTarget();
+                targetPoint = GetNextTarget(CommonFilter);
             }
-
 
             if (targetPoint == null)
             {
@@ -164,7 +190,6 @@ namespace AutoAct
             }
 
             task = TaskHarvest.TryGetAct(EClass.pc, targetPoint);
-
             if (task == null)
             {
                 return;
@@ -188,8 +213,9 @@ namespace AutoAct
                 return;
             }
 
-            Point targetPoint = GetNextDigTarget();
-
+            Point targetPoint = GetNextTarget2(
+                cell => cell.sourceFloor.id == AutoAct.targetType && !cell.HasBlock && !cell.HasObj, Settings.DigRange
+            );
             if (targetPoint == null)
             {
                 return;
@@ -205,8 +231,7 @@ namespace AutoAct
 
         static void ContinueMine()
         {
-            Point targetPoint = GetNextTarget();
-
+            Point targetPoint = GetNextTarget(CommonFilter);
             if (targetPoint == null)
             {
                 return;
@@ -218,8 +243,10 @@ namespace AutoAct
 
         static void ContinuePlow()
         {
-            Point targetPoint = GetNextPlowTarget();
-
+            Point targetPoint = GetNextTarget2(
+                cell => !cell.HasBlock && !cell.HasObj && cell.Installed == null && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil"),
+                Settings.PlowRange
+            );
             if (targetPoint == null)
             {
                 return;
@@ -229,29 +256,88 @@ namespace AutoAct
             AutoAct.SetNextTask(task);
         }
 
-        static Point GetNextTarget()
+        static void ContinueDrawWater()
         {
-            List<(Point, int, int)> list = new List<(Point, int, int)>();
-            EClass._map.bounds.ForeachCell((Cell cell) =>
+            if (AutoAct.drawWaterPoint.IsWater)
             {
-                if (cell.sourceObj.id != AutoAct.targetType || !(cell.HasObj || cell.HasBlock))
+                // Waite for repeated water drawing
+                return;
+            }
+
+            if (!(EClass.pc.held.trait is TraitToolWaterPot pot) || pot.owner.c_charges >= pot.MaxCharge)
+            {
+                return;
+            }
+
+            Point targetPoint = GetNextTarget(cell =>
+            {
+                if (!cell.IsTopWaterAndNoSnow)
                 {
-                    return;
+                    return false;
                 }
 
-                if (cell.growth != null)
+                Point p = cell.GetPoint();
+                return (p.HasBridge ? p.matBridge : p.matFloor).alias == AutoAct.targetTypeStr && !cell.HasObj && !cell.HasBlock;
+            });
+
+            if (targetPoint == null)
+            {
+                return;
+            }
+
+            TaskDrawWater task = new TaskDrawWater { pot = pot, pos = targetPoint };
+            AutoAct.SetNextTask(task);
+            AutoAct.drawWaterPoint = targetPoint.Copy();
+        }
+
+        static void ContinuePourWater()
+        {
+            if (!(EClass.pc.held.trait is TraitToolWaterPot pot))
+            {
+                return;
+            }
+
+            Point targetPoint = GetNextTarget(cell => !cell.HasBridge && cell.sourceSurface.id == AutoAct.targetType && pot.owner.c_charges > 0);
+            if (targetPoint == null)
+            {
+                return;
+            }
+
+            TaskPourWater task = new TaskPourWater { pos = targetPoint, pot = pot };
+            AutoAct.SetNextTask(task);
+        }
+
+        static bool CommonFilter(Cell cell)
+        {
+            if (cell.sourceObj.id != AutoAct.targetType || !(cell.HasObj || cell.HasBlock))
+            {
+                return false;
+            }
+
+            if (cell.growth != null)
+            {
+                if (cell.growth.CanHarvest() != AutoAct.targetCanHarvest)
                 {
-                    if (cell.growth.CanHarvest() != AutoAct.targetCanHarvest)
-                    {
-                        return;
-                    }
+                    return false;
+                }
 
-                    // Check if is withered
-                    if (AutoAct.targetGrowth == 4 && cell.growth.stage.idx != AutoAct.targetGrowth)
-                    {
-                        return;
+                // Check if is withered
+                if (AutoAct.targetGrowth == 4 && cell.growth.stage.idx != AutoAct.targetGrowth)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
-                    }
+        static Point GetNextTarget(Func<Cell, bool> filter)
+        {
+            List<(Point, int, int)> list = new List<(Point, int, int)>();
+            EClass._map.bounds.ForeachCell(cell =>
+            {
+                if (!filter(cell))
+                {
+                    return;
                 }
 
                 Point p = cell.GetPoint();
@@ -279,11 +365,12 @@ namespace AutoAct
 
             (Point targetPoint, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).FirstOrDefault();
 
-            // if (targetPoint != null && targetPoint.cell.growth != null)
-            // {
-            //     Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, original target stage: {AutoAct.targetGrowth}");
-            //     Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
-            // }
+            if (targetPoint != null && targetPoint.cell.growth != null)
+            {
+                Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, original target stage: {AutoAct.targetGrowth}");
+                Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
+                Debug.Log($"Target should be: {AutoAct.targetType}");
+            }
 
             return targetPoint;
         }
@@ -291,7 +378,7 @@ namespace AutoAct
         static Thing GetNextThingTarget()
         {
             List<(Thing, int, int)> list = new List<(Thing, int, int)>();
-            EClass._map.bounds.ForeachCell((Cell cell) =>
+            EClass._map.bounds.ForeachCell(cell =>
             {
                 Point p = cell.GetPoint();
                 if (!p.HasThing)
@@ -305,7 +392,7 @@ namespace AutoAct
                     return;
                 }
 
-                Thing thing = p.Things.Find((Thing t) => t.Name == AutoAct.targetThingType);
+                Thing thing = p.Things.Find((Thing t) => t.Name == AutoAct.targetTypeStr);
                 if (thing == null)
                 {
                     return;
@@ -336,23 +423,10 @@ namespace AutoAct
             return target;
         }
 
-        static Point GetNextDigTarget()
-        {
-            return GetNextTarget2((Cell cell) => cell._floor == AutoAct.targetType && !cell.HasBlock && !cell.HasObj, Settings.DigRange);
-        }
-
-        static Point GetNextPlowTarget()
-        {
-            return GetNextTarget2(
-                (Cell cell) => !cell.HasBlock && !cell.HasObj && cell.Installed == null && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil"),
-                Settings.PlowRange
-            );
-        }
-
         static Point GetNextTarget2(Func<Cell, bool> filter, int range = 2)
         {
             List<(Point, int, int, int)> list = new List<(Point, int, int, int)>();
-            EClass._map.bounds.ForeachCell((Cell cell) =>
+            EClass._map.bounds.ForeachCell(cell =>
             {
                 if (!filter(cell))
                 {

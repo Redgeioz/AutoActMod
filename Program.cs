@@ -3,6 +3,7 @@ using BepInEx;
 using HarmonyLib;
 using System.Reflection;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace AutoAct
 {
@@ -18,6 +19,21 @@ namespace AutoAct
             new Harmony("AutoAct").PatchAll();
         }
 
+        public static bool active = false;
+
+        public static AIAct autoSetAct;
+
+        public static int targetType = -1;
+        public static int targetGrowth = -1;
+        public static string targetTypeStr = "";
+        public static bool targetCanHarvest = false;
+
+        public static Point startPoint = null;
+        public static Point drawWaterPoint = null;
+
+        public static HashSet<Point> curtFarmfield = new HashSet<Point>();
+
+
         public static void UpdateState(AIAct a)
         {
             if (!a.owner.IsPC)
@@ -25,6 +41,7 @@ namespace AutoAct
                 return;
             }
 
+            // Debug.Log($"UpdateState from: {a}");
             if (a == autoSetAct)
             {
                 active = true;
@@ -35,36 +52,70 @@ namespace AutoAct
             {
                 active = true;
             }
+            // else if (a is TaskDrawWater tdw2)
+            // {
+            //     Debug.Log($"draw pos {drawWaterPoint} , pos {tdw2.pos}");
+            //     if (drawWaterPoint != null && tdw2.pos.Equals(drawWaterPoint))
+            //     {
+            //         Debug.Log($"active: {active}");
+            //         return;
+            //     } else {
+            //         active = false;
+            //         return;
+            //     }
+            // }
+            else if (a is TaskDrawWater tdw2 && drawWaterPoint != null && tdw2.pos.Equals(drawWaterPoint))
+            {
+                // active is already true
+                return;
+            }
             else
             {
                 active = false;
                 return;
             }
 
-            if (a is TaskPlow)
+            if (a is TaskDrawWater tdw)
             {
-                startPoint = (a as TaskPlow).pos;
+                targetTypeStr = (tdw.pos.HasBridge ? tdw.pos.matBridge : tdw.pos.matFloor).alias;
+                drawWaterPoint = tdw.pos.Copy();
+                // Debug.Log($"===New start target: {tdw.pos}, floor id: {targetTypeStr}");
+                return;
+            }
+            else
+            {
+                drawWaterPoint = null;
+            }
+
+            if (a is TaskPourWater tpw)
+            {
+                targetType = tpw.pos.cell.sourceSurface.id;
+                startPoint = tpw.pos.Copy();
                 return;
             }
 
-            if (!(a is BaseTaskHarvest))
+            if (a is TaskDig td)
             {
+                targetType = td.pos.cell.sourceSurface.id;
+                startPoint = td.pos.Copy();
+                // Debug.Log($"===New start target: {td.pos}, floor id: {(int)td.pos.cell._floor} {td.pos.cell.sourceSurface.id}");
                 return;
             }
 
-            BaseTaskHarvest t = a as BaseTaskHarvest;
-
-            if (a is TaskDig)
+            if (a is TaskPlow tp)
             {
-                targetType = t.pos.cell._floor;
-                startPoint = t.pos.Copy();
-                // Debug.Log($"===New start target: {t.pos}, floor id: {(int)t.pos.cell._floor}");
+                startPoint = tp.pos;
+                return;
+            }
+
+            if (!(a is BaseTaskHarvest t))
+            {
                 return;
             }
 
             if (t.harvestType == BaseTaskHarvest.HarvestType.Thing)
             {
-                targetThingType = t.target.Name;
+                targetTypeStr = t.target.Name;
                 // Debug.Log($"===New start target: {t.pos}, thing: {t.target.Name}");
             }
             else
@@ -121,19 +172,6 @@ namespace AutoAct
             active = false;
             autoSetAct = null;
         }
-
-        public static bool active = false;
-
-        public static AIAct autoSetAct;
-
-        public static int targetType = -1;
-        public static int targetGrowth = -1;
-        public static string targetThingType = "";
-        public static bool targetCanHarvest = false;
-
-        public static Point startPoint = null;
-
-        public static HashSet<Point> curtFarmfield = new HashSet<Point>();
 
         public static void InitFarmfield(Point p, bool isWater)
         {
@@ -219,6 +257,16 @@ namespace AutoAct
         }
     }
 
+    [HarmonyPatch(typeof(AM_Adv), "TryCancelInteraction")]
+    static class TryCancelInteraction_Patch
+    {
+        [HarmonyPostfix]
+        static void Postfix()
+        {
+            AutoAct.Cancel();
+        }
+    }
+
     // [HarmonyPatch(typeof(Chara), "SetAI")]
     // static class SetAI_Patch
     // {
@@ -237,7 +285,22 @@ namespace AutoAct
     //         Debug.Log($"===  Set AI  ===");
     //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
     //         Debug.Log($"==== Set AI ====");
-    //         Utils.PrintStackTrace();
+    //         // Utils.PrintStackTrace();
+    //     }
+    // }
+
+    // [HarmonyPatch(typeof(AIAct), MethodType.Constructor)]
+    // static class AIAct_Patch
+    // {
+    //     [HarmonyPrefix]
+    //     static void Prefix(AIAct __instance)
+    //     {
+    //         if (__instance is TaskDrawWater)
+    //         {
+    //             Debug.Log($"===  TaskDrawWater  ===");
+    //             Utils.PrintStackTrace();
+    //             Debug.Log($"===  TaskDrawWater  ===");
+    //         }
     //     }
     // }
 }

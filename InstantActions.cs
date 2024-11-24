@@ -39,7 +39,6 @@ namespace AutoAct
 		static void ContinueBuild(Func<Point, bool> filter)
 		{
 			Point targetPoint = GetNextTarget(filter);
-
 			if (targetPoint == null)
 			{
 				return;
