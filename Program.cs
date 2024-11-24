@@ -119,6 +119,7 @@ namespace AutoAct
         public static void Cancel()
         {
             active = false;
+            autoSetAct = null;
         }
 
         public static bool active = false;
