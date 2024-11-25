@@ -28,7 +28,7 @@ namespace AutoAct
 
 			if (held.category.id == "seed")
 			{
-				ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null && p.Installed == null);
+				ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null && p.Installed == null, Settings.SowRange);
 			}
 			else if (held.category.id == "fertilizer")
 			{
@@ -36,9 +36,9 @@ namespace AutoAct
 			}
 		}
 
-		static void ContinueBuild(Func<Point, bool> filter)
+		static void ContinueBuild(Func<Point, bool> filter, int range = 0)
 		{
-			Point targetPoint = GetNextTarget(filter);
+			Point targetPoint = GetNextTarget(filter, range);
 			if (targetPoint == null)
 			{
 				return;
@@ -54,7 +54,7 @@ namespace AutoAct
 			AutoAct.SetNextTask(task);
 		}
 
-		static Point GetNextTarget(Func<Point, bool> filter)
+		static Point GetNextTarget(Func<Point, bool> filter, int range = 0)
 		{
 			List<(Point, int, int, int)> list = new List<(Point, int, int, int)>();
 			foreach (Point p in AutoAct.curtFarmfield)
@@ -70,14 +70,16 @@ namespace AutoAct
 					break;
 				}
 
-				int dx = Math.Abs(AutoAct.startPoint.x - p.x);
-				int dz = Math.Abs(AutoAct.startPoint.z - p.z);
-				int max = Math.Max(dx, dz);
-
-				int dist2 = Utils.Dist2(EClass.pc.pos, p);
-				if (dist2 <= 2)
+				int max = Utils.MaxDelta(AutoAct.startPoint, p);
+				if (range > 0 && max > range)
 				{
-					list.Add((p, max, dist2 - 2, dist2));
+					continue;
+				}
+
+				int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+				if (max <= 1)
+				{
+					list.Add((p, max, max - 1, dist2));
 					continue;
 				}
 

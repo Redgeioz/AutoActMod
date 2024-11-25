@@ -4,6 +4,7 @@ using HarmonyLib;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Drawing;
 
 namespace AutoAct
 {
@@ -12,11 +13,32 @@ namespace AutoAct
     {
         void Awake()
         {
+            string instructionRange = "Value x 2 + 1 = range. If the value is 2, then the range is 5x5.";
             Settings.detRangeSq = base.Config.Bind("Settings", "DetectionRangeSquared", 25, "Sqaure of detection range.");
-            Settings.digRange = base.Config.Bind("Settings", "DiggingRange", 2, "Value x 2 + 1 = range. If the value is 2, then the range is 5x5.");
-            Settings.plowRange = base.Config.Bind("Settings", "PlowingRange", 2, "Value x 2 + 1 = range. If the value is 2, then the range is 5x5.");
+            Settings.digRange = base.Config.Bind("Settings", "DiggingRange", 2, instructionRange);
+            Settings.plowRange = base.Config.Bind("Settings", "PlowingRange", 2, instructionRange);
+            Settings.sowRange = base.Config.Bind("Settings", "SowingRange", 0, instructionRange);
+            Settings.pourRange = base.Config.Bind("Settings", "PouringRange", 2, instructionRange);
+            Settings.pourDepth = base.Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
             Settings.sameFarmfieldOnly = base.Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
+            Settings.keyMode = base.Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
+            Settings.keyCode = base.Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
             new Harmony("AutoAct").PatchAll();
+        }
+
+        void Update()
+        {
+            if (!Settings.KeyMode)
+            {
+                return;
+            }
+
+            if (Input.GetKeyDown(Settings.KeyCode))
+            {
+                switchOn = !switchOn;
+                Msg.SetColor(Msg.colors.TalkGod);
+                Msg.Say(Lang.GetText(switchOn ? "on" : "off"));
+            }
         }
 
         public static bool active = false;
@@ -31,7 +53,13 @@ namespace AutoAct
         public static Point startPoint = null;
         public static Point drawWaterPoint = null;
 
+        public static int pourCount = 0;
+
         public static HashSet<Point> curtFarmfield = new HashSet<Point>();
+
+        public static bool switchOn = false;
+
+        public static bool IsSwitchOn => Settings.KeyMode ? switchOn : EInput.isShiftDown;
 
 
         public static void UpdateState(AIAct a)
@@ -48,7 +76,7 @@ namespace AutoAct
                 return;
             }
 
-            if (EInput.isShiftDown)
+            if (IsSwitchOn)
             {
                 active = true;
             }
@@ -91,6 +119,7 @@ namespace AutoAct
             {
                 targetType = tpw.pos.cell.sourceSurface.id;
                 startPoint = tpw.pos.Copy();
+                pourCount = 0;
                 return;
             }
 
@@ -147,7 +176,7 @@ namespace AutoAct
                 return;
             }
 
-            if (EInput.isShiftDown)
+            if (IsSwitchOn)
             {
                 active = true;
             }
@@ -244,6 +273,13 @@ namespace AutoAct
             int dx = p1.x - p2.x;
             int dz = p1.z - p2.z;
             return dx * dx + dz * dz;
+        }
+
+        public static int MaxDelta(Point p1, Point p2)
+        {
+            int dx = Math.Abs(p1.x - p2.x);
+            int dz = Math.Abs(p1.z - p2.z);
+            return Math.Max(dx, dz);
         }
     }
 

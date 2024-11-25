@@ -50,7 +50,11 @@ namespace AutoAct
         {
             if (AutoAct.active && AutoAct.targetType != __instance.pos.sourceFloor.id)
             {
-                __instance.Cancel();
+                AutoAct.pourCount += 1;
+                if (AutoAct.pourCount >= Settings.PourDepth)
+                {
+                    __instance.Cancel();
+                }
             }
             else
             {
@@ -297,7 +301,25 @@ namespace AutoAct
                 return;
             }
 
-            Point targetPoint = GetNextTarget(cell => !cell.HasBridge && cell.sourceSurface.id == AutoAct.targetType && pot.owner.c_charges > 0);
+            if (AutoAct.pourCount < Settings.PourDepth - 1) {
+                return;
+            }
+
+            if (pot.owner.c_charges == 0)
+            {
+                Card nextPot = EClass.pc.things.Find(t => t.trait is TraitToolWaterPot twp && twp.owner.c_charges > 0);
+                if (nextPot != null)
+                {
+                    pot = nextPot.trait as TraitToolWaterPot;
+                    EClass.pc.HoldCard(nextPot);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            Point targetPoint = GetNextTarget2(cell => !cell.HasBridge && cell.sourceSurface.id == AutoAct.targetType, Settings.PourRange);
             if (targetPoint == null)
             {
                 return;
@@ -305,6 +327,7 @@ namespace AutoAct
 
             TaskPourWater task = new TaskPourWater { pos = targetPoint, pot = pot };
             AutoAct.SetNextTask(task);
+            AutoAct.pourCount = 0;
         }
 
         static bool CommonFilter(Cell cell)
@@ -347,9 +370,10 @@ namespace AutoAct
                     return;
                 }
 
+                int dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
                 if (dist2 <= 2)
                 {
-                    list.Add((p, dist2 - 2, dist2));
+                    list.Add((p, dist2 == 0 ? 0 : 1, dist2ToLastPoint));
                     return;
                 }
 
@@ -360,17 +384,17 @@ namespace AutoAct
                     return;
                 }
 
-                list.Add((p, path.nodes.Count, dist2));
+                list.Add((p, path.nodes.Count, dist2ToLastPoint));
             });
 
             (Point targetPoint, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).FirstOrDefault();
 
-            if (targetPoint != null && targetPoint.cell.growth != null)
-            {
-                Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, original target stage: {AutoAct.targetGrowth}");
-                Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
-                Debug.Log($"Target should be: {AutoAct.targetType}");
-            }
+            // if (targetPoint != null && targetPoint.cell.growth != null)
+            // {
+            //     Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, OriginalStage: {AutoAct.targetGrowth}, CanHarvest: {targetPoint.cell.growth.CanHarvest()}");
+            //     Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
+            //     Debug.Log($"Target should be: {AutoAct.targetType}");
+            // }
 
             return targetPoint;
         }
@@ -398,9 +422,10 @@ namespace AutoAct
                     return;
                 }
 
+                int dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
                 if (dist2 <= 2)
                 {
-                    list.Add((thing, dist2 - 2, dist2));
+                    list.Add((thing, dist2 == 0 ? 0 : 1, dist2ToLastPoint));
                     return;
                 }
 
@@ -411,7 +436,7 @@ namespace AutoAct
                     return;
                 }
 
-                list.Add((thing, path.nodes.Count, dist2));
+                list.Add((thing, path.nodes.Count, dist2ToLastPoint));
             });
 
             (Thing target, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).FirstOrDefault();
@@ -441,18 +466,16 @@ namespace AutoAct
 
                 Point p = cell.GetPoint();
                 // Range 2 => Max range 5x5
-                int dx = Math.Abs(AutoAct.startPoint.x - p.x);
-                int dz = Math.Abs(AutoAct.startPoint.z - p.z);
-                int max = Math.Max(dx, dz);
+                int max = Utils.MaxDelta(AutoAct.startPoint, p);
                 if (max > range)
                 {
                     return;
                 }
 
-                int dist2 = Utils.Dist2(EClass.pc.pos, p);
-                if (dist2 <= 2)
+                int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                if (max <= 1)
                 {
-                    list.Add((p, max, dist2 - 2, dist2));
+                    list.Add((p, max, max - 1, dist2));
                     return;
                 }
 
@@ -505,10 +528,11 @@ namespace AutoAct
                 }
 
 
-                int dist2 = Utils.Dist2(EClass.pc.pos, p);
-                if (dist2 <= 2)
+                int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                int max = Utils.MaxDelta(EClass.pc.pos, p);
+                if (max <= 1)
                 {
-                    list.Add((p, dist2 - 2, dist2));
+                    list.Add((p, max - 1, dist2));
                     continue;
                 }
 
@@ -526,6 +550,12 @@ namespace AutoAct
                 .OrderBy(tuple => tuple.Item2)
                 .ThenBy(tuple => tuple.Item3)
                 .FirstOrDefault();
+            // if (targetPoint != null && targetPoint.cell.growth != null)
+            // {
+            //     Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, original stage: {AutoAct.targetGrowth}, can harvest: {targetPoint.cell.growth.CanHarvest()}");
+            //     Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
+            //     Debug.Log($"Target should be: {AutoAct.targetType}");
+            // }
             return targetPoint;
         }
     }

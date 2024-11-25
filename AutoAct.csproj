@@ -29,6 +29,10 @@
       <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
     </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
     <Reference Include="BepInEx.Core">
       <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\BepInEx.Core.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
