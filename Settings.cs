@@ -14,6 +14,7 @@ namespace AutoAct
         public static ConfigEntry<int> sowRange;
         public static ConfigEntry<int> pourRange;
         public static ConfigEntry<int> pourDepth;
+        public static ConfigEntry<int> seedReapingCount;
         public static ConfigEntry<bool> sameFarmfieldOnly;
         public static ConfigEntry<bool> keyMode;
 
@@ -53,6 +54,12 @@ namespace AutoAct
         {
             get { return pourDepth.Value; }
             set { pourDepth.Value = value; }
+        }
+
+        public static int SeedReapingCount
+        {
+            get { return seedReapingCount.Value; }
+            set { seedReapingCount.Value = value; }
         }
 
         public static bool SameFarmfieldOnly
@@ -117,7 +124,7 @@ namespace AutoAct
                     {
                         float n = v / 2;
                         Settings.DetRangeSq = (int)(n * n);
-                        return "(" + n.ToString() + ")";
+                        return n.ToString();
                     },
                     (int)Math.Sqrt(Settings.DetRangeSq) * 2,
                     v => { },
@@ -131,7 +138,7 @@ namespace AutoAct
                     {
                         Settings.DigRange = (int)v;
                         string str = (Settings.DigRange * 2 + 1).ToString();
-                        return "(" + str + "x" + str + ")";
+                        return str + "x" + str;
                     },
                     Settings.DigRange,
                     v => { },
@@ -145,7 +152,7 @@ namespace AutoAct
                     {
                         Settings.PlowRange = (int)v;
                         string str = (Settings.PlowRange * 2 + 1).ToString();
-                        return "(" + str + "x" + str + ")";
+                        return str + "x" + str;
                     },
                     Settings.PlowRange,
                     v => { },
@@ -161,7 +168,7 @@ namespace AutoAct
                         if (Settings.SowRange != 0)
                         {
                             string str = (Settings.SowRange * 2 + 1).ToString();
-                            return "(" + str + "x" + str + ")";
+                            return str + "x" + str;
                         }
                         else
                         {
@@ -180,7 +187,7 @@ namespace AutoAct
                     {
                         Settings.PourRange = (int)v;
                         string str = (Settings.PourRange * 2 + 1).ToString();
-                        return "(" + str + "x" + str + ")";
+                        return str + "x" + str;
                     },
                     Settings.PourRange,
                     v => { },
@@ -193,12 +200,25 @@ namespace AutoAct
                     v =>
                     {
                         Settings.PourDepth = (int)v;
-                        return "(" + v.ToString() + ")";
+                        return v.ToString();
                     },
                     Settings.PourDepth,
                     v => { },
                     1,
                     4,
+                    true
+                );
+                menu.AddSlider(
+                    Lang.GetText("seedReapingCount"),
+                    v =>
+                    {
+                        Settings.SeedReapingCount = (int)v;
+                        return v.ToString();
+                    },
+                    Settings.SeedReapingCount,
+                    v => { },
+                    1,
+                    50,
                     true
                 );
                 menu.Show();
@@ -245,6 +265,7 @@ namespace AutoAct
                     { "sowRange", "播种范围" },
                     { "pourRange", "倒水范围" },
                     { "pourDepth", "倒水深度" },
+                    { "seedReapingCount", "种子收获数" },
                     { "keyMode", "按键模式" },
                     { "press", "按住" },
                     { "toggle", "切换" },
@@ -264,6 +285,7 @@ namespace AutoAct
                     { "sowRange", "播種範圍" },
                     { "pourRange", "倒水範圍" },
                     { "pourDepth", "倒水深度" },
+                    { "seedReapingCount", "種子收獲數" },
                     { "keyMode", "按鍵模式" },
                     { "press", "按住" },
                     { "toggle", "切換" },
@@ -283,6 +305,7 @@ namespace AutoAct
                     { "sowRange", "播種範囲" },
                     { "pourRange", "注水範囲" },
                     { "pourDepth", "注水深さ" },
+                    { "seedReapingCount", "種子収穫数" },
                     { "keyMode", "キーモード" },
                     { "press", "押す" },
                     { "toggle", "切り替え" },
@@ -302,6 +325,7 @@ namespace AutoAct
                     { "sowRange", "Sowing Range" },
                     { "pourRange", "Pouring Range" },
                     { "pourDepth", "Pouring Depth" },
+                    { "seedReapingCount", "Count For Seed Reaping" },
                     { "keyMode", "Key Mode" },
                     { "press", "Press" },
                     { "toggle", "Toggle" },

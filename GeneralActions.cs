@@ -106,8 +106,28 @@ namespace AutoAct
             {
                 ContinueMine();
             }
-            else if (ai is TaskHarvest)
+            else if (ai is TaskHarvest th)
             {
+                if (th.wasReapSeed)
+                {
+                    int count = 0;
+                    EClass.pc.things.ForEach(t =>
+                    {
+                        if (t.trait is TraitSeed seed && seed.row.id == AutoAct.seedId)
+                        {
+                            count += t.Num;
+                        }
+                    });
+                    if (count >= Settings.SeedReapingCount + AutoAct.originalSeedCount)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    AutoAct.seedId = -1;
+                }
+
                 ContinueHarvest();
             }
             else if (ai is TaskDrawWater)
@@ -301,7 +321,8 @@ namespace AutoAct
                 return;
             }
 
-            if (AutoAct.pourCount < Settings.PourDepth - 1) {
+            if (AutoAct.pourCount < Settings.PourDepth - 1)
+            {
                 return;
             }
 
@@ -339,6 +360,11 @@ namespace AutoAct
 
             if (cell.growth != null)
             {
+                if (AutoAct.seedId >= 0 && cell.CanReapSeed())
+                {
+                    return true;
+                }
+
                 if (cell.growth.CanHarvest() != AutoAct.targetCanHarvest)
                 {
                     return false;

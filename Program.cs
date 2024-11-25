@@ -4,7 +4,7 @@ using HarmonyLib;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Drawing;
+using System.Linq;
 
 namespace AutoAct
 {
@@ -20,6 +20,7 @@ namespace AutoAct
             Settings.sowRange = base.Config.Bind("Settings", "SowingRange", 0, instructionRange);
             Settings.pourRange = base.Config.Bind("Settings", "PouringRange", 2, instructionRange);
             Settings.pourDepth = base.Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
+            Settings.seedReapingCount = base.Config.Bind("Settings", "SeedReapingCount", 25);
             Settings.sameFarmfieldOnly = base.Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
             Settings.keyMode = base.Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
             Settings.keyCode = base.Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
@@ -55,6 +56,10 @@ namespace AutoAct
 
         public static int pourCount = 0;
 
+        public static int originalSeedCount = 0;
+
+        public static int seedId = -1;
+
         public static HashSet<Point> curtFarmfield = new HashSet<Point>();
 
         public static bool switchOn = false;
@@ -80,18 +85,6 @@ namespace AutoAct
             {
                 active = true;
             }
-            // else if (a is TaskDrawWater tdw2)
-            // {
-            //     Debug.Log($"draw pos {drawWaterPoint} , pos {tdw2.pos}");
-            //     if (drawWaterPoint != null && tdw2.pos.Equals(drawWaterPoint))
-            //     {
-            //         Debug.Log($"active: {active}");
-            //         return;
-            //     } else {
-            //         active = false;
-            //         return;
-            //     }
-            // }
             else if (a is TaskDrawWater tdw2 && drawWaterPoint != null && tdw2.pos.Equals(drawWaterPoint))
             {
                 // active is already true
@@ -137,7 +130,7 @@ namespace AutoAct
                 return;
             }
 
-            if (!(a is BaseTaskHarvest t))
+            if (!(a is TaskHarvest t))
             {
                 return;
             }
@@ -156,11 +149,25 @@ namespace AutoAct
             {
                 return;
             }
+
             targetGrowth = t.pos.growth.stage.idx;
             targetCanHarvest = t.pos.growth.CanHarvest();
             curtFarmfield.Clear();
             // Debug.Log($"===New start is mature: {targetGrowth}");
             // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
+
+            if (t.IsReapSeed)
+            {
+                seedId = t.pos.sourceObj.id;
+                originalSeedCount = 0;
+                EClass.pc.things.ForEach(thing =>
+                {
+                    if (thing.trait is TraitSeed seed && seed.row.id == seedId)
+                    {
+                        originalSeedCount += thing.Num;
+                    }
+                });
+            }
         }
 
         public static void UpdateStateInstant(TaskBuild a)
@@ -322,21 +329,6 @@ namespace AutoAct
     //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
     //         Debug.Log($"==== Set AI ====");
     //         // Utils.PrintStackTrace();
-    //     }
-    // }
-
-    // [HarmonyPatch(typeof(AIAct), MethodType.Constructor)]
-    // static class AIAct_Patch
-    // {
-    //     [HarmonyPrefix]
-    //     static void Prefix(AIAct __instance)
-    //     {
-    //         if (__instance is TaskDrawWater)
-    //         {
-    //             Debug.Log($"===  TaskDrawWater  ===");
-    //             Utils.PrintStackTrace();
-    //             Debug.Log($"===  TaskDrawWater  ===");
-    //         }
     //     }
     // }
 }

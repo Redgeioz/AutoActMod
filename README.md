@@ -11,6 +11,7 @@ Automatically perform the same type of action, hold down Shift and take the acti
 |剪毛     |毛を刈る            |Shear             |
 |耕地     |耕す               |Plow               |
 |种植     |種を蒔く            |Plant seed         |
+|收获种子 |種を刈る            |Reap seed         |
 |施肥     |肥料を蒔く          |Fertilize          |
 |抽水     |水を汲む          |Draw water          |
 |倒水     |水を注ぐ          |Pour water          |
