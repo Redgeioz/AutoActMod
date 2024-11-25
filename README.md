@@ -14,6 +14,8 @@ Automatically perform the same type of action, hold down Shift and take the acti
 |耕地     |耕す               |Plow               |
 |种植     |種を蒔く            |Plant seed         |
 |施肥     |肥料を蒔く          |Fertilize          |
+|抽水     |水を汲む          |Draw water          |
+|倒水     |水を注ぐ          |Pour water          |
 |挖掘地面 |地面を掘る          |Dig                |
 
 其中，收割的植物是否成熟决定了之后会收割成熟的植物还是未成熟植物。

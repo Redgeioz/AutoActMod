@@ -28,7 +28,7 @@ namespace AutoAct
 
 			if (held.category.id == "seed")
 			{
-				ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null);
+				ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null && p.Installed == null);
 			}
 			else if (held.category.id == "fertilizer")
 			{
