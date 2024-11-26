@@ -10,12 +10,14 @@ Automatically perform the same type of action, hold down Shift and take the acti
 |收割     |刈り取る            |Harvest           |
 |剪毛     |毛を刈る            |Shear             |
 |耕地     |耕す               |Plow               |
-|种植     |種を蒔く            |Plant seed         |
+|种植     |種を蒔く            |Plant seed        |
 |收获种子 |種を刈る            |Reap seed         |
-|施肥     |肥料を蒔く          |Fertilize          |
-|抽水     |水を汲む          |Draw water          |
-|倒水     |水を注ぐ          |Pour water          |
-|挖掘地面 |地面を掘る          |Dig                |
+|施肥     |肥料を蒔く          |Fertilize         |
+|抽水     |水を汲む           |Draw water         |
+|倒水     |水を注ぐ           |Pour water         |
+|打扫     |掃除               |Clean             |
+|拾取     |拾う               |Pick              |
+|挖掘地面 |地面を掘る          |Dig               |
 
 收割的植物是否成熟决定了之后会收割成熟的植物还是未成熟植物。
 刈り取った植物が成熟するかどうかは、その後に成熟した植物を刈り取るか未成熟植物かを決める。

@@ -69,12 +69,12 @@ namespace AutoAct
 
         public static void UpdateState(AIAct a)
         {
-            if (!a.owner.IsPC)
+            if (!a.owner.IsPC || EClass.pc.stamina.value <= 0)
             {
                 return;
             }
 
-            // Debug.Log($"UpdateState from: {a}");
+            Debug.Log($"UpdateState from: {a}");
             if (a == autoSetAct)
             {
                 active = true;
@@ -130,7 +130,7 @@ namespace AutoAct
                 return;
             }
 
-            if (!(a is TaskHarvest t))
+            if (!(a is BaseTaskHarvest t))
             {
                 return;
             }
@@ -145,6 +145,7 @@ namespace AutoAct
                 targetType = t.pos.sourceObj.id;
                 // Debug.Log($"===New start target: {t.pos}, id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}");
             }
+
             if (t.pos.growth == null)
             {
                 return;
@@ -156,9 +157,9 @@ namespace AutoAct
             // Debug.Log($"===New start is mature: {targetGrowth}");
             // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
 
-            if (t.IsReapSeed)
+            if (t is TaskHarvest th && th.IsReapSeed)
             {
-                seedId = t.pos.sourceObj.id;
+                seedId = th.pos.sourceObj.id;
                 originalSeedCount = 0;
                 EClass.pc.things.ForEach(thing =>
                 {
@@ -310,26 +311,26 @@ namespace AutoAct
         }
     }
 
-    // [HarmonyPatch(typeof(Chara), "SetAI")]
-    // static class SetAI_Patch
-    // {
-    //     [HarmonyPrefix]
-    //     static void Prefix(Chara __instance, AIAct g)
-    //     {
-    //         if (!__instance.IsPC)
-    //         {
-    //             return;
-    //         }
-    //         AIAct prev = __instance.ai;
-    //         // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
-    //         // {
-    //         //     return;
-    //         // }
-    //         Debug.Log($"===  Set AI  ===");
-    //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
-    //         Debug.Log($"==== Set AI ====");
-    //         // Utils.PrintStackTrace();
-    //     }
-    // }
+    [HarmonyPatch(typeof(Chara), "SetAI")]
+    static class SetAI_Patch
+    {
+        [HarmonyPrefix]
+        static void Prefix(Chara __instance, AIAct g)
+        {
+            if (!__instance.IsPC)
+            {
+                return;
+            }
+            AIAct prev = __instance.ai;
+            // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
+            // {
+            //     return;
+            // }
+            Debug.Log($"===  Set AI  ===");
+            Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
+            Debug.Log($"==== Set AI ====");
+            // Utils.PrintStackTrace();
+        }
+    }
 }
 

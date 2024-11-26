@@ -6,16 +6,27 @@ using UnityEngine;
 
 namespace AutoAct
 {
-	[HarmonyPatch(typeof(TaskBuild), "OnProgressComplete")]
-	static class TaskBuild_OnProgressComplete_Patch
+	[HarmonyPatch(typeof(TaskBuild), "OnDestroy")]
+	static class TaskBuild_OnDestroy_Patch
 	{
 		[HarmonyPostfix]
 		static void Postfix(TaskBuild __instance)
 		{
+			if (__instance != EClass.pc.ai) {
+				return;
+			}
+
 			AutoAct.UpdateStateInstant(__instance);
 
 			if (!AutoAct.active || EClass.pc.held == null)
 			{
+				return;
+			}
+
+			// Debug.Log($"Try continuing {__instance}, status {__instance.status}");
+			if (__instance.status != AIAct.Status.Success)
+			{
+				Debug.LogWarning("AutoAct: Failed to continue TaskBuild");
 				return;
 			}
 

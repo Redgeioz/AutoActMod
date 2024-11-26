@@ -62,6 +62,38 @@ namespace AutoAct
             }
         }
 
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(DynamicAct), "Perform")]
+        static void DaynamicAct_Patch(DynamicAct __instance)
+        {
+            Debug.Log($"DynamicAct: {__instance.id}");
+            if (!AutoAct.IsSwitchOn) { return; }
+            if (__instance.id == "actClean")
+            {
+                AutoAct.active = true;
+                AIAct_Success_Patch.ContinueClean();
+            }
+            else if (__instance.id == "actPickOne")
+            {
+                if (!(Scene.HitPoint.ListCards()[0] is Thing refThing)) { return; }
+                AutoAct.active = true;
+                AIAct_Success_Patch.ContinuePick(refThing);
+            }
+            else if (__instance.id == "actHold")
+            {
+                if (!(Scene.HitPoint.ListCards()[0] is Thing refThing)) { return; }
+                AutoAct.active = true;
+                AIAct_Success_Patch.ContinuePick(refThing, refThing.placeState == PlaceState.installed);
+            }
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(AI_Clean), "Run")]
+        static void AIClean_Patch(AI_Clean __instance)
+        {
+            AutoAct.UpdateState(__instance);
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(typeof(AI_Shear), "Run")]
         static void AIShear_Patch(AI_Shear __instance)
@@ -70,29 +102,36 @@ namespace AutoAct
         }
     }
 
-    [HarmonyPatch(typeof(Progress_Custom), "OnProgressComplete")]
-    static class Progress_Custom_OnProgressComplete_Patch
+    [HarmonyPatch(typeof(AIAct), "Success")]
+    static class AIAct_Success_Patch
     {
-
         [HarmonyPostfix]
-        static void Postfix()
+        static void Postfix(AIAct __instance)
         {
-            if (!AutoAct.active)
+            if (!AutoAct.active || __instance != EClass.pc.ai || __instance is TaskBuild)
             {
                 return;
             }
 
-            // Debug.Log($"Prev AI {EClass.pc.ai}, status {EClass.pc.ai.status}");
-            bool lastActionSucceed = EClass.pc.ai != null && EClass.pc.ai.status == AIAct.Status.Running;
-            if (!lastActionSucceed)
+            // Debug.Log($"Try continuing {__instance}, status {__instance.status}");
+            if (__instance.status != AIAct.Status.Success)
             {
+                Debug.LogWarning($"AutoAct: Failed to continue {__instance}");
                 return;
             }
 
-            AIAct ai = EClass.pc.ai;
+            AIAct ai = __instance;
             if (ai is AI_Shear)
             {
                 ContinueShear();
+            }
+            else if (ai is AI_Clean)
+            {
+                ContinueClean();
+            }
+            else if (ai is AI_Pick)
+            {
+                ContinuePick();
             }
             else if (ai is TaskPlow)
             {
@@ -170,6 +209,73 @@ namespace AutoAct
             }
 
             AutoAct.SetNextTask(new AI_Shear { target = target });
+        }
+
+        public static void ContinueClean()
+        {
+            Card held = EClass.pc.held;
+            if (held == null || !(held.trait is TraitBroom))
+            {
+                return;
+            }
+
+            Point targetPoint = GetNextTarget(cell => !cell.HasObj && !cell.HasBlock && cell.Installed == null && (cell.decal > 0 || (cell.effect != null && cell.effect.IsLiquid)));
+            if (targetPoint == null)
+            {
+                return;
+            }
+
+            AI_Clean task = new AI_Clean { pos = targetPoint };
+            AutoAct.SetNextTask(task);
+        }
+
+        public static void ContinuePick(Thing refThing = null, bool installed = false)
+        {
+            if (refThing == null)
+            {
+                AI_Pick last = EClass.pc.ai as AI_Pick;
+                refThing = last.refThing;
+                installed = last.installed;
+            }
+
+            Point targetPoint = GetNextTarget(cell =>
+            {
+                if (cell.HasBlock || cell.HasObj)
+                {
+                    return false;
+                }
+
+                if (installed)
+                {
+                    if (cell.Installed != null && refThing.CanStackTo(refThing))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+                else
+                {
+                    Point p = cell.GetPoint();
+                    if (p.HasThing && p.Things.Find(t => refThing.CanStackTo(t)) != null)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            });
+            if (targetPoint == null)
+            {
+                return;
+            }
+
+            AI_Pick task = new AI_Pick { pos = targetPoint, refThing = refThing, installed = installed };
+            AutoAct.SetNextTask(task);
         }
 
         static void ContinueHarvest()
@@ -396,7 +502,7 @@ namespace AutoAct
                     return;
                 }
 
-                int dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                int dist2ToLastPoint = EClass.pc.ai is TaskPoint ? Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p) : dist2;
                 if (dist2 <= 2)
                 {
                     list.Add((p, dist2 == 0 ? 0 : 1, dist2ToLastPoint));
