@@ -74,7 +74,7 @@ namespace AutoAct
                 return;
             }
 
-            Debug.Log($"UpdateState from: {a}");
+            // Debug.Log($"UpdateState from: {a}");
             if (a == autoSetAct)
             {
                 active = true;
@@ -143,10 +143,10 @@ namespace AutoAct
             else
             {
                 targetType = t.pos.sourceObj.id;
-                // Debug.Log($"===New start target: {t.pos}, id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}");
+                // Debug.Log($"===New start target: {t.pos}, id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}, {t.pos}");
             }
 
-            Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
+            // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
             if (t.pos.growth == null)
             {
                 return;
@@ -207,9 +207,12 @@ namespace AutoAct
             if (held.category.id == "seed" || held.category.id == "fertilizer")
             {
                 PlantData plantData = a.pos.cell.TryGetPlant();
-                if (plantData != null) {
+                if (plantData != null)
+                {
                     plantFert = plantData.fert;
-                } else {
+                }
+                else
+                {
                     plantFert = 0;
                 }
                 InitFarmfield(startPoint, startPoint.IsWater);
@@ -224,6 +227,9 @@ namespace AutoAct
         {
             EClass.pc.SetAIImmediate(a);
             autoSetAct = a;
+            if (a is BaseTaskHarvest t) {
+                t.SetTarget(EClass.pc);
+            }
         }
 
         public static void Cancel()
@@ -357,6 +363,18 @@ namespace AutoAct
     //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
     //         Debug.Log($"==== Set AI ====");
     //         // Utils.PrintStackTrace();
+    //     }
+    // }
+
+    // [HarmonyPatch(typeof(TaskPoint), "Run")]
+    // static class AIAct_Run_Patch
+    // {
+    //     [HarmonyPostfix]
+    //     static void Prefix(TaskPoint __instance)
+    //     {
+    //         // Debug.Log($"==Start Cancel {__instance} =============");
+    //         // Utils.PrintStackTrace();
+    //         // Debug.Log($"===========End {__instance} =============");
     //     }
     // }
 }
