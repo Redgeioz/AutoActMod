@@ -373,5 +373,17 @@ namespace AutoAct
     //         // Utils.PrintStackTrace();
     //     }
     // }
+
+    // [HarmonyPatch(typeof(AIAct), "OnDestroy")]
+    // static class AIAct_Cancel_Patch
+    // {
+    //     [HarmonyPostfix]
+    //     static void Postfix(AIAct __instance)
+    //     {
+    //         Debug.Log($"==Start Cancel {__instance} =============");
+    //         Utils.PrintStackTrace();
+    //         Debug.Log($"===========End {__instance} =============");
+    //     }
+    // }
 }
 

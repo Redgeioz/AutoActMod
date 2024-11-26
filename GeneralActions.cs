@@ -53,7 +53,7 @@ namespace AutoAct
                 AutoAct.pourCount += 1;
                 if (AutoAct.pourCount >= Settings.PourDepth)
                 {
-                    __instance.Cancel();
+                    __instance.Success();
                 }
             }
             else
@@ -66,7 +66,7 @@ namespace AutoAct
         [HarmonyPatch(typeof(DynamicAct), "Perform")]
         static void DaynamicAct_Patch(DynamicAct __instance)
         {
-            Debug.Log($"DynamicAct: {__instance.id}");
+            // Debug.Log($"DynamicAct: {__instance.id}");
             if (!AutoAct.IsSwitchOn) { return; }
             if (__instance.id == "actClean")
             {
