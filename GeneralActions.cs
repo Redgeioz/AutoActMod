@@ -303,7 +303,7 @@ namespace AutoAct
             }
             else if (Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
             {
-                if (!AutoAct.curtFarmfield.Contains(lastTask.pos))
+                if (!AutoAct.curtField.Contains(lastTask.pos))
                 {
                     AutoAct.InitFarmfield(lastTask.pos, lastTask.pos.IsWater);
                 }
@@ -632,7 +632,7 @@ namespace AutoAct
         static Point GetNextFarmfieldTarget()
         {
             List<(Point, int, int)> list = new List<(Point, int, int)>();
-            foreach (Point p in AutoAct.curtFarmfield)
+            foreach (Point p in AutoAct.curtField)
             {
                 Cell cell = p.cell;
                 if (cell.sourceObj.id != AutoAct.targetType || !(cell.HasObj || cell.HasBlock))

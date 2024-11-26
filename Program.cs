@@ -50,7 +50,7 @@ namespace AutoAct
         public static int targetGrowth = -1;
         public static string targetTypeStr = "";
         public static bool targetCanHarvest = false;
-
+        public static int plantFert = 0;
         public static Point startPoint = null;
         public static Point drawWaterPoint = null;
 
@@ -60,7 +60,7 @@ namespace AutoAct
 
         public static int seedId = -1;
 
-        public static HashSet<Point> curtFarmfield = new HashSet<Point>();
+        public static HashSet<Point> curtField = new HashSet<Point>();
 
         public static bool switchOn = false;
 
@@ -146,6 +146,7 @@ namespace AutoAct
                 // Debug.Log($"===New start target: {t.pos}, id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}");
             }
 
+            Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
             if (t.pos.growth == null)
             {
                 return;
@@ -153,9 +154,8 @@ namespace AutoAct
 
             targetGrowth = t.pos.growth.stage.idx;
             targetCanHarvest = t.pos.growth.CanHarvest();
-            curtFarmfield.Clear();
+            curtField.Clear();
             // Debug.Log($"===New start is mature: {targetGrowth}");
-            // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
 
             if (t is TaskHarvest th && th.IsReapSeed)
             {
@@ -195,7 +195,29 @@ namespace AutoAct
             }
 
             startPoint = a.pos.Copy();
-            curtFarmfield.Clear();
+            curtField.Clear();
+
+            Card held = EClass.pc.held;
+            if (held == null)
+            {
+                active = false;
+                return;
+            }
+
+            if (held.category.id == "seed" || held.category.id == "fertilizer")
+            {
+                PlantData plantData = a.pos.cell.TryGetPlant();
+                if (plantData != null) {
+                    plantFert = plantData.fert;
+                } else {
+                    plantFert = 0;
+                }
+                InitFarmfield(startPoint, startPoint.IsWater);
+            }
+            // else if (held.category.id == "floor")
+            // {
+            //     InitField(startPoint, p => !p.HasBlock);
+            // }
         }
 
         public static void SetNextTask(AIAct a)
@@ -212,50 +234,55 @@ namespace AutoAct
 
         public static void InitFarmfield(Point p, bool isWater)
         {
-            Func<Point, bool> IsFarmField;
+            Func<Point, bool> filter;
 
             if (isWater)
             {
-                IsFarmField = pt => pt.IsWater;
+                filter = pt => pt.IsWater;
             }
             else
             {
-                IsFarmField = pt => pt.IsFarmField;
+                filter = pt => pt.IsFarmField;
             }
 
+            InitField(p, filter);
+        }
+
+        public static void InitField(Point p, Func<Point, bool> filter)
+        {
             Point left = new Point(p.x - 1, p.z);
-            if (left.IsInBounds && IsFarmField(left))
+            if (left.IsInBounds && filter(left))
             {
-                if (curtFarmfield.Add(left))
+                if (curtField.Add(left))
                 {
-                    InitFarmfield(left, isWater);
+                    InitField(left, filter);
                 }
             }
 
             Point right = new Point(p.x + 1, p.z);
-            if (right.IsInBounds && IsFarmField(right))
+            if (right.IsInBounds && filter(right))
             {
-                if (curtFarmfield.Add(right))
+                if (curtField.Add(right))
                 {
-                    InitFarmfield(right, isWater);
+                    InitField(right, filter);
                 }
             }
 
             Point top = new Point(p.x, p.z + 1);
-            if (top.IsInBounds && IsFarmField(top))
+            if (top.IsInBounds && filter(top))
             {
-                if (curtFarmfield.Add(top))
+                if (curtField.Add(top))
                 {
-                    InitFarmfield(top, isWater);
+                    InitField(top, filter);
                 }
             }
 
             Point bottom = new Point(p.x, p.z - 1);
-            if (bottom.IsInBounds && IsFarmField(bottom))
+            if (bottom.IsInBounds && filter(bottom))
             {
-                if (curtFarmfield.Add(bottom))
+                if (curtField.Add(bottom))
                 {
-                    InitFarmfield(bottom, isWater);
+                    InitField(bottom, filter);
                 }
             }
         }
@@ -311,26 +338,26 @@ namespace AutoAct
         }
     }
 
-    [HarmonyPatch(typeof(Chara), "SetAI")]
-    static class SetAI_Patch
-    {
-        [HarmonyPrefix]
-        static void Prefix(Chara __instance, AIAct g)
-        {
-            if (!__instance.IsPC)
-            {
-                return;
-            }
-            AIAct prev = __instance.ai;
-            // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
-            // {
-            //     return;
-            // }
-            Debug.Log($"===  Set AI  ===");
-            Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
-            Debug.Log($"==== Set AI ====");
-            // Utils.PrintStackTrace();
-        }
-    }
+    // [HarmonyPatch(typeof(Chara), "SetAI")]
+    // static class SetAI_Patch
+    // {
+    //     [HarmonyPrefix]
+    //     static void Prefix(Chara __instance, AIAct g)
+    //     {
+    //         if (!__instance.IsPC)
+    //         {
+    //             return;
+    //         }
+    //         AIAct prev = __instance.ai;
+    //         // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
+    //         // {
+    //         //     return;
+    //         // }
+    //         Debug.Log($"===  Set AI  ===");
+    //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
+    //         Debug.Log($"==== Set AI ====");
+    //         // Utils.PrintStackTrace();
+    //     }
+    // }
 }
 

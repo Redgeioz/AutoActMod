@@ -12,7 +12,8 @@ namespace AutoAct
 		[HarmonyPostfix]
 		static void Postfix(TaskBuild __instance)
 		{
-			if (__instance != EClass.pc.ai) {
+			if (__instance != EClass.pc.ai)
+			{
 				return;
 			}
 
@@ -31,12 +32,6 @@ namespace AutoAct
 			}
 
 			Card held = EClass.pc.held;
-			Point lastPoint = __instance.pos;
-			if (!AutoAct.curtFarmfield.Contains(lastPoint))
-			{
-				AutoAct.InitFarmfield(lastPoint, lastPoint.IsWater);
-			}
-
 			if (held.category.id == "seed")
 			{
 				ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null && p.Installed == null, Settings.SowRange);
@@ -68,7 +63,7 @@ namespace AutoAct
 		static Point GetNextTarget(Func<Point, bool> filter, int range = 0)
 		{
 			List<(Point, int, int, int)> list = new List<(Point, int, int, int)>();
-			foreach (Point p in AutoAct.curtFarmfield)
+			foreach (Point p in AutoAct.curtField)
 			{
 				if (!filter(p))
 				{
@@ -119,9 +114,26 @@ namespace AutoAct
 				return false;
 			}
 
+			bool canFert = false;
+			if (p.growth != null)
+			{
+				if (AutoAct.plantFert > 0)
+				{
+					PlantData plantData = p.cell.TryGetPlant();
+					if (plantData != null)
+					{
+						canFert = plantData.fert <= AutoAct.plantFert;
+					}
+				}
+				else
+				{
+					canFert = true;
+				}
+			}
+
 			if (!p.HasThing)
 			{
-				return p.growth != null;
+				return canFert;
 			}
 
 			bool fert = false;
@@ -138,7 +150,7 @@ namespace AutoAct
 				}
 			});
 
-			return (seed || p.growth != null) && !fert;
+			return (seed || canFert) && !fert;
 		}
 	}
 }
