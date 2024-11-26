@@ -21,6 +21,7 @@ namespace AutoAct
             Settings.pourRange = base.Config.Bind("Settings", "PouringRange", 2, instructionRange);
             Settings.pourDepth = base.Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
             Settings.seedReapingCount = base.Config.Bind("Settings", "SeedReapingCount", 25);
+            Settings.staminaCheck = base.Config.Bind("Settings", "StaminaCheck", true);
             Settings.sameFarmfieldOnly = base.Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
             Settings.keyMode = base.Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
             Settings.keyCode = base.Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
@@ -50,7 +51,7 @@ namespace AutoAct
         public static int targetGrowth = -1;
         public static string targetTypeStr = "";
         public static bool targetCanHarvest = false;
-        public static int plantFert = 0;
+        // public static int plantFert = 0;
         public static Point startPoint = null;
         public static Point drawWaterPoint = null;
 
@@ -74,7 +75,7 @@ namespace AutoAct
                 return;
             }
 
-            if (EClass.pc.stamina.value <= 0)
+            if (Settings.StaminaCheck && EClass.pc.stamina.value <= 0)
             {
                 active = false;
                 return;
@@ -212,15 +213,15 @@ namespace AutoAct
 
             if (held.category.id == "seed" || held.category.id == "fertilizer")
             {
-                PlantData plantData = a.pos.cell.TryGetPlant();
-                if (plantData != null)
-                {
-                    plantFert = plantData.fert;
-                }
-                else
-                {
-                    plantFert = 0;
-                }
+                // PlantData plantData = a.pos.cell.TryGetPlant();
+                // if (plantData != null)
+                // {
+                //     plantFert = plantData.fert;
+                // }
+                // else
+                // {
+                //     plantFert = 0;
+                // }
                 InitFarmfield(startPoint, startPoint.IsWater);
             }
             // else if (held.category.id == "floor")

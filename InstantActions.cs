@@ -58,6 +58,7 @@ namespace AutoAct
 			};
 
 			AutoAct.SetNextTask(task);
+			AutoAct.curtField.RemoveWhere(p => targetPoint.Equals(p));
 		}
 
 		static Point GetNextTarget(Func<Point, bool> filter, int range = 0)
@@ -117,18 +118,18 @@ namespace AutoAct
 			bool canFert = false;
 			if (p.growth != null)
 			{
-				if (AutoAct.plantFert > 0)
-				{
-					PlantData plantData = p.cell.TryGetPlant();
-					if (plantData != null)
-					{
-						canFert = plantData.fert <= AutoAct.plantFert;
-					}
-				}
-				else
-				{
-					canFert = true;
-				}
+				// if (AutoAct.plantFert > 0)
+				// {
+				// 	PlantData plantData = p.cell.TryGetPlant();
+				// 	if (plantData != null)
+				// 	{
+				// 		canFert = plantData.fert <= AutoAct.plantFert;
+				// 	}
+				// }
+				// else
+				// {
+				canFert = true;
+				// }
 			}
 
 			if (!p.HasThing)

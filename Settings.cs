@@ -15,6 +15,7 @@ namespace AutoAct
         public static ConfigEntry<int> pourRange;
         public static ConfigEntry<int> pourDepth;
         public static ConfigEntry<int> seedReapingCount;
+        public static ConfigEntry<bool> staminaCheck;
         public static ConfigEntry<bool> sameFarmfieldOnly;
         public static ConfigEntry<bool> keyMode;
 
@@ -62,6 +63,12 @@ namespace AutoAct
             set { seedReapingCount.Value = value; }
         }
 
+        public static bool StaminaCheck
+        {
+            get { return staminaCheck.Value; }
+            set { staminaCheck.Value = value; }
+        }
+
         public static bool SameFarmfieldOnly
         {
             get { return sameFarmfieldOnly.Value; }
@@ -97,6 +104,7 @@ namespace AutoAct
             {
                 UIContextMenu menu = EClass.ui.CreateContextMenu();
                 menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
+                menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
                 menu.AddSlider(
                     ALang.GetText("keyMode"),
                     v =>
@@ -271,6 +279,7 @@ namespace AutoAct
                     { "toggle", "切换" },
                     { "on", "自动行动，启动！"},
                     { "off", "自动行动，关闭。"},
+                    { "staminaCheck", "精力为零停止" },
                     { "entireFarmfield", "整个田地" },
                     { "sameFarmfieldOnly", "只在同一田地上收割" },
                 }
@@ -291,6 +300,7 @@ namespace AutoAct
                     { "toggle", "切換" },
                     { "on", "自動行動，啟動！"},
                     { "off", "自動行動，關閉。"},
+                    { "staminaCheck", "精力為零停止" },
                     { "entireFarmfield", "整個田地" },
                     { "sameFarmfieldOnly", "只在同一田地上收割" },
                 }
@@ -311,6 +321,7 @@ namespace AutoAct
                     { "toggle", "切り替え" },
                     { "on", "自動行動：オン。"},
                     { "off", "自動行動：オフ。"},
+                    { "staminaCheck", "スタミナゼロで停止" },
                     { "entireFarmfield", "現在は農地全体" },
                     { "sameFarmfieldOnly", "同じ農地での収穫のみ" },
                 }
@@ -331,6 +342,7 @@ namespace AutoAct
                     { "toggle", "Toggle" },
                     { "on", "Auto Act: On."},
                     { "off", "Auto Act: Off."},
+                    { "staminaCheck", "Stop When Zero Stamina" },
                     { "entireFarmfield", "The Entire Current Farmfield" },
                     { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only" },
                 }
