@@ -38,7 +38,7 @@ namespace AutoAct
             {
                 switchOn = !switchOn;
                 Msg.SetColor(Msg.colors.TalkGod);
-                Msg.Say(Lang.GetText(switchOn ? "on" : "off"));
+                Msg.Say(ALang.GetText(switchOn ? "on" : "off"));
             }
         }
 
@@ -69,8 +69,14 @@ namespace AutoAct
 
         public static void UpdateState(AIAct a)
         {
-            if (!a.owner.IsPC || EClass.pc.stamina.value <= 0)
+            if (!a.owner.IsPC)
             {
+                return;
+            }
+
+            if (EClass.pc.stamina.value <= 0)
+            {
+                active = false;
                 return;
             }
 
@@ -227,7 +233,8 @@ namespace AutoAct
         {
             EClass.pc.SetAIImmediate(a);
             autoSetAct = a;
-            if (a is BaseTaskHarvest t) {
+            if (a is BaseTaskHarvest t)
+            {
                 t.SetTarget(EClass.pc);
             }
         }
@@ -363,18 +370,6 @@ namespace AutoAct
     //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
     //         Debug.Log($"==== Set AI ====");
     //         // Utils.PrintStackTrace();
-    //     }
-    // }
-
-    // [HarmonyPatch(typeof(TaskPoint), "Run")]
-    // static class AIAct_Run_Patch
-    // {
-    //     [HarmonyPostfix]
-    //     static void Prefix(TaskPoint __instance)
-    //     {
-    //         // Debug.Log($"==Start Cancel {__instance} =============");
-    //         // Utils.PrintStackTrace();
-    //         // Debug.Log($"===========End {__instance} =============");
     //     }
     // }
 }

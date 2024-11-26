@@ -92,24 +92,24 @@ namespace AutoAct
                 return;
             }
 
-            string text = Lang.GetText("settings");
+            string text = ALang.GetText("settings");
             DynamicAct dynamicAct = new DynamicAct(text, delegate
             {
                 UIContextMenu menu = EClass.ui.CreateContextMenu();
-                menu.AddToggle(Lang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
+                menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
                 menu.AddSlider(
-                    Lang.GetText("keyMode"),
+                    ALang.GetText("keyMode"),
                     v =>
                     {
                         if (v == 1)
                         {
                             Settings.KeyMode = true;
-                            return Lang.GetText("toggle");
+                            return ALang.GetText("toggle");
                         }
                         else
                         {
                             Settings.KeyMode = false;
-                            return Lang.GetText("press");
+                            return ALang.GetText("press");
                         }
                     }
                     , Settings.KeyMode ? 1 : 0,
@@ -119,7 +119,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("detRange"),
+                    ALang.GetText("detRange"),
                     v =>
                     {
                         float n = v / 2;
@@ -133,7 +133,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("digRange"),
+                    ALang.GetText("digRange"),
                     v =>
                     {
                         Settings.DigRange = (int)v;
@@ -147,7 +147,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("plowRange"),
+                    ALang.GetText("plowRange"),
                     v =>
                     {
                         Settings.PlowRange = (int)v;
@@ -161,7 +161,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("sowRange"),
+                    ALang.GetText("sowRange"),
                     v =>
                     {
                         Settings.SowRange = (int)v;
@@ -172,7 +172,7 @@ namespace AutoAct
                         }
                         else
                         {
-                            return Lang.GetText("entireFarmfield");
+                            return ALang.GetText("entireFarmfield");
                         }
                     },
                     Settings.SowRange,
@@ -182,7 +182,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("pourRange"),
+                    ALang.GetText("pourRange"),
                     v =>
                     {
                         Settings.PourRange = (int)v;
@@ -196,7 +196,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("pourDepth"),
+                    ALang.GetText("pourDepth"),
                     v =>
                     {
                         Settings.PourDepth = (int)v;
@@ -209,7 +209,7 @@ namespace AutoAct
                     true
                 );
                 menu.AddSlider(
-                    Lang.GetText("seedReapingCount"),
+                    ALang.GetText("seedReapingCount"),
                     v =>
                     {
                         Settings.SeedReapingCount = (int)v;
@@ -242,7 +242,7 @@ namespace AutoAct
         }
     }
 
-    static class Lang
+    static class ALang
     {
         static public string GetText(string text)
         {
