@@ -684,9 +684,8 @@ namespace AutoAct
                     continue;
                 }
 
-
                 int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
-                int max = AutoAct.MaxDeltaToStartPoint(p);
+                int max = Utils.MaxDelta(EClass.pc.pos, p);
                 if (max <= 1)
                 {
                     list.Add((p, max - 1, dist2));

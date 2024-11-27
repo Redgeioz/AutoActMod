@@ -298,9 +298,7 @@ namespace AutoAct
 
         public static int MaxDeltaToStartPoint(Point p)
         {
-            int dx = Math.Abs(p.x - startPoint.x);
-            int dz = Math.Abs(p.z - startPoint.z);
-            return Math.Max(dx, dz);
+            return Utils.MaxDelta(p, startPoint);
         }
 
         public static void Cancel()
@@ -386,6 +384,12 @@ namespace AutoAct
             int dx = p1.x - p2.x;
             int dz = p1.z - p2.z;
             return dx * dx + dz * dz;
+        }
+
+        public static int MaxDelta(Point p1, Point p2) {
+            int dx = Math.Abs(p1.x - p2.x);
+            int dz = Math.Abs(p1.z - p2.z);
+            return Math.Max(dx, dz);
         }
     }
 
