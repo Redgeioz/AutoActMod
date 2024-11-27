@@ -458,7 +458,7 @@ namespace AutoAct
 
         static bool CommonFilter(Cell cell)
         {
-            if (cell.sourceObj.id != AutoAct.targetType || !(cell.HasObj || cell.HasBlock))
+            if (!((cell.HasObj && cell.sourceObj.id == AutoAct.targetType) || (cell.HasBlock && !cell.HasObj && cell.sourceBlock.id == AutoAct.targetType)))
             {
                 return false;
             }
@@ -520,10 +520,14 @@ namespace AutoAct
 
             (Point targetPoint, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).FirstOrDefault();
 
-            // if (targetPoint != null && targetPoint.cell.growth != null)
+            // if (targetPoint != null)
             // {
-            //     Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, OriginalStage: {AutoAct.targetGrowth}, CanHarvest: {targetPoint.cell.growth.CanHarvest()}");
-            //     Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
+            //     if (targetPoint.cell.growth != null)
+            //     {
+            //         Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, OriginalStage: {AutoAct.targetGrowth}, CanHarvest: {targetPoint.cell.growth.CanHarvest()}");
+            //     }
+            //     Debug.Log($"Target: {targetPoint.cell.sourceObj.id} | {targetPoint.cell.sourceObj.name} | {targetPoint}");
+            //     Debug.Log($"Target: {targetPoint.cell.sourceBlock.id} | {targetPoint.cell.sourceBlock.name} | {targetPoint}");
             //     Debug.Log($"Target should be: {AutoAct.targetType}");
             // }
 

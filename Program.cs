@@ -145,10 +145,13 @@ namespace AutoAct
                 targetTypeStr = t.target.Name;
                 // Debug.Log($"===New start target: {t.pos}, thing: {t.target.Name}");
             }
-            else
+            else if (t.pos.HasObj)
             {
                 targetType = t.pos.sourceObj.id;
-                // Debug.Log($"===New start target: {t.pos}, id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}, {t.pos}");
+                // Debug.Log($"===New start target: {t.pos}, obj id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}, {t.pos}");
+            } else if (t.pos.HasBlock) {
+                targetType = t.pos.sourceBlock.id;
+                // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}, {t.pos}");
             }
 
             // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
