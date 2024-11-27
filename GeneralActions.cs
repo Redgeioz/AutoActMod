@@ -157,7 +157,7 @@ namespace AutoAct
                             count += t.Num;
                         }
                     });
-                    if (count >= Settings.SeedReapingCount + AutoAct.originalSeedCount)
+                    if (Settings.SeedReapingCount > 0 && count >= Settings.SeedReapingCount + AutoAct.originalSeedCount)
                     {
                         return;
                     }

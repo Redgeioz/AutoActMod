@@ -124,7 +124,8 @@ namespace AutoAct
                     v => { },
                     0,
                     1,
-                    true
+                    true,
+                    false
                 );
                 menu.AddSlider(
                     ALang.GetText("detRange"),
@@ -138,7 +139,8 @@ namespace AutoAct
                     v => { },
                     3,
                     30,
-                    true
+                    true,
+                    false
                 );
                 menu.AddSlider(
                     ALang.GetText("digRange"),
@@ -152,7 +154,8 @@ namespace AutoAct
                     v => { },
                     1,
                     12,
-                    true
+                    true,
+                    false
                 );
                 menu.AddSlider(
                     ALang.GetText("plowRange"),
@@ -166,14 +169,16 @@ namespace AutoAct
                     v => { },
                     1,
                     12,
-                    true
+                    true,
+                    false
                 );
+                int sowRangeMax = 13;
                 menu.AddSlider(
                     ALang.GetText("sowRange"),
                     v =>
                     {
-                        Settings.SowRange = (int)v;
-                        if (Settings.SowRange != 0)
+                        Settings.SowRange = (int)v == sowRangeMax ? 0 : (int)v;
+                        if (Settings.SowRange > 0)
                         {
                             string str = (Settings.SowRange * 2 + 1).ToString();
                             return str + "x" + str;
@@ -183,11 +188,12 @@ namespace AutoAct
                             return ALang.GetText("entireFarmfield");
                         }
                     },
-                    Settings.SowRange,
+                    Settings.SowRange == 0 ? sowRangeMax : Settings.SowRange,
                     v => { },
-                    0,
-                    12,
-                    true
+                    1,
+                    sowRangeMax,
+                    true,
+                    false
                 );
                 menu.AddSlider(
                     ALang.GetText("pourRange"),
@@ -201,7 +207,8 @@ namespace AutoAct
                     v => { },
                     1,
                     12,
-                    true
+                    true,
+                    false
                 );
                 menu.AddSlider(
                     ALang.GetText("pourDepth"),
@@ -214,20 +221,30 @@ namespace AutoAct
                     v => { },
                     1,
                     4,
-                    true
+                    true,
+                    false
                 );
+                int seedReapingCountMax = 101;
                 menu.AddSlider(
                     ALang.GetText("seedReapingCount"),
                     v =>
                     {
-                        Settings.SeedReapingCount = (int)v;
-                        return v.ToString();
+                        Settings.SeedReapingCount = (int)v == seedReapingCountMax ? 0 : (int)v;
+                        if (Settings.SeedReapingCount > 0)
+                        {
+                            return v.ToString();
+                        }
+                        else
+                        {
+                            return "∞".ToString();
+                        }
                     },
-                    Settings.SeedReapingCount,
+                    Settings.SeedReapingCount == 0 ? seedReapingCountMax : Settings.SeedReapingCount,
                     v => { },
                     1,
-                    50,
-                    true
+                    seedReapingCountMax,
+                    true,
+                    false
                 );
                 menu.Show();
                 return false;
