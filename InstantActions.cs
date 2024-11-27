@@ -38,7 +38,7 @@ namespace AutoAct
 			}
 			else if (held.category.id == "fertilizer")
 			{
-				ContinueBuild(ShouldFertilize);
+				ContinueBuild(ShouldFertilize, false);
 			}
 			else if (held.category.id == "floor")
 			{
@@ -86,7 +86,7 @@ namespace AutoAct
 				}
 
 				PathProgress path = EClass.pc.path;
-				if (Settings.StartFromCenter)
+				if (Settings.StartFromCenter || !hasRange)
 				{
 					int max = AutoAct.MaxDeltaToStartPoint(p);
 					if (hasRange && max > Settings.BuildRangeW / 2)

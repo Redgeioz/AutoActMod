@@ -323,6 +323,7 @@ namespace AutoAct
             }
 
             InitField(p, filter);
+            curtField.RemoveWhere(pt => pt.Equals(p));
         }
 
         public static void InitField(Point p, Func<Point, bool> filter)
