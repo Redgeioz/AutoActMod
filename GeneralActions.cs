@@ -344,7 +344,7 @@ namespace AutoAct
             }
 
             Point targetPoint = GetNextTarget2(
-                cell => cell.sourceFloor.id == AutoAct.targetType && !cell.HasBlock && !cell.HasObj, Settings.DigRange
+                cell => cell.sourceFloor.id == AutoAct.targetType && !cell.HasBlock && !cell.HasObj
             );
             if (targetPoint == null)
             {
@@ -374,8 +374,7 @@ namespace AutoAct
         static void ContinuePlow()
         {
             Point targetPoint = GetNextTarget2(
-                cell => !cell.HasBlock && !cell.HasObj && cell.Installed == null && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil"),
-                Settings.PlowRange
+                cell => !cell.HasBlock && !cell.HasObj && cell.Installed == null && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil")
             );
             if (targetPoint == null)
             {
@@ -446,7 +445,7 @@ namespace AutoAct
                 }
             }
 
-            Point targetPoint = GetNextTarget2(cell => !cell.HasBridge && cell.sourceSurface.id == AutoAct.targetType, Settings.PourRange);
+            Point targetPoint = GetNextTarget2(cell => !cell.HasBridge && cell.sourceSurface.id == AutoAct.targetType);
             if (targetPoint == null)
             {
                 return;
@@ -580,7 +579,7 @@ namespace AutoAct
             return target;
         }
 
-        static Point GetNextTarget2(Func<Cell, bool> filter, int range = 2)
+        static Point GetNextTarget2(Func<Cell, bool> filter)
         {
             List<(Point, int, int, int)> list = new List<(Point, int, int, int)>();
             EClass._map.bounds.ForeachCell(cell =>
@@ -597,28 +596,50 @@ namespace AutoAct
                 }
 
                 Point p = cell.GetPoint();
-                // Range 2 => Max range 5x5
-                int max = Utils.MaxDelta(AutoAct.startPoint, p);
-                if (max > range)
-                {
-                    return;
-                }
-
-                int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
-                if (max <= 1)
-                {
-                    list.Add((p, max, max - 1, dist2));
-                    return;
-                }
-
                 PathProgress path = EClass.pc.path;
+                if (Settings.StartFromCenter)
+                {
+                    int max = AutoAct.MaxDeltaToStartPoint(p);
+                    if (max > Settings.BuildRangeW / 2)
+                    {
+                        return;
+                    }
+
+                    int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                    if (max <= 1)
+                    {
+                        list.Add((p, max, max - 1, dist2));
+                        return;
+                    }
+
+                    path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                    if (path.state == PathProgress.State.Fail)
+                    {
+                        return;
+                    }
+
+                    list.Add((p, max, path.nodes.Count, dist2));
+                    return;
+                }
+
+                (int d1, int d2) = AutoAct.GetDelta(p);
+                if (d1 < 0 || d2 < 0 || d1 >= Settings.BuildRangeH || d2 >= Settings.BuildRangeW)
+                {
+                    return;
+                }
+
                 path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
                 if (path.state == PathProgress.State.Fail)
                 {
                     return;
                 }
 
-                list.Add((p, max, path.nodes.Count, dist2));
+                if (d1 % 2 == 1)
+                {
+                    d2 *= -1;
+                }
+
+                list.Add((p, d1, d2, 0));
             });
 
             (Point targetPoint, int _, int _, int _) = list
@@ -661,7 +682,7 @@ namespace AutoAct
 
 
                 int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
-                int max = Utils.MaxDelta(EClass.pc.pos, p);
+                int max = AutoAct.MaxDeltaToStartPoint(p);
                 if (max <= 1)
                 {
                     list.Add((p, max - 1, dist2));

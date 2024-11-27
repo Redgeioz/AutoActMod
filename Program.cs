@@ -13,12 +13,11 @@ namespace AutoAct
     {
         void Awake()
         {
-            string instructionRange = "Value x 2 + 1 = range. If the value is 2, then the range is 5x5.";
-            Settings.detRangeSq = base.Config.Bind("Settings", "DetectionRangeSquared", 25, "Sqaure of detection range.");
-            Settings.digRange = base.Config.Bind("Settings", "DiggingRange", 2, instructionRange);
-            Settings.plowRange = base.Config.Bind("Settings", "PlowingRange", 2, instructionRange);
-            Settings.sowRange = base.Config.Bind("Settings", "SowingRange", 0, instructionRange);
-            Settings.pourRange = base.Config.Bind("Settings", "PouringRange", 2, instructionRange);
+            Settings.startFromCenter = base.Config.Bind("Settings", "StartFromCenter", true);
+            Settings.detDistSq = base.Config.Bind("Settings", "DetectionRangeSquared", 25, "Sqaure of detection range.");
+            Settings.buildRangeW = base.Config.Bind("Settings", "BuildingRangeW", 5);
+            Settings.buildRangeH = base.Config.Bind("Settings", "BuildingRangeH", 5);
+            Settings.sowRangeExists = base.Config.Bind("Settings", "SowingRangeExists", false);
             Settings.pourDepth = base.Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
             Settings.seedReapingCount = base.Config.Bind("Settings", "SeedReapingCount", 25);
             Settings.staminaCheck = base.Config.Bind("Settings", "StaminaCheck", true);
@@ -44,27 +43,26 @@ namespace AutoAct
         }
 
         public static bool active = false;
-
         public static AIAct autoSetAct;
 
         public static int targetType = -1;
         public static int targetGrowth = -1;
         public static string targetTypeStr = "";
         public static bool targetCanHarvest = false;
-        // public static int plantFert = 0;
+        public static int startDirection = 0;
         public static Point startPoint = null;
+        // Last water drawing point
         public static Point drawWaterPoint = null;
-
         public static int pourCount = 0;
 
         public static int originalSeedCount = 0;
-
         public static int seedId = -1;
+
+        public static Card held = null;
 
         public static HashSet<Point> curtField = new HashSet<Point>();
 
         public static bool switchOn = false;
-
         public static bool IsSwitchOn => Settings.KeyMode ? switchOn : EInput.isShiftDown;
 
 
@@ -118,7 +116,7 @@ namespace AutoAct
             if (a is TaskPourWater tpw)
             {
                 targetType = tpw.pos.cell.sourceSurface.id;
-                startPoint = tpw.pos.Copy();
+                SetStartPoint(tpw.pos.Copy());
                 pourCount = 0;
                 return;
             }
@@ -126,14 +124,14 @@ namespace AutoAct
             if (a is TaskDig td)
             {
                 targetType = td.pos.cell.sourceSurface.id;
-                startPoint = td.pos.Copy();
+                SetStartPoint(td.pos.Copy());
                 // Debug.Log($"===New start target: {td.pos}, floor id: {(int)td.pos.cell._floor} {td.pos.cell.sourceSurface.id}");
                 return;
             }
 
             if (a is TaskPlow tp)
             {
-                startPoint = tp.pos;
+                SetStartPoint(tp.pos.Copy());
                 return;
             }
 
@@ -201,33 +199,30 @@ namespace AutoAct
                 return;
             }
 
-            startPoint = a.pos.Copy();
+            SetStartPoint(a.pos.Copy());
             curtField.Clear();
 
             Card held = EClass.pc.held;
-            if (held == null)
+            if (held == null || held.Num == 1)
             {
                 active = false;
                 return;
             }
 
+            AutoAct.held = held;
+
             if (held.category.id == "seed" || held.category.id == "fertilizer")
             {
-                // PlantData plantData = a.pos.cell.TryGetPlant();
-                // if (plantData != null)
-                // {
-                //     plantFert = plantData.fert;
-                // }
-                // else
-                // {
-                //     plantFert = 0;
-                // }
                 InitFarmfield(startPoint, startPoint.IsWater);
             }
             // else if (held.category.id == "floor")
             // {
             //     InitField(startPoint, p => !p.HasBlock);
             // }
+            else
+            {
+                InitField(startPoint, p => !p.HasBlock);
+            }
         }
 
         public static void SetNextTask(AIAct a)
@@ -238,6 +233,71 @@ namespace AutoAct
             {
                 t.SetTarget(EClass.pc);
             }
+        }
+
+        public static void SetStartPoint(Point p)
+        {
+            startPoint = p;
+            int dx = p.x - EClass.pc.pos.x;
+            int dz = p.z - EClass.pc.pos.z;
+
+            if ((dz == -1 || dz == 0) && dx == -1)
+            {
+                startDirection = 3;
+            }
+            else if ((dx == -1 || dx == 0) && dz == 1)
+            {
+                startDirection = 2;
+            }
+            else if ((dz == 1 || dz == 0) && dx == 1)
+            {
+                startDirection = 1;
+            }
+            else if ((dx == 0 || dx == 1) && dz == -1)
+            {
+                startDirection = 0;
+            }
+            else
+            {
+                // dx == 0, dy == 0
+                // | 0 ↓ | 1 → | 2 ↑ | 3 ← |
+                startDirection = EClass.pc.dir;
+            }
+        }
+
+        public static (int, int) GetDelta(Point p)
+        {
+            int dx = p.x - startPoint.x;
+            int dz = p.z - startPoint.z;
+
+            int d1 = 0, d2 = 0;
+            switch (startDirection)
+            {
+                case 0:
+                    d1 = dz * -1;
+                    d2 = dx * -1;
+                    break;
+                case 1:
+                    d1 = dx;
+                    d2 = dz * -1;
+                    break;
+                case 2:
+                    d1 = dz;
+                    d2 = dx;
+                    break;
+                case 3:
+                    d1 = dx * -1;
+                    d2 = dz;
+                    break;
+            }
+            return (d1, d2);
+        }
+
+        public static int MaxDeltaToStartPoint(Point p)
+        {
+            int dx = Math.Abs(p.x - startPoint.x);
+            int dz = Math.Abs(p.z - startPoint.z);
+            return Math.Max(dx, dz);
         }
 
         public static void Cancel()
@@ -322,13 +382,6 @@ namespace AutoAct
             int dx = p1.x - p2.x;
             int dz = p1.z - p2.z;
             return dx * dx + dz * dz;
-        }
-
-        public static int MaxDelta(Point p1, Point p2)
-        {
-            int dx = Math.Abs(p1.x - p2.x);
-            int dz = Math.Abs(p1.z - p2.z);
-            return Math.Max(dx, dz);
         }
     }
 

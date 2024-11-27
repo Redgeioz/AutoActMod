@@ -8,47 +8,41 @@ namespace AutoAct
 {
     static class Settings
     {
-        public static ConfigEntry<int> detRangeSq;
-        public static ConfigEntry<int> digRange;
-        public static ConfigEntry<int> plowRange;
-        public static ConfigEntry<int> sowRange;
-        public static ConfigEntry<int> pourRange;
-        public static ConfigEntry<int> pourDepth;
+        public static ConfigEntry<int> detDistSq;
+        public static ConfigEntry<int> buildRangeW;
+        public static ConfigEntry<int> buildRangeH;
+        public static ConfigEntry<bool> sowRangeExists;
         public static ConfigEntry<int> seedReapingCount;
+        public static ConfigEntry<int> pourDepth;
         public static ConfigEntry<bool> staminaCheck;
         public static ConfigEntry<bool> sameFarmfieldOnly;
+        public static ConfigEntry<bool> startFromCenter;
         public static ConfigEntry<bool> keyMode;
 
         public static ConfigEntry<KeyCode> keyCode;
 
         public static int DetRangeSq
         {
-            get { return detRangeSq.Value; }
-            set { detRangeSq.Value = value; }
+            get { return detDistSq.Value; }
+            set { detDistSq.Value = value; }
         }
 
-        public static int DigRange
+        public static int BuildRangeW
         {
-            get { return digRange.Value; }
-            set { digRange.Value = value; }
+            get { return buildRangeW.Value; }
+            set { buildRangeW.Value = value; }
         }
 
-        public static int PlowRange
+        public static int BuildRangeH
         {
-            get { return plowRange.Value; }
-            set { plowRange.Value = value; }
+            get { return buildRangeH.Value; }
+            set { buildRangeH.Value = value; }
         }
 
-        public static int SowRange
+        public static bool SowRangeExists
         {
-            get { return sowRange.Value; }
-            set { sowRange.Value = value; }
-        }
-
-        public static int PourRange
-        {
-            get { return pourRange.Value; }
-            set { pourRange.Value = value; }
+            get { return sowRangeExists.Value; }
+            set { sowRangeExists.Value = value; }
         }
 
         public static int PourDepth
@@ -73,6 +67,12 @@ namespace AutoAct
         {
             get { return sameFarmfieldOnly.Value; }
             set { sameFarmfieldOnly.Value = value; }
+        }
+
+        public static bool StartFromCenter
+        {
+            get { return startFromCenter.Value; }
+            set { startFromCenter.Value = value; }
         }
 
         public static bool KeyMode
@@ -102,9 +102,56 @@ namespace AutoAct
             string text = ALang.GetText("settings");
             DynamicAct dynamicAct = new DynamicAct(text, delegate
             {
+                Debug.Log("AutoAct Settings");
+                UIContextMenuItem[] list = new UIContextMenuItem[2];
+                void ToSquare()
+                {
+                    UIContextMenuItem item1 = list[0];
+                    if (item1 == null) { return; }
+                    UIContextMenuItem item2 = list[1];
+                    int min = Math.Min((int)item1.slider.value, (int)item2.slider.value);
+                    SetSquare(min);
+                }
+                void SetSquare(int v)
+                {
+                    UIContextMenuItem item1 = list[0];
+                    if (item1 == null) { return; }
+                    UIContextMenuItem item2 = list[1];
+                    if (item2 == null) { return; }
+                    item1.slider.value = v / 2;
+                    item2.slider.value = v / 2;
+                    item1.slider.maxValue = 12;
+                    item2.slider.maxValue = 12;
+                    item1.textSlider.text = v.ToString();
+                    item2.textSlider.text = v.ToString();
+                }
+                void ToRect()
+                {
+                    UIContextMenuItem item1 = list[0];
+                    if (item1 == null) { return; }
+                    UIContextMenuItem item2 = list[1];
+                    item1.slider.maxValue = 25;
+                    item2.slider.maxValue = 25;
+                    item1.slider.value = item1.slider.value * 2 + 1;
+                    item2.slider.value = item2.slider.value * 2 + 1;
+                    item1.textSlider.text = item1.slider.value.ToString();
+                    item2.textSlider.text = item2.slider.value.ToString();
+                }
                 UIContextMenu menu = EClass.ui.CreateContextMenu();
                 menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
                 menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
+                menu.AddToggle(ALang.GetText("startFromCenter"), Settings.StartFromCenter, v =>
+                {
+                    Settings.StartFromCenter = v;
+                    if (v)
+                    {
+                        ToSquare();
+                    }
+                    else
+                    {
+                        ToRect();
+                    }
+                });
                 menu.AddSlider(
                     ALang.GetText("keyMode"),
                     v =>
@@ -128,85 +175,82 @@ namespace AutoAct
                     false
                 );
                 menu.AddSlider(
-                    ALang.GetText("detRange"),
+                    ALang.GetText("detDist"),
                     v =>
                     {
                         float n = v / 2;
                         Settings.DetRangeSq = (int)(n * n);
                         return n.ToString();
                     },
-                    (int)Math.Sqrt(Settings.DetRangeSq) * 2,
+                    (int)(Math.Sqrt(Settings.DetRangeSq) * 2),
                     v => { },
                     3,
-                    30,
+                    50,
                     true,
                     false
                 );
-                menu.AddSlider(
-                    ALang.GetText("digRange"),
+                list[0] = menu.AddSlider(
+                    ALang.GetText("buildRangeW"),
                     v =>
                     {
-                        Settings.DigRange = (int)v;
-                        string str = (Settings.DigRange * 2 + 1).ToString();
-                        return str + "x" + str;
+                        if (Settings.StartFromCenter)
+                        {
+                            Settings.BuildRangeW = (int)v * 2 + 1;
+                            SetSquare(Settings.BuildRangeW);
+                        }
+                        else
+                        {
+                            Settings.BuildRangeW = (int)v;
+                        }
+                        return Settings.BuildRangeW.ToString();
                     },
-                    Settings.DigRange,
+                    Settings.StartFromCenter ? Settings.BuildRangeW / 2 : Settings.BuildRangeW,
                     v => { },
                     1,
-                    12,
+                    Settings.StartFromCenter ? 12 : 25,
                     true,
                     false
                 );
-                menu.AddSlider(
-                    ALang.GetText("plowRange"),
+                list[1] = menu.AddSlider(
+                    ALang.GetText("buildRangeH"),
                     v =>
                     {
-                        Settings.PlowRange = (int)v;
-                        string str = (Settings.PlowRange * 2 + 1).ToString();
-                        return str + "x" + str;
+                        if (Settings.StartFromCenter)
+                        {
+                            Settings.BuildRangeH = (int)v * 2 + 1;
+                            SetSquare(Settings.BuildRangeH);
+                        }
+                        else
+                        {
+                            Settings.BuildRangeH = (int)v;
+                        }
+                        return Settings.BuildRangeH.ToString();
                     },
-                    Settings.PlowRange,
+                    Settings.StartFromCenter ? Settings.BuildRangeH / 2 : Settings.BuildRangeH,
                     v => { },
                     1,
-                    12,
+                    Settings.StartFromCenter ? 12 : 25,
                     true,
                     false
                 );
-                int sowRangeMax = 13;
                 menu.AddSlider(
                     ALang.GetText("sowRange"),
                     v =>
                     {
-                        Settings.SowRange = (int)v == sowRangeMax ? 0 : (int)v;
-                        if (Settings.SowRange > 0)
+                        Settings.SowRangeExists = v == 0;
+                        if (Settings.SowRangeExists)
                         {
-                            string str = (Settings.SowRange * 2 + 1).ToString();
-                            return str + "x" + str;
+                            return ALang.GetText("followBuildRange");
                         }
                         else
                         {
                             return ALang.GetText("entireFarmfield");
                         }
                     },
-                    Settings.SowRange == 0 ? sowRangeMax : Settings.SowRange,
+                    Settings.SowRangeExists ? 0 : 1,
                     v => { },
+                    0,
                     1,
-                    sowRangeMax,
-                    true,
-                    false
-                );
-                menu.AddSlider(
-                    ALang.GetText("pourRange"),
-                    v =>
-                    {
-                        Settings.PourRange = (int)v;
-                        string str = (Settings.PourRange * 2 + 1).ToString();
-                        return str + "x" + str;
-                    },
-                    Settings.PourRange,
-                    v => { },
-                    1,
-                    12,
                     true,
                     false
                 );
@@ -284,11 +328,10 @@ namespace AutoAct
                 "CN", new Dictionary<string, string> {
                     { "autoact", "自动行动" },
                     { "settings", "自动行动设置" },
-                    { "detRange", "探测范围" },
-                    { "digRange", "地面挖掘范围" },
-                    { "plowRange", "耕地范围" },
+                    { "detDist", "探测距离" },
+                    { "buildRangeW", "建造范围宽"},
+                    { "buildRangeH", "建造范围高"},
                     { "sowRange", "播种范围" },
-                    { "pourRange", "倒水范围" },
                     { "pourDepth", "倒水深度" },
                     { "seedReapingCount", "种子收获数" },
                     { "keyMode", "按键模式" },
@@ -298,6 +341,8 @@ namespace AutoAct
                     { "off", "自动行动，关闭。"},
                     { "staminaCheck", "精力为零停止" },
                     { "entireFarmfield", "整个田地" },
+                    { "followBuildRange", "同建造范围" },
+                    { "startFromCenter", "从中心开始（限制为正方形）" },
                     { "sameFarmfieldOnly", "只在同一田地上收割" },
                 }
             },
@@ -305,11 +350,10 @@ namespace AutoAct
                 "ZHTW", new Dictionary<string, string> {
                     { "autoact", "自動行動" },
                     { "settings", "自動行動設定" },
-                    { "detRange", "探測範圍" },
-                    { "digRange", "地面挖掘範圍" },
-                    { "plowRange", "耕地範圍" },
+                    { "detDist", "探測距離" },
+                    { "buildRangeW", "建造範圍寬" },
+                    { "buildRangeH", "建造範圍高" },
                     { "sowRange", "播種範圍" },
-                    { "pourRange", "倒水範圍" },
                     { "pourDepth", "倒水深度" },
                     { "seedReapingCount", "種子收獲數" },
                     { "keyMode", "按鍵模式" },
@@ -319,6 +363,8 @@ namespace AutoAct
                     { "off", "自動行動，關閉。"},
                     { "staminaCheck", "精力為零停止" },
                     { "entireFarmfield", "整個田地" },
+                    { "followBuildRange", "同建造範圍" },
+                    { "startFromCenter", "从中心開始（限製為正方形）" },
                     { "sameFarmfieldOnly", "只在同一田地上收割" },
                 }
             },
@@ -326,11 +372,10 @@ namespace AutoAct
                 "JP", new Dictionary<string, string> {
                     { "autoact", "自動行動" },
                     { "settings", "自動行動設定" },
-                    { "detRange", "検出範囲" },
-                    { "digRange", "地面掘削範囲" },
-                    { "plowRange", "耕す範囲" },
+                    { "detDist", "検出距離" },
+                    { "buildRangeW", "建築範囲の幅" },
+                    { "buildRangeH", "建築範囲の高さ" },
                     { "sowRange", "播種範囲" },
-                    { "pourRange", "注水範囲" },
                     { "pourDepth", "注水深さ" },
                     { "seedReapingCount", "種子収穫数" },
                     { "keyMode", "キーモード" },
@@ -340,6 +385,8 @@ namespace AutoAct
                     { "off", "自動行動：オフ。"},
                     { "staminaCheck", "スタミナゼロで停止" },
                     { "entireFarmfield", "現在は農地全体" },
+                    { "followBuildRange", "建築範囲と同じ" },
+                    { "startFromCenter", "中心から開始（正方形に制限）" },
                     { "sameFarmfieldOnly", "同じ農地での収穫のみ" },
                 }
             },
@@ -347,11 +394,10 @@ namespace AutoAct
                 "EN", new Dictionary<string, string> {
                     { "autoact", "Auto Act" },
                     { "settings", "Auto Act Settings" },
-                    { "detRange", "Detection Range" },
-                    { "digRange", "Digging Range" },
-                    { "plowRange", "Plowing Range" },
+                    { "detDist", "Detection Distance" },
+                    { "buildRangeW", "Building Range Width" },
+                    { "buildRangeH", "Building Range Height" },
                     { "sowRange", "Sowing Range" },
-                    { "pourRange", "Pouring Range" },
                     { "pourDepth", "Pouring Depth" },
                     { "seedReapingCount", "Count For Seed Reaping" },
                     { "keyMode", "Key Mode" },
@@ -361,6 +407,8 @@ namespace AutoAct
                     { "off", "Auto Act: Off."},
                     { "staminaCheck", "Stop When Zero Stamina" },
                     { "entireFarmfield", "The Entire Current Farmfield" },
+                    { "followBuildRange", "Follow The Building Range" },
+                    { "startFromCenter", "Start From The Center (Square Only)" },
                     { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only" },
                 }
             }
