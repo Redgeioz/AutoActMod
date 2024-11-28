@@ -48,7 +48,7 @@ namespace AutoAct
         [HarmonyPatch(typeof(TaskPourWater), "OnCreateProgress")]
         static void TaskPourWater_Patch(TaskPourWater __instance)
         {
-            if (AutoAct.active && AutoAct.targetType != __instance.pos.sourceFloor.id)
+            if (AutoAct.active && !AutoAct.IsTarget(__instance.pos.sourceFloor))
             {
                 AutoAct.pourCount += 1;
                 if (AutoAct.pourCount >= Settings.PourDepth)
@@ -117,6 +117,13 @@ namespace AutoAct
             if (__instance.status != AIAct.Status.Success)
             {
                 Debug.LogWarning($"AutoAct: Failed to continue {__instance}");
+                return;
+            }
+
+            if (AutoAct.tryGoto)
+            {
+                AutoAct.tryGoto = false;
+                ContinueHarvest();
                 return;
             }
 
@@ -283,7 +290,7 @@ namespace AutoAct
             TaskHarvest task;
             Point targetPoint = null;
             BaseTaskHarvest lastTask = EClass.pc.ai as BaseTaskHarvest;
-            if (lastTask.harvestType == BaseTaskHarvest.HarvestType.Thing)
+            if (lastTask != null && lastTask.harvestType == BaseTaskHarvest.HarvestType.Thing)
             {
                 Thing thing = GetNextThingTarget();
                 if (thing == null)
@@ -301,7 +308,7 @@ namespace AutoAct
                 AutoAct.SetNextTask(task);
                 return;
             }
-            else if (Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
+            else if (lastTask != null && Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
             {
                 if (!AutoAct.curtField.Contains(lastTask.pos))
                 {
@@ -311,11 +318,24 @@ namespace AutoAct
             }
             else
             {
-                targetPoint = GetNextTarget(CommonFilter);
+                targetPoint = GetNextTarget(CommonFilter, true);
             }
 
             if (targetPoint == null)
             {
+                return;
+            }
+
+            if (!targetPoint.HasObj && targetPoint.HasBlock && (targetPoint.sourceBlock.id == 1 || targetPoint.sourceBlock.id == 167))
+            {
+                AutoAct.SetNextTask(new TaskMine { pos = targetPoint });
+                AutoAct.tryGoto = true;
+                return;
+            }
+            else if (!targetPoint.HasObj && !targetPoint.HasBlock)
+            {
+                AutoAct.SetNextTask(new AI_Goto(targetPoint, 0));
+                AutoAct.tryGoto = true;
                 return;
             }
 
@@ -326,7 +346,6 @@ namespace AutoAct
             }
 
             AutoAct.SetNextTask(task);
-
         }
 
         static void ContinueDig()
@@ -344,7 +363,7 @@ namespace AutoAct
             }
 
             Point targetPoint = GetNextTarget2(
-                cell => cell.sourceFloor.id == AutoAct.targetType && !cell.HasBlock && !cell.HasObj
+                cell => AutoAct.IsTarget(cell.sourceFloor) && !cell.HasBlock && !cell.HasObj
             );
             if (targetPoint == null)
             {
@@ -445,7 +464,7 @@ namespace AutoAct
                 }
             }
 
-            Point targetPoint = GetNextTarget2(cell => !cell.HasBridge && cell.sourceSurface.id == AutoAct.targetType);
+            Point targetPoint = GetNextTarget2(cell => !cell.HasBridge && AutoAct.IsTarget(cell.sourceFloor));
             if (targetPoint == null)
             {
                 return;
@@ -458,7 +477,7 @@ namespace AutoAct
 
         static bool CommonFilter(Cell cell)
         {
-            if (!((cell.HasObj && cell.sourceObj.id == AutoAct.targetType) || (cell.HasBlock && !cell.HasObj && cell.sourceBlock.id == AutoAct.targetType)))
+            if (!((cell.HasObj && AutoAct.IsTarget(cell.sourceObj)) || (cell.HasBlock && !cell.HasObj && AutoAct.IsTarget(cell.sourceBlock))))
             {
                 return false;
             }
@@ -484,7 +503,7 @@ namespace AutoAct
             return true;
         }
 
-        static Point GetNextTarget(Func<Cell, bool> filter)
+        static Point GetNextTarget(Func<Cell, bool> filter, bool tryBetterPath = false)
         {
             List<(Point, int, int)> list = new List<(Point, int, int)>();
             EClass._map.bounds.ForeachCell(cell =>
@@ -509,8 +528,91 @@ namespace AutoAct
                 }
 
                 PathProgress path = EClass.pc.path;
+                bool TryDestroyObstacle()
+                {
+                    if (dist2 > 5 || dist2 < 4 || !tryBetterPath)
+                    {
+                        return false;
+                    }
+
+                    int dx = p.x - EClass.pc.pos.x;
+                    int dz = p.z - EClass.pc.pos.z;
+                    Point obstacle = new Point(EClass.pc.pos.x + dx / 2, EClass.pc.pos.z + dz / 2);
+                    bool CanDestroyObstacle() => !obstacle.HasObj && obstacle.HasBlock && (obstacle.sourceBlock.id == 1 || obstacle.sourceBlock.id == 167);
+                    if (CanDestroyObstacle())
+                    {
+                        int dd2 = Utils.Dist2(EClass.pc.pos, obstacle);
+                        list.Add((obstacle, 1, dist2ToLastPoint));
+                        return true;
+                    }
+                    else if (!obstacle.HasBlock && !obstacle.HasObj)
+                    {
+                        obstacle = new Point(p.x - dx / 2, p.z - dz / 2);
+                        if (CanDestroyObstacle())
+                        {
+                            int dd2 = Utils.Dist2(EClass.pc.pos, obstacle);
+                            list.Add((obstacle, 1, dist2ToLastPoint));
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
+                bool TryCheckDiagonalPoint()
+                {
+                    if (!tryBetterPath)
+                    {
+                        return false;
+                    }
+
+                    int min = 0;
+                    Point np = null;
+                    Utils.ForEachNeighborPoint(p, pt =>
+                    {
+                        if (pt.HasBlock || pt.HasObj)
+                        {
+                            return;
+                        }
+
+                        path.RequestPathImmediate(EClass.pc.pos, pt, 0, false, -1);
+                        if (path.state == PathProgress.State.Fail)
+                        {
+                            return;
+                        }
+
+                        if (np == null)
+                        {
+                            min = path.nodes.Count;
+                            np = pt;
+                        }
+                        else if (path.nodes.Count < min)
+                        {
+                            min = path.nodes.Count;
+                            np = pt;
+                        }
+                    });
+
+                    if (np != null)
+                    {
+                        list.Add((np, min, dist2ToLastPoint));
+                        return true;
+                    }
+
+                    return false;
+                }
+
                 path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
                 if (path.state == PathProgress.State.Fail)
+                {
+                    if (!TryCheckDiagonalPoint())
+                    {
+                        TryDestroyObstacle();
+                    }
+                    return;
+                }
+
+                if (path.nodes.Count > dist2 && (TryDestroyObstacle() || TryCheckDiagonalPoint()))
                 {
                     return;
                 }

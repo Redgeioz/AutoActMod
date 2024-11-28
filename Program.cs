@@ -21,6 +21,7 @@ namespace AutoAct
             Settings.pourDepth = base.Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
             Settings.seedReapingCount = base.Config.Bind("Settings", "SeedReapingCount", 25);
             Settings.staminaCheck = base.Config.Bind("Settings", "StaminaCheck", true);
+            Settings.ignoreEnemySpotted = base.Config.Bind("Settings", "IgnoreEnemySpotted", true);
             Settings.sameFarmfieldOnly = base.Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
             Settings.keyMode = base.Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
             Settings.keyCode = base.Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
@@ -44,6 +45,7 @@ namespace AutoAct
 
         public static bool active = false;
         public static AIAct autoSetAct;
+        public static bool tryGoto = false;
 
         public static int targetType = -1;
         public static int targetGrowth = -1;
@@ -115,7 +117,7 @@ namespace AutoAct
 
             if (a is TaskPourWater tpw)
             {
-                targetType = tpw.pos.cell.sourceSurface.id;
+                SetTarget(tpw.pos.cell.sourceSurface);
                 SetStartPoint(tpw.pos.Copy());
                 pourCount = 0;
                 return;
@@ -123,7 +125,7 @@ namespace AutoAct
 
             if (a is TaskDig td)
             {
-                targetType = td.pos.cell.sourceSurface.id;
+                SetTarget(td.pos.cell.sourceSurface);
                 SetStartPoint(td.pos.Copy());
                 // Debug.Log($"===New start target: {td.pos}, floor id: {(int)td.pos.cell._floor} {td.pos.cell.sourceSurface.id}");
                 return;
@@ -147,10 +149,12 @@ namespace AutoAct
             }
             else if (t.pos.HasObj)
             {
-                targetType = t.pos.sourceObj.id;
+                SetTarget(t.pos.sourceObj);
                 // Debug.Log($"===New start target: {t.pos}, obj id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}, {t.pos}");
-            } else if (t.pos.HasBlock) {
-                targetType = t.pos.sourceBlock.id;
+            }
+            else if (t.pos.HasBlock)
+            {
+                SetTarget(t.pos.sourceBlock);
                 // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}, {t.pos}");
             }
 
@@ -237,6 +241,14 @@ namespace AutoAct
                 t.SetTarget(EClass.pc);
             }
         }
+
+        public static void SetTarget(TileRow r)
+        {
+            targetType = r.id;
+            targetTypeStr = r.name;
+        }
+
+        public static bool IsTarget(TileRow r) => r.id == targetType && r.name == targetTypeStr;
 
         public static void SetStartPoint(Point p)
         {
@@ -386,10 +398,26 @@ namespace AutoAct
             return dx * dx + dz * dz;
         }
 
-        public static int MaxDelta(Point p1, Point p2) {
+        public static int MaxDelta(Point p1, Point p2)
+        {
             int dx = Math.Abs(p1.x - p2.x);
             int dz = Math.Abs(p1.z - p2.z);
             return Math.Max(dx, dz);
+        }
+
+        public static void ForEachNeighborPoint(Point center, Action<Point> forEach)
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    Point p = new Point(center.x + i - 1, center.z + j - 1);
+                    if (!p.Equals(center) && p.IsInBounds)
+                    {
+                        forEach(p);
+                    }
+                }
+            }
         }
     }
 

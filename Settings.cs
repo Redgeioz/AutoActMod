@@ -16,6 +16,7 @@ namespace AutoAct
         public static ConfigEntry<int> pourDepth;
         public static ConfigEntry<bool> staminaCheck;
         public static ConfigEntry<bool> sameFarmfieldOnly;
+        public static ConfigEntry<bool> ignoreEnemySpotted;
         public static ConfigEntry<bool> startFromCenter;
         public static ConfigEntry<bool> keyMode;
 
@@ -69,6 +70,12 @@ namespace AutoAct
             set { sameFarmfieldOnly.Value = value; }
         }
 
+        public static bool IgnoreEnemySpotted
+        {
+            get { return ignoreEnemySpotted.Value; }
+            set { ignoreEnemySpotted.Value = value; }
+        }
+
         public static bool StartFromCenter
         {
             get { return startFromCenter.Value; }
@@ -100,9 +107,8 @@ namespace AutoAct
             }
 
             string text = ALang.GetText("settings");
-            DynamicAct dynamicAct = new DynamicAct(text, delegate
+            DynamicAct dynamicAct = new DynamicAct(text, () =>
             {
-                Debug.Log("AutoAct Settings");
                 UIContextMenuItem[] list = new UIContextMenuItem[2];
                 void ToSquare()
                 {
@@ -140,6 +146,7 @@ namespace AutoAct
                 UIContextMenu menu = EClass.ui.CreateContextMenu();
                 menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
                 menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
+                menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), Settings.IgnoreEnemySpotted, v => Settings.IgnoreEnemySpotted = v);
                 menu.AddToggle(ALang.GetText("startFromCenter"), Settings.StartFromCenter, v =>
                 {
                     Settings.StartFromCenter = v;
@@ -292,22 +299,40 @@ namespace AutoAct
                 );
                 menu.Show();
                 return false;
-            }, false)
-            {
-                id = text,
-                dist = 1,
-                isHostileAct = false,
-                localAct = true,
-                canRepeat = () => false
-            };
+            }, false);
             Act act = dynamicAct;
             __instance.list.Add(new ActPlan.Item
             {
                 act = act,
-                tc = null,
-                pos = EClass.pc.pos.Copy()
             });
-            return;
+        }
+    }
+
+    [HarmonyPatch(typeof(ActPlan.Item), "Perform")]
+    static class ActPlan_Patch
+    {
+        [HarmonyPrefix]
+        static bool Prefix(ActPlan.Item __instance)
+        {
+            if (__instance.act is DynamicAct act && act.id == ALang.GetText("settings"))
+            {
+                act.Perform();
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
+    static class CharaRenderer_OnEnterScreen_Patch
+    {
+        [HarmonyPostfix]
+        public static void Postfix()
+        {
+            if (AutoAct.active && Settings.IgnoreEnemySpotted)
+            {
+                EClass.player.enemySpotted = false;
+            }
         }
     }
 
@@ -342,6 +367,7 @@ namespace AutoAct
                     { "staminaCheck", "精力为零停止" },
                     { "entireFarmfield", "整个田地" },
                     { "followBuildRange", "同建造范围" },
+                    { "ignoreEnemySpotted", "忽视发现的敌人" },
                     { "startFromCenter", "从中心开始（限制为正方形）" },
                     { "sameFarmfieldOnly", "只在同一田地上收割" },
                 }
@@ -364,6 +390,7 @@ namespace AutoAct
                     { "staminaCheck", "精力為零停止" },
                     { "entireFarmfield", "整個田地" },
                     { "followBuildRange", "同建造範圍" },
+                    { "ignoreEnemySpotted", "忽視發現的敵人" },
                     { "startFromCenter", "从中心開始（限製為正方形）" },
                     { "sameFarmfieldOnly", "只在同一田地上收割" },
                 }
@@ -386,6 +413,7 @@ namespace AutoAct
                     { "staminaCheck", "スタミナゼロで停止" },
                     { "entireFarmfield", "現在は農地全体" },
                     { "followBuildRange", "建築範囲と同じ" },
+                    { "ignoreEnemySpotted", "発見した敵を無視する" },
                     { "startFromCenter", "中心から開始（正方形に制限）" },
                     { "sameFarmfieldOnly", "同じ農地での収穫のみ" },
                 }
@@ -408,6 +436,7 @@ namespace AutoAct
                     { "staminaCheck", "Stop When Zero Stamina" },
                     { "entireFarmfield", "The Entire Current Farmfield" },
                     { "followBuildRange", "Follow The Building Range" },
+                    { "ignoreEnemySpotted", "Ignore Enemy Spotted" },
                     { "startFromCenter", "Start From The Center (Square Only)" },
                     { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only" },
                 }
