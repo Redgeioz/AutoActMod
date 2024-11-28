@@ -231,7 +231,7 @@ namespace AutoAct
         public static void ContinueClean()
         {
             Card held = EClass.pc.held;
-            if (held == null || !(held.trait is TraitBroom))
+            if (held == null || !(held.trait is TraitBroom traitBroom))
             {
                 return;
             }
@@ -242,16 +242,10 @@ namespace AutoAct
                 return;
             }
 
-            TraitBroom traitBroom = held.trait as TraitBroom;
-            if (traitBroom == null)
-            {
-                return;
-            }
-
-            ActPlan actPlan = new ActPlan { pos = nextTarget };
+            ActPlan actPlan = new ActPlan { pos = targetPoint };
             traitBroom.TrySetHeldAct(actPlan);
 
-            DynamicAIAct task = new DynamicAIAct("actClean__AutoAct", actPlan.GetAction(), false) { pos = nextTarget };
+            DynamicAIAct task = new DynamicAIAct("actClean__AutoAct", actPlan.GetAction(), false) { pos = targetPoint };
             AutoAct.SetNextTask(task);
         }
 
