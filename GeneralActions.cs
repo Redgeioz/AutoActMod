@@ -88,6 +88,16 @@ namespace AutoAct
         }
 
         [HarmonyPostfix]
+        [HarmonyPatch(typeof(DynamicAIAct), "Perform")]
+        static void DynamicAIAct_Patch(DynamicAIAct __instance)
+        {
+            if(__instance.lang == "actClean__AutoAct")
+            {
+                AutoAct.UpdateState(__instance);
+            }
+        }
+
+        [HarmonyPostfix]
         [HarmonyPatch(typeof(AI_Clean), "Run")]
         static void AIClean_Patch(AI_Clean __instance)
         {
@@ -125,7 +135,7 @@ namespace AutoAct
             {
                 ContinueShear();
             }
-            else if (ai is AI_Clean)
+            else if ((__instance as DynamicAIAct)?.lang == "actClean__AutoAct" )
             {
                 ContinueClean();
             }
@@ -225,7 +235,16 @@ namespace AutoAct
                 return;
             }
 
-            AI_Clean task = new AI_Clean { pos = targetPoint };
+            TraitBroom traitBroom = held.trait as TraitBroom;
+            if (traitBroom == null)
+            {
+                return;
+            }
+
+            ActPlan actPlan = new ActPlan { pos = nextTarget };
+            traitBroom.TrySetHeldAct(actPlan);
+
+            DynamicAIAct task = new DynamicAIAct("actClean__AutoAct", actPlan.GetAction(), false) { pos = nextTarget };
             AutoAct.SetNextTask(task);
         }
 
