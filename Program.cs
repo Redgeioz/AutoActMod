@@ -22,6 +22,7 @@ namespace AutoAct
             Settings.seedReapingCount = base.Config.Bind("Settings", "SeedReapingCount", 25);
             Settings.staminaCheck = base.Config.Bind("Settings", "StaminaCheck", true);
             Settings.ignoreEnemySpotted = base.Config.Bind("Settings", "IgnoreEnemySpotted", true);
+            Settings.simpleIdentify = base.Config.Bind("Settings", "SimpleIdentify", false);
             Settings.sameFarmfieldOnly = base.Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
             Settings.keyMode = base.Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
             Settings.keyCode = base.Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
@@ -45,7 +46,7 @@ namespace AutoAct
 
         public static bool active = false;
         public static AIAct autoSetAct;
-        public static bool tryGoto = false;
+        public static bool backToHarvest = false;
 
         public static int targetType = -1;
         public static int targetGrowth = -1;
@@ -147,15 +148,33 @@ namespace AutoAct
                 targetTypeStr = t.target.Name;
                 // Debug.Log($"===New start target: {t.pos}, thing: {t.target.Name}");
             }
+            else if ((!t.pos.HasObj || Settings.SimpleIdentify) && t.pos.HasBlock)
+            {
+                if (Settings.SimpleIdentify)
+                {
+                    targetType = -1;
+                    backToHarvest = true;
+                    return;
+                }
+                else
+                {
+                    SetTarget(t.pos.sourceBlock);
+                }
+                // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}");
+            }
             else if (t.pos.HasObj)
             {
-                SetTarget(t.pos.sourceObj);
-                // Debug.Log($"===New start target: {t.pos}, obj id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}, {t.pos}");
-            }
-            else if (t.pos.HasBlock)
-            {
-                SetTarget(t.pos.sourceBlock);
-                // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}, {t.pos}");
+                if (Settings.SimpleIdentify && t.pos.sourceObj.HasGrowth)
+                {
+                    targetType = -2;
+                    return;
+                }
+                else
+                {
+                    SetTarget(t.pos.sourceObj);
+                }
+                // Debug.Log($"===New start target: {t.pos}, obj id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}");
+                // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}");
             }
 
             // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
@@ -244,11 +263,34 @@ namespace AutoAct
 
         public static void SetTarget(TileRow r)
         {
-            targetType = r.id;
+            int id = r.id;
+            if (id == 167)
+            {
+                id = 1;
+            }
+            targetType = id;
             targetTypeStr = r.name;
         }
 
-        public static bool IsTarget(TileRow r) => r.id == targetType && r.name == targetTypeStr;
+        public static bool IsTarget(TileRow r)
+        {
+            if (targetType == -1)
+            {
+                return r is SourceBlock.Row || (r is SourceObj.Row obj && obj.tileType.IsBlockMount);
+            }
+            else if (targetType == -2)
+            {
+                return r is SourceObj.Row obj && obj.HasGrowth;
+            }
+
+            int id = r.id;
+            if (id == 167)
+            {
+                id = 1;
+            }
+
+            return id == targetType;
+        }
 
         public static void SetStartPoint(Point p)
         {
@@ -282,11 +324,16 @@ namespace AutoAct
 
         public static (int, int) GetDelta(Point p)
         {
-            int dx = p.x - startPoint.x;
-            int dz = p.z - startPoint.z;
+            return GetDelta(p, startPoint, startDirection);
+        }
+
+        public static (int, int) GetDelta(Point p, Point refPoint, int dir)
+        {
+            int dx = p.x - refPoint.x;
+            int dz = p.z - refPoint.z;
 
             int d1 = 0, d2 = 0;
-            switch (startDirection)
+            switch (dir)
             {
                 case 0:
                     d1 = dz * -1;
@@ -333,44 +380,47 @@ namespace AutoAct
             }
 
             InitField(p, filter);
-            curtField.RemoveWhere(pt => pt.Equals(p));
         }
 
-        public static void InitField(Point p, Func<Point, bool> filter)
+        public static void InitField(Point p, Func<Point, bool> filter, int dir = 0b1111)
         {
-            Point left = new Point(p.x - 1, p.z);
-            if (left.IsInBounds && filter(left))
+            if ((dir & 0b0001) == 0b0001)
             {
-                if (curtField.Add(left))
+                Point left = new Point(p.x - 1, p.z);
+                if (left.IsInBounds && filter(left) && curtField.Add(left))
                 {
-                    InitField(left, filter);
+                    InitField(left, filter, 0b1101);
+                    // InitField(left, filter, 0b1101 & dir);
                 }
             }
 
-            Point right = new Point(p.x + 1, p.z);
-            if (right.IsInBounds && filter(right))
+            if ((dir & 0b0010) == 0b0010)
             {
-                if (curtField.Add(right))
+                Point right = new Point(p.x + 1, p.z);
+                if (right.IsInBounds && filter(right) && curtField.Add(right))
                 {
-                    InitField(right, filter);
+                    InitField(right, filter, 0b1110);
+                    // InitField(right, filter, 0b1110 & dir);
                 }
             }
 
-            Point top = new Point(p.x, p.z + 1);
-            if (top.IsInBounds && filter(top))
+            if ((dir & 0b0100) == 0b0100)
             {
-                if (curtField.Add(top))
+                Point front = new Point(p.x, p.z - 1);
+                if (front.IsInBounds && filter(front) && curtField.Add(front))
                 {
-                    InitField(top, filter);
+                    InitField(front, filter, 0b0111);
+                    // InitField(front, filter, 0b0111 & dir);
                 }
             }
 
-            Point bottom = new Point(p.x, p.z - 1);
-            if (bottom.IsInBounds && filter(bottom))
+            if ((dir & 0b1000) == 0b1000)
             {
-                if (curtField.Add(bottom))
+                Point back = new Point(p.x, p.z + 1);
+                if (back.IsInBounds && filter(back) && curtField.Add(back))
                 {
-                    InitField(bottom, filter);
+                    InitField(back, filter, 0b1011);
+                    // InitField(back, filter, 0b1011 & dir);
                 }
             }
         }
@@ -444,6 +494,7 @@ namespace AutoAct
     // [HarmonyPatch(typeof(Chara), "SetAI")]
     // static class SetAI_Patch
     // {
+
     //     [HarmonyPrefix]
     //     static void Prefix(Chara __instance, AIAct g)
     //     {
@@ -463,14 +514,35 @@ namespace AutoAct
     //     }
     // }
 
-    // [HarmonyPatch(typeof(AIAct), "OnDestroy")]
+    // [HarmonyPatch(typeof(Task), "OnDestroy")]
+    // static class Task_OnDestroy_Patch
+    // {
+    //     [HarmonyPrefix]
+    //     static void Prefix(Task __instance)
+    //     {
+    //         Debug.Log($"==Start Cancel {__instance} =============");
+    //         bool f1 = !__instance.CanPerform();
+    //         bool f2 = !EInput.rightMouse.pressing;
+    //         bool f3 = __instance.HasProgress && !__instance.CanProgress();
+    //         Debug.Log($"{f1}, {f2}, {f3}");
+    //         Utils.PrintStackTrace();
+    //         Debug.Log($"===========End {__instance} =============");
+    //     }
+    // }
+
+    // [HarmonyPatch(typeof(AIAct), "Cancel")]
     // static class AIAct_Cancel_Patch
     // {
-    //     [HarmonyPostfix]
-    //     static void Postfix(AIAct __instance)
+    //     [HarmonyPrefix]
+    //     static void Prefix(AIAct __instance)
     //     {
     //         Debug.Log($"==Start Cancel {__instance} =============");
     //         Utils.PrintStackTrace();
+    //         if (__instance is AI_Goto gt)
+    //         {
+    //             Debug.Log($"AI_Goto: from {gt.owner.pos} to {gt.dest}, {gt.destDist}");
+    //             Debug.Log($"{EClass.pc.path.state} | {EClass.pc.path.nodes.Count}");
+    //         }
     //         Debug.Log($"===========End {__instance} =============");
     //     }
     // }

@@ -91,7 +91,7 @@ namespace AutoAct
         [HarmonyPatch(typeof(DynamicAIAct), "Perform")]
         static void DynamicAIAct_Patch(DynamicAIAct __instance)
         {
-            if(__instance.lang == "actClean__AutoAct")
+            if (__instance.lang == "actClean__AutoAct")
             {
                 AutoAct.UpdateState(__instance);
             }
@@ -130,9 +130,9 @@ namespace AutoAct
                 return;
             }
 
-            if (AutoAct.tryGoto)
+            if (AutoAct.backToHarvest)
             {
-                AutoAct.tryGoto = false;
+                AutoAct.backToHarvest = false;
                 ContinueHarvest();
                 return;
             }
@@ -142,7 +142,7 @@ namespace AutoAct
             {
                 ContinueShear();
             }
-            else if ((__instance as DynamicAIAct)?.lang == "actClean__AutoAct" )
+            else if ((__instance as DynamicAIAct)?.lang == "actClean__AutoAct")
             {
                 ContinueClean();
             }
@@ -331,7 +331,7 @@ namespace AutoAct
             }
             else
             {
-                targetPoint = GetNextTarget(CommonFilter, true);
+                targetPoint = GetNextTarget(CommonFilter, !Settings.SimpleIdentify);
             }
 
             if (targetPoint == null)
@@ -339,16 +339,16 @@ namespace AutoAct
                 return;
             }
 
-            if (!targetPoint.HasObj && targetPoint.HasBlock && (targetPoint.sourceBlock.id == 1 || targetPoint.sourceBlock.id == 167))
+            if (TaskMine.CanMine(targetPoint, EClass.pc.held))
             {
                 AutoAct.SetNextTask(new TaskMine { pos = targetPoint });
-                AutoAct.tryGoto = true;
+                AutoAct.backToHarvest = true;
                 return;
             }
             else if (!targetPoint.HasObj && !targetPoint.HasBlock)
             {
                 AutoAct.SetNextTask(new AI_Goto(targetPoint, 0));
-                AutoAct.tryGoto = true;
+                AutoAct.backToHarvest = true;
                 return;
             }
 
@@ -518,7 +518,7 @@ namespace AutoAct
 
         static Point GetNextTarget(Func<Cell, bool> filter, bool tryBetterPath = false)
         {
-            List<(Point, int, int)> list = new List<(Point, int, int)>();
+            List<(Point, int, int, int)> list = new List<(Point, int, int, int)>();
             EClass._map.bounds.ForeachCell(cell =>
             {
                 if (!filter(cell))
@@ -536,10 +536,11 @@ namespace AutoAct
                 int dist2ToLastPoint = EClass.pc.ai is TaskPoint ? Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p) : dist2;
                 if (dist2 <= 2)
                 {
-                    list.Add((p, dist2 == 0 ? 0 : 1, dist2ToLastPoint));
+                    list.Add((p, dist2 == 0 ? 0 : 1, dist2ToLastPoint, 0));
                     return;
                 }
 
+                int d2 = AutoAct.GetDelta(p, EClass.pc.pos, EClass.pc.dir).Item2;
                 PathProgress path = EClass.pc.path;
                 bool TryDestroyObstacle()
                 {
@@ -554,8 +555,7 @@ namespace AutoAct
                     bool CanDestroyObstacle() => !obstacle.HasObj && obstacle.HasBlock && (obstacle.sourceBlock.id == 1 || obstacle.sourceBlock.id == 167);
                     if (CanDestroyObstacle())
                     {
-                        int dd2 = Utils.Dist2(EClass.pc.pos, obstacle);
-                        list.Add((obstacle, 1, dist2ToLastPoint));
+                        list.Add((obstacle, 1, dist2ToLastPoint, 0));
                         return true;
                     }
                     else if (!obstacle.HasBlock && !obstacle.HasObj)
@@ -563,8 +563,7 @@ namespace AutoAct
                         obstacle = new Point(p.x - dx / 2, p.z - dz / 2);
                         if (CanDestroyObstacle())
                         {
-                            int dd2 = Utils.Dist2(EClass.pc.pos, obstacle);
-                            list.Add((obstacle, 1, dist2ToLastPoint));
+                            list.Add((obstacle, 1, dist2ToLastPoint, 0));
                             return true;
                         }
                     }
@@ -608,7 +607,7 @@ namespace AutoAct
 
                     if (np != null)
                     {
-                        list.Add((np, min, dist2ToLastPoint));
+                        list.Add((np, min, dist2ToLastPoint, d2));
                         return true;
                     }
 
@@ -630,10 +629,10 @@ namespace AutoAct
                     return;
                 }
 
-                list.Add((p, path.nodes.Count, dist2ToLastPoint));
+                list.Add((p, path.nodes.Count, dist2ToLastPoint, d2));
             });
 
-            (Point targetPoint, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).FirstOrDefault();
+            (Point targetPoint, int _, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).ThenBy(tuple => tuple.Item4).FirstOrDefault();
 
             // if (targetPoint != null)
             // {
@@ -643,7 +642,7 @@ namespace AutoAct
             //     }
             //     Debug.Log($"Target: {targetPoint.cell.sourceObj.id} | {targetPoint.cell.sourceObj.name} | {targetPoint}");
             //     Debug.Log($"Target: {targetPoint.cell.sourceBlock.id} | {targetPoint.cell.sourceBlock.name} | {targetPoint}");
-            //     Debug.Log($"Target should be: {AutoAct.targetType}");
+            //     Debug.Log($"Target should be: {AutoAct.targetType}, self: {EClass.pc.pos}");
             // }
 
             return targetPoint;

@@ -17,6 +17,7 @@ namespace AutoAct
         public static ConfigEntry<bool> staminaCheck;
         public static ConfigEntry<bool> sameFarmfieldOnly;
         public static ConfigEntry<bool> ignoreEnemySpotted;
+        public static ConfigEntry<bool> simpleIdentify;
         public static ConfigEntry<bool> startFromCenter;
         public static ConfigEntry<bool> keyMode;
 
@@ -74,6 +75,12 @@ namespace AutoAct
         {
             get { return ignoreEnemySpotted.Value; }
             set { ignoreEnemySpotted.Value = value; }
+        }
+
+        public static bool SimpleIdentify
+        {
+            get { return simpleIdentify.Value; }
+            set { simpleIdentify.Value = value; }
         }
 
         public static bool StartFromCenter
@@ -147,6 +154,7 @@ namespace AutoAct
                 menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
                 menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
                 menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), Settings.IgnoreEnemySpotted, v => Settings.IgnoreEnemySpotted = v);
+                menu.AddToggle(ALang.GetText("simpleIdentify"), Settings.SimpleIdentify, v => Settings.SimpleIdentify = v);
                 menu.AddToggle(ALang.GetText("startFromCenter"), Settings.StartFromCenter, v =>
                 {
                     Settings.StartFromCenter = v;
@@ -364,12 +372,13 @@ namespace AutoAct
                     { "toggle", "切换" },
                     { "on", "自动行动，启动！"},
                     { "off", "自动行动，关闭。"},
-                    { "staminaCheck", "精力为零停止" },
+                    { "staminaCheck", "精力为零停止　　　　　　　　　" },
                     { "entireFarmfield", "整个田地" },
                     { "followBuildRange", "同建造范围" },
-                    { "ignoreEnemySpotted", "忽视发现的敌人" },
-                    { "startFromCenter", "从中心开始（限制为正方形）" },
-                    { "sameFarmfieldOnly", "只在同一田地上收割" },
+                    { "simpleIdentify", "仅识别目标是方块还是植物　　　" },
+                    { "ignoreEnemySpotted", "忽视发现的敌人　　　　　　　　" },
+                    { "startFromCenter", "从中心开始（限制为正方形）　　" },
+                    { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
                 }
             },
             {
@@ -387,12 +396,13 @@ namespace AutoAct
                     { "toggle", "切換" },
                     { "on", "自動行動，啟動！"},
                     { "off", "自動行動，關閉。"},
-                    { "staminaCheck", "精力為零停止" },
+                    { "staminaCheck", "精力為零停止　　　　　　　　　" },
                     { "entireFarmfield", "整個田地" },
                     { "followBuildRange", "同建造範圍" },
-                    { "ignoreEnemySpotted", "忽視發現的敵人" },
-                    { "startFromCenter", "从中心開始（限製為正方形）" },
-                    { "sameFarmfieldOnly", "只在同一田地上收割" },
+                    { "simpleIdentify", "僅識別目標是方塊還是植物　　　" },
+                    { "ignoreEnemySpotted", "忽視發現的敵人　　　　　　　　" },
+                    { "startFromCenter", "从中心開始（限製為正方形）　　" },
+                    { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
                 }
             },
             {
@@ -410,12 +420,13 @@ namespace AutoAct
                     { "toggle", "切り替え" },
                     { "on", "自動行動：オン。"},
                     { "off", "自動行動：オフ。"},
-                    { "staminaCheck", "スタミナゼロで停止" },
+                    { "staminaCheck", "スタミナゼロで停止　　　　　　" },
                     { "entireFarmfield", "現在は農地全体" },
                     { "followBuildRange", "建築範囲と同じ" },
-                    { "ignoreEnemySpotted", "発見した敵を無視する" },
-                    { "startFromCenter", "中心から開始（正方形に制限）" },
-                    { "sameFarmfieldOnly", "同じ農地での収穫のみ" },
+                    { "simpleIdentify", "ブロックか植物かだけを識別する" },
+                    { "ignoreEnemySpotted", "発見した敵を無視する　　　　　" },
+                    { "startFromCenter", "中心から開始（正方形に制限）　" },
+                    { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
                 }
             },
             {
@@ -433,12 +444,13 @@ namespace AutoAct
                     { "toggle", "Toggle" },
                     { "on", "Auto Act: On."},
                     { "off", "Auto Act: Off."},
-                    { "staminaCheck", "Stop When Zero Stamina" },
+                    { "staminaCheck", "Stop When Zero Stamina　　　　　　　　　　　　　　　　　" },
                     { "entireFarmfield", "The Entire Current Farmfield" },
                     { "followBuildRange", "Follow The Building Range" },
-                    { "ignoreEnemySpotted", "Ignore Enemy Spotted" },
-                    { "startFromCenter", "Start From The Center (Square Only)" },
-                    { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only" },
+                    { "simpleIdentify", "Identify If The Target Is A Block Or A Plant Only" },
+                    { "ignoreEnemySpotted", "Ignore Enemy Spotted　　　　　　　　　　　　　　　　　　　" },
+                    { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
+                    { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
                 }
             }
         };
