@@ -380,6 +380,7 @@ namespace AutoAct
             }
 
             InitField(p, filter);
+            curtField.Remove(p);
         }
 
         public static void InitField(Point p, Func<Point, bool> filter, int dir = 0b1111)

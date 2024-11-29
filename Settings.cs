@@ -122,7 +122,7 @@ namespace AutoAct
                     UIContextMenuItem item1 = list[0];
                     if (item1 == null) { return; }
                     UIContextMenuItem item2 = list[1];
-                    int min = Math.Min((int)item1.slider.value, (int)item2.slider.value);
+                    int min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
                     SetSquare(min);
                 }
                 void SetSquare(int v)
