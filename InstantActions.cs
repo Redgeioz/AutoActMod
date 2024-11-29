@@ -85,8 +85,10 @@ namespace AutoAct
 					break;
 				}
 
+				int dist2 = Utils.Dist2(EClass.pc.pos, p);
+				int dist2ToLastPoint = 0;
 				PathProgress path = EClass.pc.path;
-				if (Settings.StartFromCenter || !hasRange)
+				if (Settings.StartFromCenter)
 				{
 					int max = AutoAct.MaxDeltaToStartPoint(p);
 					if (hasRange && max > Settings.BuildRangeW / 2)
@@ -99,27 +101,43 @@ namespace AutoAct
 						continue;
 					}
 
-					int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+					dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
 					if (max <= 1)
 					{
-						list.Add((p, max, max - 1, dist2));
+						list.Add((p, max, max - 1, dist2ToLastPoint));
 						continue;
 					}
 
-					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-					if (path.state == PathProgress.State.Fail)
+					if (dist2 > 2)
 					{
-						continue;
+						path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+						if (path.state == PathProgress.State.Fail)
+						{
+							continue;
+						}
 					}
 
-					list.Add((p, max, path.nodes.Count, dist2));
+					list.Add((p, max, path.nodes.Count, dist2ToLastPoint));
 					continue;
 				}
 
 				(int d1, int d2) = AutoAct.GetDelta(p);
-				if (d1 < 0 || d2 < 0 || d1 >= Settings.BuildRangeH || d2 >= Settings.BuildRangeW)
+				if (hasRange && (d1 < 0 || d2 < 0 || d1 >= Settings.BuildRangeH || d2 >= Settings.BuildRangeW))
 				{
 					continue;
+				}
+
+				if (dist2 > 2)
+				{
+					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+					// if (p.Equals(new Point(44, 62)))
+					// {
+					// 	Debug.Log($"(44, 62) | {path.state} | {EClass.pc.pos}");
+					// }
+					if (path.state == PathProgress.State.Fail)
+					{
+						continue;
+					}
 				}
 
 				if (edgeOnly)
@@ -147,26 +165,33 @@ namespace AutoAct
 					{
 						continue;
 					}
-				}
-				else if (d1 % 2 == 1)
-				{
-					d2 *= -1;
+
+					list.Add((p, d1, d2, 0));
 				}
 
-				path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-				if (path.state == PathProgress.State.Fail)
+				if (d1 >= 0)
 				{
-					continue;
+					// hasRange == false
+					(d1, d2) = AutoAct.GetDelta(p, EClass.pc.pos, AutoAct.startDirection);
+					if (d1 < 0)
+					{
+						d1 = -d1 * 2;
+					}
 				}
 
-				list.Add((p, d1, d2, 0));
+				dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+				list.Add((p, dist2ToLastPoint, d1, d2));
 			}
 
-			(Point targetPoint, int _, int _, int _) = list
+			(Point targetPoint, int tdl, int td1, int td2) = list
 				.OrderBy(tuple => tuple.Item2)
 				.ThenBy(tuple => tuple.Item3)
 				.ThenBy(tuple => tuple.Item4)
 				.FirstOrDefault();
+			// if (targetPoint != null)
+			// {
+			// 	Debug.Log($"targetPoint: {targetPoint} | {tdl} | d1: {td1} | d2: {td2} | {AutoAct.startPoint}");
+			// }
 			return targetPoint;
 		}
 

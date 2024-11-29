@@ -513,8 +513,9 @@ namespace AutoAct
         [HarmonyPostfix]
         static void Postfix(AIAct __instance)
         {
-            // Retries are mainly used to deal with random pathfinding failures (they do happen sometimes)
-            // or animal movement during shearing.
+            // Retries are mainly used to deal with random pathfinding failures (they
+            // do happen sometimes even if the player is able to get there) or animal
+            // movement during shearing.
             if (AutoAct.retry &&__instance == AutoAct.autoSetAct)
             {
                 AutoAct.retry = false;

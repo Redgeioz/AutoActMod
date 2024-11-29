@@ -16,6 +16,7 @@ Automatically perform the same type of action, hold down Shift and take the acti
 |抽水     |水を汲む           |Draw water         |
 |倒水     |水を注ぐ           |Pour water         |
 |打扫     |掃除               |Clean             |
+|阅读     |読む               |Read              |
 |拾取     |拾う               |Pick              |
 |挖掘地面 |地面を掘る          |Dig               |
 

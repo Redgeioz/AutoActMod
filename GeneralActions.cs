@@ -722,6 +722,9 @@ namespace AutoAct
 
                 Point p = cell.GetPoint();
                 PathProgress path = EClass.pc.path;
+
+                int dist2 = Utils.Dist2(EClass.pc.pos, p);
+                int dist2ToLastPoint = 0;
                 if (Settings.StartFromCenter)
                 {
                     int max = AutoAct.MaxDeltaToStartPoint(p);
@@ -730,20 +733,23 @@ namespace AutoAct
                         return;
                     }
 
-                    int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                    Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
                     if (max <= 1)
                     {
-                        list.Add((p, max, max - 1, dist2));
+                        list.Add((p, max, max - 1, dist2ToLastPoint));
                         return;
                     }
 
-                    path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-                    if (path.state == PathProgress.State.Fail)
+                    if (dist2 > 2)
                     {
-                        return;
+                        path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                        if (path.state == PathProgress.State.Fail)
+                        {
+                            return;
+                        }
                     }
 
-                    list.Add((p, max, path.nodes.Count, dist2));
+                    list.Add((p, max, path.nodes.Count, dist2ToLastPoint));
                     return;
                 }
 
@@ -753,18 +759,17 @@ namespace AutoAct
                     return;
                 }
 
-                path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-                if (path.state == PathProgress.State.Fail)
-                {
-                    return;
-                }
+				if (dist2 > 2)
+				{
+					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+					if (path.state == PathProgress.State.Fail)
+					{
+						return;
+					}
+				}
 
-                if (d1 % 2 == 1)
-                {
-                    d2 *= -1;
-                }
-
-                list.Add((p, d1, d2, 0));
+				dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+				list.Add((p, dist2ToLastPoint, d1, d2));
             });
 
             (Point targetPoint, int _, int _, int _) = list
