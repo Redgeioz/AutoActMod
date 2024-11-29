@@ -98,8 +98,8 @@ namespace AutoAct
         }
 
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(AI_Clean), "Run")]
-        static void AIClean_Patch(AI_Clean __instance)
+        [HarmonyPatch(typeof(AI_Read), "Run")]
+        static void AIRead_Patch(AI_Read __instance)
         {
             AutoAct.UpdateState(__instance);
         }
@@ -130,6 +130,7 @@ namespace AutoAct
                 return;
             }
 
+            AutoAct.retry = true;
             if (AutoAct.backToHarvest)
             {
                 AutoAct.backToHarvest = false;
@@ -149,6 +150,10 @@ namespace AutoAct
             else if (ai is AI_Pick)
             {
                 ContinuePick();
+            }
+            else if (ai is AI_Read)
+            {
+                ContinueRead();
             }
             else if (ai is TaskPlow)
             {
@@ -267,27 +272,11 @@ namespace AutoAct
 
                 if (installed)
                 {
-                    if (cell.Installed != null && refThing.CanStackTo(refThing))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
+                    return cell.Installed != null && refThing.CanStackTo(refThing);
                 }
-                else
-                {
-                    Point p = cell.GetPoint();
-                    if (p.HasThing && p.Things.Find(t => refThing.CanStackTo(t)) != null)
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
+
+                Point p = cell.GetPoint();
+                return p.HasThing && p.Things.Find(t => refThing.CanStackTo(t)) != null;
             });
             if (targetPoint == null)
             {
@@ -296,6 +285,19 @@ namespace AutoAct
 
             AI_Pick task = new AI_Pick { pos = targetPoint, refThing = refThing, installed = installed };
             AutoAct.SetNextTask(task);
+        }
+
+        static void ContinueRead()
+        {
+            AI_Read lastTask = EClass.pc.ai as AI_Read;
+            Card book = lastTask.target;
+            if (book.isDestroyed)
+            {
+                return;
+            }
+
+            lastTask.Reset();
+            AutoAct.SetNextTask(lastTask);
         }
 
         static void ContinueHarvest()

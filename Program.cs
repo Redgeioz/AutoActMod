@@ -46,6 +46,7 @@ namespace AutoAct
 
         public static bool active = false;
         public static AIAct autoSetAct;
+        public static bool retry = false;
         public static bool backToHarvest = false;
 
         public static int targetType = -1;
@@ -270,6 +271,7 @@ namespace AutoAct
             }
             targetType = id;
             targetTypeStr = r.name;
+            retry = true;
         }
 
         public static bool IsTarget(TileRow r)
@@ -492,6 +494,37 @@ namespace AutoAct
         }
     }
 
+    [HarmonyPatch(typeof(AIAct), "Cancel")]
+    static class AIAct_Cancel_Patch
+    {
+        [HarmonyPrefix]
+        static void Prefix(AIAct __instance)
+        {
+            // Debug.Log($"==Start Cancel {__instance} =============");
+            // Utils.PrintStackTrace();
+            // if (__instance is AI_Goto gt)
+            // {
+            //     Debug.Log($"AI_Goto: from {gt.owner.pos} to {gt.dest}, {gt.destDist}");
+            //     Debug.Log($"{EClass.pc.path.state} | {EClass.pc.path.nodes.Count}");
+            // }
+            // Debug.Log($"===========End {__instance} =============");
+        }
+
+        [HarmonyPostfix]
+        static void Postfix(AIAct __instance)
+        {
+            // Retries are mainly used to deal with random pathfinding failures (they do happen sometimes)
+            // or animal movement during shearing.
+            if (AutoAct.retry &&__instance == AutoAct.autoSetAct)
+            {
+                AutoAct.retry = false;
+                AutoAct.autoSetAct.Reset();
+                AutoAct.SetNextTask(AutoAct.autoSetAct);
+                return;
+            }
+        }
+    }
+
     // [HarmonyPatch(typeof(Chara), "SetAI")]
     // static class SetAI_Patch
     // {
@@ -527,23 +560,6 @@ namespace AutoAct
     //         bool f3 = __instance.HasProgress && !__instance.CanProgress();
     //         Debug.Log($"{f1}, {f2}, {f3}");
     //         Utils.PrintStackTrace();
-    //         Debug.Log($"===========End {__instance} =============");
-    //     }
-    // }
-
-    // [HarmonyPatch(typeof(AIAct), "Cancel")]
-    // static class AIAct_Cancel_Patch
-    // {
-    //     [HarmonyPrefix]
-    //     static void Prefix(AIAct __instance)
-    //     {
-    //         Debug.Log($"==Start Cancel {__instance} =============");
-    //         Utils.PrintStackTrace();
-    //         if (__instance is AI_Goto gt)
-    //         {
-    //             Debug.Log($"AI_Goto: from {gt.owner.pos} to {gt.dest}, {gt.destDist}");
-    //             Debug.Log($"{EClass.pc.path.state} | {EClass.pc.path.nodes.Count}");
-    //         }
     //         Debug.Log($"===========End {__instance} =============");
     //     }
     // }
