@@ -540,7 +540,6 @@ namespace AutoAct
                     return;
                 }
 
-                int d2 = AutoAct.GetDelta(p, EClass.pc.pos, EClass.pc.dir).Item2;
                 PathProgress path = EClass.pc.path;
                 bool TryDestroyObstacle()
                 {
@@ -607,7 +606,7 @@ namespace AutoAct
 
                     if (np != null)
                     {
-                        list.Add((np, min, dist2ToLastPoint, d2));
+                        list.Add((np, min, dist2ToLastPoint, 0));
                         return true;
                     }
 
@@ -627,6 +626,12 @@ namespace AutoAct
                 if (path.nodes.Count > dist2 && (TryDestroyObstacle() || TryCheckDiagonalPoint()))
                 {
                     return;
+                }
+
+                int d2 = 0;
+                if (cell.HasBlock)
+                {
+                    d2 = Math.Abs(AutoAct.GetDelta(p, EClass.pc.pos, EClass.pc.dir).Item2);
                 }
 
                 list.Add((p, path.nodes.Count, dist2ToLastPoint, d2));
