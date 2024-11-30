@@ -766,20 +766,17 @@ namespace AutoAct
                         return;
                     }
 
-                    Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+					dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
                     if (max <= 1)
                     {
                         list.Add((p, max, max - 1, dist2ToLastPoint));
                         return;
                     }
 
-                    if (dist2 > 2)
+                    path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                    if (path.state == PathProgress.State.Fail)
                     {
-                        path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-                        if (path.state == PathProgress.State.Fail)
-                        {
-                            return;
-                        }
+                        return;
                     }
 
                     list.Add((p, max, path.nodes.Count, dist2ToLastPoint));

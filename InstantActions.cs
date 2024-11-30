@@ -108,13 +108,10 @@ namespace AutoAct
 						continue;
 					}
 
-					if (dist2 > 2)
+					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+					if (path.state == PathProgress.State.Fail)
 					{
-						path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-						if (path.state == PathProgress.State.Fail)
-						{
-							continue;
-						}
+						continue;
 					}
 
 					list.Add((p, max, path.nodes.Count, dist2ToLastPoint));
@@ -188,10 +185,10 @@ namespace AutoAct
 				.ThenBy(tuple => tuple.Item3)
 				.ThenBy(tuple => tuple.Item4)
 				.FirstOrDefault();
-			// if (targetPoint != null)
-			// {
-			// 	Debug.Log($"targetPoint: {targetPoint} | {tdl} | d1: {td1} | d2: {td2} | {AutoAct.startPoint}");
-			// }
+			if (targetPoint != null)
+			{
+				Debug.Log($"targetPoint: {targetPoint} | {tdl} | d1: {td1} | d2: {td2} | {AutoAct.startPoint}");
+			}
 			return targetPoint;
 		}
 
