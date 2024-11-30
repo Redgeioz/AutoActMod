@@ -366,7 +366,7 @@ namespace AutoAct
 
         public static void Cancel()
         {
-            if (autoSetAct != null) {
+            if (autoSetAct != null && autoSetAct.IsRunning) {
                 SayFail();
             }
             active = false;
