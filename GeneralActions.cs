@@ -86,6 +86,7 @@ namespace AutoAct
         [HarmonyPatch(typeof(DynamicAct), "Perform")]
         static void DynamicAct_Postfix_Patch(DynamicAct __instance)
         {
+            if (!AutoAct.IsSwitchOn) { return; }
             if (__instance.id == "actHold")
             {
                 AutoAct.active = true;
