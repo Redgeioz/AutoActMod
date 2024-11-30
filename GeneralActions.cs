@@ -218,13 +218,18 @@ namespace AutoAct
                         return (chara, -1);
                     }
 
+                    int dist2 = Utils.Dist2(EClass.pc.pos, chara.pos);
+                    if (dist2 <= 2)
+                    {
+                        return (chara, dist2 == 0 ? 0 : 1);
+                    }
+
                     PathProgress path = EClass.pc.path;
                     path.RequestPathImmediate(EClass.pc.pos, chara.pos, 1, false, -1);
                     if (path.state == PathProgress.State.Fail)
                     {
                         return (chara, -1);
                     }
-
                     return (chara, path.nodes.Count);
                 })
                 .Where(Tuple => Tuple.Item2 != -1)
@@ -233,6 +238,7 @@ namespace AutoAct
 
             if (target == null)
             {
+                AutoAct.SayNoTarget();
                 return;
             }
 
@@ -250,6 +256,7 @@ namespace AutoAct
             Point targetPoint = GetNextTarget(cell => !cell.HasObj && !cell.HasBlock && cell.Installed == null && (cell.decal > 0 || (cell.effect != null && cell.effect.IsLiquid)));
             if (targetPoint == null)
             {
+                AutoAct.SayNoTarget();
                 return;
             }
 
@@ -302,6 +309,7 @@ namespace AutoAct
             });
             if (targetPoint == null)
             {
+                AutoAct.SayNoTarget();
                 return;
             }
 
@@ -332,6 +340,7 @@ namespace AutoAct
                 Thing thing = GetNextThingTarget();
                 if (thing == null)
                 {
+                    AutoAct.SayNoTarget();
                     return;
                 }
 
@@ -360,6 +369,7 @@ namespace AutoAct
 
             if (targetPoint == null)
             {
+                AutoAct.SayNoTarget();
                 return;
             }
 
@@ -420,6 +430,7 @@ namespace AutoAct
             Point targetPoint = GetNextTarget(CommonFilter);
             if (targetPoint == null)
             {
+                AutoAct.SayNoTarget();
                 return;
             }
 

@@ -105,6 +105,8 @@ namespace AutoAct
                 return;
             }
 
+            SayStart();
+
             if (a is TaskDrawWater tdw)
             {
                 targetTypeStr = (tdw.pos.HasBridge ? tdw.pos.matBridge : tdw.pos.matFloor).alias;
@@ -366,6 +368,7 @@ namespace AutoAct
         {
             active = false;
             autoSetAct = null;
+            SayFail();
         }
 
         public static void InitFarmfield(Point p, bool isWater)
@@ -426,6 +429,24 @@ namespace AutoAct
                     // InitField(back, filter, 0b1011 & dir);
                 }
             }
+        }
+
+        public static void SayStart()
+        {
+            Msg.SetColor(Msg.colors.TalkGod);
+            Msg.Say(ALang.GetText("start"));
+        }
+
+        public static void SayNoTarget()
+        {
+            Msg.SetColor(Msg.colors.TalkGod);
+            Msg.Say(ALang.GetText("noTarget"));
+        }
+
+        public static void SayFail()
+        {
+            Msg.SetColor(Msg.colors.TalkGod);
+            Msg.Say(ALang.GetText("fail"));
         }
     }
 
@@ -513,15 +534,23 @@ namespace AutoAct
         [HarmonyPostfix]
         static void Postfix(AIAct __instance)
         {
+            if (__instance != AutoAct.autoSetAct)
+            {
+                return;
+            }
             // Retries are mainly used to deal with random pathfinding failures (they
             // do happen sometimes even if the player is able to get there) or animal
             // movement during shearing.
-            if (AutoAct.retry &&__instance == AutoAct.autoSetAct)
+            if (AutoAct.retry)
             {
                 AutoAct.retry = false;
                 AutoAct.autoSetAct.Reset();
                 AutoAct.SetNextTask(AutoAct.autoSetAct);
                 return;
+            }
+            else
+            {
+                AutoAct.SayFail();
             }
         }
     }
