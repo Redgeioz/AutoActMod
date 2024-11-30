@@ -366,9 +366,11 @@ namespace AutoAct
 
         public static void Cancel()
         {
+            if (autoSetAct != null) {
+                SayFail();
+            }
             active = false;
             autoSetAct = null;
-            SayFail();
         }
 
         public static void InitFarmfield(Point p, bool isWater)
