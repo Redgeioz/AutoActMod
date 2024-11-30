@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace AutoAct
 {
@@ -9,12 +10,23 @@ namespace AutoAct
 
         public bool installed;
 
-        public override IEnumerable<AIAct.Status> Run()
+        public override IEnumerable<Status> Run()
         {
             yield return DoGoto(pos, 0, false, null);
             if (installed)
             {
                 Thing t = pos.Installed;
+                if ((t == null || !refThing.CanStackTo(t)) && pos.HasThing)
+                {
+                    foreach (Card c in pos.ListCards())
+                    {
+                        if (c is Thing && c.placeState == PlaceState.installed && c.CanStackTo(refThing))
+                        {
+                            t = c as Thing;
+                            break;
+                        }
+                    }
+                }
                 if (t != null && refThing.CanStackTo(t))
                 {
                     if (!pc.CanLift(t))
@@ -46,20 +58,26 @@ namespace AutoAct
                         player.RefreshCurrentHotItem();
                         ActionMode.Adv.planRight.Update(ActionMode.Adv.mouseTarget);
                         pc.renderer.Refresh();
+                        yield return Success();
                     }
                 }
             }
             else if (pos.HasThing)
             {
+                bool success = false;
                 foreach (Card t in pos.ListCards())
                 {
                     if (t is Thing && t.CanStackTo(refThing))
                     {
                         pc.Pick(t as Thing, true, true);
+                        success = true;
                     }
                 }
+                if (success)
+                {
+                    yield return Success();
+                }
             }
-            yield return Success();
             yield break;
         }
     }

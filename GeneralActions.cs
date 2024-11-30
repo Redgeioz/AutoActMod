@@ -64,7 +64,7 @@ namespace AutoAct
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(DynamicAct), "Perform")]
-        static void DaynamicAct_Patch(DynamicAct __instance)
+        static void DaynamicAct_Prefix_Patch(DynamicAct __instance)
         {
             // Debug.Log($"DynamicAct: {__instance.id}");
             if (!AutoAct.IsSwitchOn) { return; }
@@ -75,15 +75,21 @@ namespace AutoAct
             }
             else if (__instance.id == "actPickOne")
             {
-                if (!(Scene.HitPoint.ListCards()[0] is Thing refThing)) { return; }
+                List<Card> list = Scene.HitPoint.ListCards();
+                if (!(list.Count > 0 && list[0] is Thing refThing)) { return; }
                 AutoAct.active = true;
                 AIAct_Success_Patch.ContinuePick(refThing);
             }
-            else if (__instance.id == "actHold")
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(DynamicAct), "Perform")]
+        static void DynamicAct_Postfix_Patch(DynamicAct __instance)
+        {
+            if (__instance.id == "actHold")
             {
-                if (!(Scene.HitPoint.ListCards()[0] is Thing refThing)) { return; }
                 AutoAct.active = true;
-                AIAct_Success_Patch.ContinuePick(refThing, refThing.placeState == PlaceState.installed);
+                AIAct_Success_Patch.ContinuePick(null, true);
             }
         }
 
@@ -258,9 +264,20 @@ namespace AutoAct
         {
             if (refThing == null)
             {
-                AI_Pick last = EClass.pc.ai as AI_Pick;
-                refThing = last.refThing;
-                installed = last.installed;
+                if (installed)
+                {
+                    refThing = EClass.pc.held as Thing;
+                    if (refThing == null)
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    AI_Pick last = EClass.pc.ai as AI_Pick;
+                    refThing = last.refThing;
+                    installed = last.installed;
+                }
             }
 
             Point targetPoint = GetNextTarget(cell =>
@@ -270,12 +287,17 @@ namespace AutoAct
                     return false;
                 }
 
+                Point p = cell.GetPoint();
                 if (installed)
                 {
-                    return cell.Installed != null && refThing.CanStackTo(refThing);
+                    if (cell.Installed != null && cell.Installed.CanStackTo(refThing))
+                    {
+                        return true;
+                    }
+
+                    return p.HasThing && p.Things.Find(t => t.placeState == PlaceState.installed && refThing.CanStackTo(t)) != null;
                 }
 
-                Point p = cell.GetPoint();
                 return p.HasThing && p.Things.Find(t => refThing.CanStackTo(t)) != null;
             });
             if (targetPoint == null)
@@ -759,17 +781,17 @@ namespace AutoAct
                     return;
                 }
 
-				if (dist2 > 2)
-				{
-					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-					if (path.state == PathProgress.State.Fail)
-					{
-						return;
-					}
-				}
+                if (dist2 > 2)
+                {
+                    path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                    if (path.state == PathProgress.State.Fail)
+                    {
+                        return;
+                    }
+                }
 
-				dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
-				list.Add((p, dist2ToLastPoint, d1, d2));
+                dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                list.Add((p, dist2ToLastPoint, d1, d2));
             });
 
             (Point targetPoint, int _, int _, int _) = list
