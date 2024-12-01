@@ -186,6 +186,10 @@ namespace AutoAct
                 return;
             }
 
+            if (Settings.SameFarmfieldOnly) {
+                InitFarmfield(t.pos, t.pos.IsWater);
+            }
+
             targetGrowth = t.pos.growth.stage.idx;
             targetCanHarvest = t.pos.growth.CanHarvest();
             curtField.Clear();
@@ -372,6 +376,7 @@ namespace AutoAct
             }
             active = false;
             runningTask = null;
+            retry = false;
         }
 
         public static void InitFarmfield(Point p, bool isWater)
@@ -538,8 +543,8 @@ namespace AutoAct
     [HarmonyPatch(typeof(AIAct), "CanManualCancel")]
     static class CanManualCancel_Patch
     {
-        [HarmonyPostfix]
-        static void Postfix()
+        [HarmonyPrefix]
+        static void Prefix()
         {
             AutoAct.Cancel();
         }
@@ -548,8 +553,8 @@ namespace AutoAct
     [HarmonyPatch(typeof(AM_Adv), "TryCancelInteraction")]
     static class TryCancelInteraction_Patch
     {
-        [HarmonyPostfix]
-        static void Postfix()
+        [HarmonyPrefix]
+        static void Prefix()
         {
             AutoAct.Cancel();
         }
@@ -611,7 +616,6 @@ namespace AutoAct
     // [HarmonyPatch(typeof(Chara), "SetAI")]
     // static class SetAI_Patch
     // {
-
     //     [HarmonyPrefix]
     //     static void Prefix(Chara __instance, AIAct g)
     //     {
@@ -624,7 +628,13 @@ namespace AutoAct
     //         // {
     //         //     return;
     //         // }
-    //         // Utils.PrintStackTrace();
+    //         Debug.Log($"===  Set AI  ===");
+    //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
+    //         Debug.Log($"==== Set AI ====");
+    //         if (g is TaskHarvest)
+    //         {
+    //             Utils.PrintStackTrace();
+    //         }
     //     }
     // }
 

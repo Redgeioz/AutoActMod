@@ -336,10 +336,6 @@ namespace AutoAct
             }
             else if (lastTask != null && Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
             {
-                if (!AutoAct.curtField.Contains(lastTask.pos))
-                {
-                    AutoAct.InitFarmfield(lastTask.pos, lastTask.pos.IsWater);
-                }
                 targetPoint = GetNextFarmfieldTarget();
             }
             else
