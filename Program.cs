@@ -44,7 +44,7 @@ namespace AutoAct
         }
 
         public static bool active = false;
-        public static AIAct autoSetAct;
+        public static AIAct runningTask;
         public static bool retry = false;
         public static bool backToHarvest = false;
 
@@ -83,7 +83,7 @@ namespace AutoAct
             }
 
             // Debug.Log($"UpdateState from: {a}");
-            if (a == autoSetAct)
+            if (a == runningTask)
             {
                 active = true;
                 return;
@@ -104,6 +104,7 @@ namespace AutoAct
                 return;
             }
 
+            runningTask = a;
             SayStart();
 
             if (a is TaskDrawWater tdw)
@@ -211,7 +212,7 @@ namespace AutoAct
                 return;
             }
 
-            if (a == autoSetAct)
+            if (a == runningTask)
             {
                 active = true;
                 return;
@@ -256,7 +257,7 @@ namespace AutoAct
         public static void SetNextTask(AIAct a)
         {
             EClass.pc.SetAIImmediate(a);
-            autoSetAct = a;
+            runningTask = a;
             if (a is BaseTaskHarvest t)
             {
                 t.SetTarget(EClass.pc);
@@ -365,12 +366,12 @@ namespace AutoAct
 
         public static void Cancel()
         {
-            if (autoSetAct != null && autoSetAct.IsRunning)
+            if (runningTask != null && runningTask.IsRunning)
             {
                 SayFail();
             }
             active = false;
-            autoSetAct = null;
+            runningTask = null;
         }
 
         public static void InitFarmfield(Point p, bool isWater)
@@ -530,7 +531,7 @@ namespace AutoAct
         [HarmonyPostfix]
         static void Postfix()
         {
-            AutoAct.autoSetAct = null;
+            AutoAct.runningTask = null;
         }
     }
 
@@ -554,6 +555,19 @@ namespace AutoAct
         }
     }
 
+    [HarmonyPatch(typeof(Card), "DamageHP", new Type[] { typeof(int), typeof(int), typeof(int), typeof(AttackSource), typeof(Card), typeof(bool) })]
+    static class Card_DamageHP_Patch
+    {
+        [HarmonyPostfix]
+        static void Postfix(Card __instance)
+        {
+            if (__instance.IsPC)
+            {
+                AutoAct.retry = false;
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(AIAct), "Cancel")]
     static class AIAct_Cancel_Patch
     {
@@ -573,7 +587,7 @@ namespace AutoAct
         [HarmonyPostfix]
         static void Postfix(AIAct __instance)
         {
-            if (__instance != AutoAct.autoSetAct)
+            if (__instance != AutoAct.runningTask)
             {
                 return;
             }
@@ -583,8 +597,8 @@ namespace AutoAct
             if (AutoAct.retry)
             {
                 AutoAct.retry = false;
-                AutoAct.autoSetAct.Reset();
-                AutoAct.SetNextTask(AutoAct.autoSetAct);
+                AutoAct.runningTask.Reset();
+                AutoAct.SetNextTask(AutoAct.runningTask);
                 return;
             }
             else
@@ -610,9 +624,6 @@ namespace AutoAct
     //         // {
     //         //     return;
     //         // }
-    //         Debug.Log($"===  Set AI  ===");
-    //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
-    //         Debug.Log($"==== Set AI ====");
     //         // Utils.PrintStackTrace();
     //     }
     // }
