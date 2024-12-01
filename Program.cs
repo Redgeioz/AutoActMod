@@ -501,7 +501,7 @@ namespace AutoAct
     }
 
     [HarmonyPatch(typeof(AM_Adv), "_OnUpdateInput")]
-    static class AM_Adv_SetPressedAction_Patch
+    static class AM_Adv_OnUpdateInput_Patch
     {
         [HarmonyPostfix]
         static void Postfix()
@@ -524,7 +524,7 @@ namespace AutoAct
     //     }
     // }
 
-    [HarmonyPatch(typeof(Game), "Load")]
+    [HarmonyPatch(typeof(Game), "Load", new Type[] { typeof(string) })]
     static class Game_Load_Patch
     {
         [HarmonyPostfix]
