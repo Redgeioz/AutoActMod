@@ -64,43 +64,33 @@ namespace AutoAct
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(DynamicAct), "Perform")]
-        static void DaynamicAct_Prefix_Patch(DynamicAct __instance)
+        static void DaynamicAct_Patch(DynamicAct __instance)
         {
             // Debug.Log($"DynamicAct: {__instance.id}");
             if (!AutoAct.IsSwitchOn) { return; }
             if (__instance.id == "actClean")
             {
                 AutoAct.active = true;
+                AutoAct.SayStart();
                 AIAct_Success_Patch.ContinueClean();
             }
             else if (__instance.id == "actPickOne")
             {
-                List<Card> list = Scene.HitPoint.ListCards();
-                if (!(list.Count > 0 && list[0] is Thing refThing)) { return; }
+                List<Thing> list = AutoAct.lastHitPoint.Things;
+                Thing refThing = list.FindLast(t => t.placeState == PlaceState.roaming);
+                if (refThing == null) { return; }
                 AutoAct.active = true;
+                AutoAct.SayStart();
                 AIAct_Success_Patch.ContinuePick(refThing);
             }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(DynamicAct), "Perform")]
-        static void DynamicAct_Postfix_Patch(DynamicAct __instance)
-        {
-            if (!AutoAct.IsSwitchOn) { return; }
-            if (__instance.id == "actHold")
+            else if (__instance.id == "actHold")
             {
+                List<Thing> list = AutoAct.lastHitPoint.Things;
+                Thing refThing = list.LastOrDefault();
+                if (refThing == null) { return; }
                 AutoAct.active = true;
-                AIAct_Success_Patch.ContinuePick(null, true);
-            }
-        }
-
-        [HarmonyPostfix]
-        [HarmonyPatch(typeof(DynamicAIAct), "Perform")]
-        static void DynamicAIAct_Patch(DynamicAIAct __instance)
-        {
-            if (__instance.lang == "actClean__AutoAct")
-            {
-                AutoAct.UpdateState(__instance);
+                AutoAct.SayStart();
+                AIAct_Success_Patch.ContinuePick(refThing, refThing.placeState == PlaceState.installed);
             }
         }
 
@@ -272,25 +262,14 @@ namespace AutoAct
         {
             if (refThing == null)
             {
-                if (installed)
-                {
-                    refThing = EClass.pc.held as Thing;
-                    if (refThing == null)
-                    {
-                        return;
-                    }
-                }
-                else
-                {
-                    AI_Pick last = EClass.pc.ai as AI_Pick;
-                    refThing = last.refThing;
-                    installed = last.installed;
-                }
+                AI_Pick last = EClass.pc.ai as AI_Pick;
+                refThing = last.refThing;
+                installed = last.installed;
             }
 
             Point targetPoint = GetNextTarget(cell =>
             {
-                if (cell.HasBlock || cell.HasObj)
+                if (cell.HasBlock)
                 {
                     return false;
                 }
@@ -303,10 +282,10 @@ namespace AutoAct
                         return true;
                     }
 
-                    return p.HasThing && p.Things.Find(t => t.placeState == PlaceState.installed && refThing.CanStackTo(t)) != null;
+                    return p.Things.Find(t => t.placeState == PlaceState.installed && refThing.CanStackTo(t)) != null;
                 }
 
-                return p.HasThing && p.Things.Find(t => refThing.CanStackTo(t)) != null;
+                return p.Things.Find(t => refThing.CanStackTo(t)) != null;
             });
             if (targetPoint == null)
             {
@@ -767,7 +746,7 @@ namespace AutoAct
                         return;
                     }
 
-					dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                    dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
                     if (max <= 1)
                     {
                         list.Add((p, max, max - 1, dist2ToLastPoint));

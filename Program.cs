@@ -39,8 +39,7 @@ namespace AutoAct
             if (Input.GetKeyDown(Settings.KeyCode))
             {
                 switchOn = !switchOn;
-                Msg.SetColor(Msg.colors.TalkGod);
-                Msg.Say(ALang.GetText(switchOn ? "on" : "off"));
+                Say(ALang.GetText(switchOn ? "on" : "off"));
             }
         }
 
@@ -68,7 +67,7 @@ namespace AutoAct
 
         public static bool switchOn = false;
         public static bool IsSwitchOn => Settings.KeyMode ? switchOn : EInput.isShiftDown;
-
+        public static Point lastHitPoint = null;
 
         public static void UpdateState(AIAct a)
         {
@@ -366,7 +365,8 @@ namespace AutoAct
 
         public static void Cancel()
         {
-            if (autoSetAct != null && autoSetAct.IsRunning) {
+            if (autoSetAct != null && autoSetAct.IsRunning)
+            {
                 SayFail();
             }
             active = false;
@@ -433,22 +433,25 @@ namespace AutoAct
             }
         }
 
-        public static void SayStart()
+        public static void Say(string text)
         {
             Msg.SetColor(Msg.colors.TalkGod);
-            Msg.Say(ALang.GetText("start"));
+            Msg.Say(text);
+        }
+
+        public static void SayStart()
+        {
+            Say(ALang.GetText("start"));
         }
 
         public static void SayNoTarget()
         {
-            Msg.SetColor(Msg.colors.TalkGod);
-            Msg.Say(ALang.GetText("noTarget"));
+            Say(ALang.GetText("noTarget"));
         }
 
         public static void SayFail()
         {
-            Msg.SetColor(Msg.colors.TalkGod);
-            Msg.Say(ALang.GetText("fail"));
+            Say(ALang.GetText("fail"));
         }
     }
 
@@ -494,6 +497,40 @@ namespace AutoAct
                     }
                 }
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(AM_Adv), "_OnUpdateInput")]
+    static class AM_Adv_SetPressedAction_Patch
+    {
+        [HarmonyPostfix]
+        static void Postfix()
+        {
+            if (EInput.leftMouse.down || EInput.rightMouse.down || EInput.middleMouse.down)
+            {
+                AutoAct.lastHitPoint = Scene.HitPoint.Copy();
+            }
+        }
+    }
+
+    // [HarmonyPatch(typeof(ButtonGrid), "OnMiddleClick")]
+    // static class ButtonGrid_OnMiddleClick_Patch
+    // {
+    //     [HarmonyPostfix]
+    //     static void Postfix()
+    //     {
+
+    //         AutoAct.lastHitPoint = Scene.HitPoint.Copy();
+    //     }
+    // }
+
+    [HarmonyPatch(typeof(Game), "Load")]
+    static class Game_Load_Patch
+    {
+        [HarmonyPostfix]
+        static void Postfix()
+        {
+            AutoAct.autoSetAct = null;
         }
     }
 
