@@ -12,7 +12,7 @@ namespace AutoAct
 		[HarmonyPostfix]
 		static void Postfix(TaskBuild __instance)
 		{
-			if (__instance != EClass.pc.ai)
+			if (__instance != AutoAct.runningTask)
 			{
 				return;
 			}
@@ -66,7 +66,7 @@ namespace AutoAct
 			};
 
 			AutoAct.SetNextTask(task);
-			AutoAct.curtField.RemoveWhere(p => targetPoint.Equals(p));
+			AutoAct.curtField.Remove(targetPoint);
 		}
 
 		static Point GetNextTarget(Func<Point, bool> filter, bool hasRange = true, bool edgeOnly = false)
@@ -101,7 +101,7 @@ namespace AutoAct
 						continue;
 					}
 
-					dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+					dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
 					if (max <= 1)
 					{
 						list.Add((p, max, max - 1, dist2ToLastPoint));
@@ -176,7 +176,7 @@ namespace AutoAct
 					}
 				}
 
-				dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+				dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
 				list.Add((p, dist2ToLastPoint, d1, d2));
 			}
 

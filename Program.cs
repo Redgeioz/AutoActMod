@@ -186,14 +186,14 @@ namespace AutoAct
                 return;
             }
 
-            if (Settings.SameFarmfieldOnly) {
-                InitFarmfield(t.pos, t.pos.IsWater);
-            }
-
             targetGrowth = t.pos.growth.stage.idx;
             targetCanHarvest = t.pos.growth.CanHarvest();
             curtField.Clear();
-            // Debug.Log($"===New start is mature: {targetGrowth}");
+
+            if (Settings.SameFarmfieldOnly && (t.pos.IsFarmField || (t.pos.sourceObj.id == 88 && t.pos.IsWater)))
+            {
+                InitFarmfield(t.pos, t.pos.IsWater);
+            }
 
             if (t is TaskHarvest th && th.IsReapSeed)
             {

@@ -115,7 +115,7 @@ namespace AutoAct
         [HarmonyPostfix]
         static void Postfix(AIAct __instance)
         {
-            if (!AutoAct.active || __instance != EClass.pc.ai || __instance is TaskBuild)
+            if (!AutoAct.active || __instance != AutoAct.runningTask || __instance is TaskBuild)
             {
                 return;
             }
@@ -262,7 +262,7 @@ namespace AutoAct
         {
             if (refThing == null)
             {
-                AI_Pick last = EClass.pc.ai as AI_Pick;
+                AI_Pick last = AutoAct.runningTask as AI_Pick;
                 refThing = last.refThing;
                 installed = last.installed;
             }
@@ -299,7 +299,7 @@ namespace AutoAct
 
         static void ContinueRead()
         {
-            AI_Read lastTask = EClass.pc.ai as AI_Read;
+            AI_Read lastTask = AutoAct.runningTask as AI_Read;
             Card book = lastTask.target;
             if (book.isDestroyed)
             {
@@ -314,7 +314,7 @@ namespace AutoAct
         {
             TaskHarvest task;
             Point targetPoint = null;
-            BaseTaskHarvest lastTask = EClass.pc.ai as BaseTaskHarvest;
+            BaseTaskHarvest lastTask = AutoAct.runningTask as BaseTaskHarvest;
             if (lastTask != null && lastTask.harvestType == BaseTaskHarvest.HarvestType.Thing)
             {
                 Thing thing = GetNextThingTarget();
@@ -337,6 +337,7 @@ namespace AutoAct
             else if (lastTask != null && Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
             {
                 targetPoint = GetNextFarmfieldTarget();
+                AutoAct.curtField.Remove(targetPoint);
             }
             else
             {
@@ -349,13 +350,7 @@ namespace AutoAct
                 return;
             }
 
-            if (TaskMine.CanMine(targetPoint, EClass.pc.held))
-            {
-                AutoAct.SetNextTask(new TaskMine { pos = targetPoint });
-                AutoAct.backToHarvest = true;
-                return;
-            }
-            else if (!targetPoint.HasObj && !targetPoint.HasBlock)
+            if (!targetPoint.HasObj && !targetPoint.HasBlock)
             {
                 AutoAct.SetNextTask(new AI_Goto(targetPoint, 0));
                 AutoAct.backToHarvest = true;
@@ -363,17 +358,20 @@ namespace AutoAct
             }
 
             task = TaskHarvest.TryGetAct(EClass.pc, targetPoint);
-            if (task == null)
+            if (task != null)
             {
-                return;
+                AutoAct.SetNextTask(task);
             }
-
-            AutoAct.SetNextTask(task);
+            else if (TaskMine.CanMine(targetPoint, EClass.pc.held))
+            {
+                AutoAct.SetNextTask(new TaskMine { pos = targetPoint });
+                AutoAct.backToHarvest = true;
+            }
         }
 
         static void ContinueDig()
         {
-            TaskDig t = EClass.pc.ai as TaskDig;
+            TaskDig t = AutoAct.runningTask as TaskDig;
             if (EClass._zone.IsRegion)
             {
                 TaskDig repeatedTaskDig = new TaskDig
@@ -544,7 +542,7 @@ namespace AutoAct
                     return;
                 }
 
-                int dist2ToLastPoint = EClass.pc.ai is TaskPoint ? Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p) : dist2;
+                int dist2ToLastPoint = AutoAct.runningTask is TaskPoint ? Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p) : dist2;
                 if (dist2 <= 2)
                 {
                     list.Add((p, dist2 == 0 ? 0 : 1, dist2ToLastPoint, 0));
@@ -562,7 +560,12 @@ namespace AutoAct
                     int dx = p.x - EClass.pc.pos.x;
                     int dz = p.z - EClass.pc.pos.z;
                     Point obstacle = new Point(EClass.pc.pos.x + dx / 2, EClass.pc.pos.z + dz / 2);
-                    bool CanDestroyObstacle() => !obstacle.HasObj && obstacle.HasBlock && (obstacle.sourceBlock.id == 1 || obstacle.sourceBlock.id == 167);
+                    bool CanDestroyObstacle() =>
+                        obstacle.HasBlock
+                        // soil block
+                        && (obstacle.sourceBlock.id == 1 || obstacle.sourceBlock.id == 167)
+                        // wall frame
+                        && (!obstacle.HasObj || obstacle.sourceObj.id == 24);
                     if (CanDestroyObstacle())
                     {
                         list.Add((obstacle, 1, dist2ToLastPoint, 0));
@@ -687,7 +690,7 @@ namespace AutoAct
                     return;
                 }
 
-                int dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                int dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
                 if (dist2 <= 2)
                 {
                     list.Add((thing, dist2 == 0 ? 0 : 1, dist2ToLastPoint));
@@ -742,7 +745,7 @@ namespace AutoAct
                         return;
                     }
 
-                    dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                    dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
                     if (max <= 1)
                     {
                         list.Add((p, max, max - 1, dist2ToLastPoint));
@@ -774,7 +777,7 @@ namespace AutoAct
                     }
                 }
 
-                dist2ToLastPoint = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
                 list.Add((p, dist2ToLastPoint, d1, d2));
             });
 
@@ -816,7 +819,7 @@ namespace AutoAct
                     continue;
                 }
 
-                int dist2 = Utils.Dist2((EClass.pc.ai as TaskPoint).pos, p);
+                int dist2 = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
                 int max = Utils.MaxDelta(EClass.pc.pos, p);
                 if (max <= 1)
                 {
