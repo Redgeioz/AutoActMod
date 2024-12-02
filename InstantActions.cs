@@ -179,10 +179,10 @@ namespace AutoAct
 				.ThenBy(tuple => tuple.Item3)
 				.ThenBy(tuple => tuple.Item4)
 				.FirstOrDefault();
-			if (targetPoint != null)
-			{
-				Debug.Log($"targetPoint: {targetPoint} | {tdl} | d1: {td1} | d2: {td2} | {AutoAct.startPoint}");
-			}
+			// if (targetPoint != null)
+			// {
+			// 	Debug.Log($"targetPoint: {targetPoint} | {tdl} | d1: {td1} | d2: {td2} | {AutoAct.startPoint}");
+			// }
 			return targetPoint;
 		}
 

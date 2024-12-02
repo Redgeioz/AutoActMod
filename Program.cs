@@ -243,6 +243,7 @@ namespace AutoAct
             }
 
             AutoAct.held = held;
+            Debug.Log(1);
             if (held.category.id == "seed" || held.category.id == "fertilizer")
             {
                 InitFarmfield(startPoint, startPoint.IsWater);
@@ -255,6 +256,7 @@ namespace AutoAct
             {
                 InitField(startPoint, p => !p.HasBlock);
             }
+            Debug.Log(2);
         }
 
         public static void SetNextTask(AIAct a)
@@ -395,45 +397,33 @@ namespace AutoAct
             curtField.Remove(p);
         }
 
-        public static void InitField(Point p, Func<Point, bool> filter, int dir = 0b1111)
+        public static void InitField(Point start, Func<Point, bool> filter)
         {
-            if ((dir & 0b0001) == 0b0001)
+            var directions = new (int dx, int dz, int mask, int nextDir)[]
             {
-                Point left = new Point(p.x - 1, p.z);
-                if (left.IsInBounds && filter(left) && curtField.Add(left))
-                {
-                    InitField(left, filter, 0b1101);
-                    // InitField(left, filter, 0b1101 & dir);
-                }
-            }
+                (-1, 0, 0b0001, 0b1101),
+                (1, 0, 0b0010, 0b1110),
+                (0, -1, 0b0100, 0b0111),
+                (0, 1, 0b1000, 0b1011)
+            };
 
-            if ((dir & 0b0010) == 0b0010)
-            {
-                Point right = new Point(p.x + 1, p.z);
-                if (right.IsInBounds && filter(right) && curtField.Add(right))
-                {
-                    InitField(right, filter, 0b1110);
-                    // InitField(right, filter, 0b1110 & dir);
-                }
-            }
+            Stack<(Point, int)> stack = new Stack<(Point, int)>();
+            stack.Push((start, 0b1111));
 
-            if ((dir & 0b0100) == 0b0100)
+            while (stack.Count > 0)
             {
-                Point front = new Point(p.x, p.z - 1);
-                if (front.IsInBounds && filter(front) && curtField.Add(front))
-                {
-                    InitField(front, filter, 0b0111);
-                    // InitField(front, filter, 0b0111 & dir);
-                }
-            }
+                var (current, dir) = stack.Pop();
 
-            if ((dir & 0b1000) == 0b1000)
-            {
-                Point back = new Point(p.x, p.z + 1);
-                if (back.IsInBounds && filter(back) && curtField.Add(back))
+                foreach (var (dx, dz, mask, nextDir) in directions)
                 {
-                    InitField(back, filter, 0b1011);
-                    // InitField(back, filter, 0b1011 & dir);
+                    if ((dir & mask) == 0) continue;
+
+                    Point neighbor = new Point(current.x + dx, current.z + dz);
+
+                    if (neighbor.IsInBounds && filter(neighbor) && curtField.Add(neighbor))
+                    {
+                        stack.Push((neighbor, nextDir));
+                    }
                 }
             }
         }
@@ -628,13 +618,10 @@ namespace AutoAct
     //         // {
     //         //     return;
     //         // }
-    //         Debug.Log($"===  Set AI  ===");
+    //         Debug.Log($"===  Chara_SetAI_Prefix  ===");
     //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
-    //         Debug.Log($"==== Set AI ====");
-    //         if (g is TaskHarvest)
-    //         {
-    //             Utils.PrintStackTrace();
-    //         }
+    //         Debug.Log($"==== Chara_SetAI_Prefix ====");
+    //         // Utils.PrintStackTrace();
     //     }
     // }
 
