@@ -104,8 +104,7 @@ namespace AutoAct
                 return;
             }
 
-            runningTask = a;
-            SayStart();
+            SayStart(a);
 
             if (a is TaskDrawWater tdw)
             {
@@ -232,6 +231,7 @@ namespace AutoAct
                 return;
             }
 
+            SayStart(a);
             SetStartPoint(a.pos.Copy());
             curtField.Clear();
 
@@ -243,7 +243,6 @@ namespace AutoAct
             }
 
             AutoAct.held = held;
-
             if (held.category.id == "seed" || held.category.id == "fertilizer")
             {
                 InitFarmfield(startPoint, startPoint.IsWater);
@@ -445,8 +444,9 @@ namespace AutoAct
             Msg.Say(text);
         }
 
-        public static void SayStart()
+        public static void SayStart(AIAct a = null)
         {
+            runningTask = a;
             Say(ALang.GetText("start"));
         }
 

@@ -12,11 +12,6 @@ namespace AutoAct
 		[HarmonyPostfix]
 		static void Postfix(TaskBuild __instance)
 		{
-			if (__instance != AutoAct.runningTask)
-			{
-				return;
-			}
-
 			AutoAct.UpdateStateInstant(__instance);
 
 			if (!AutoAct.active || EClass.pc.held == null)
@@ -27,7 +22,6 @@ namespace AutoAct
 			// Debug.Log($"Try continuing {__instance}, status {__instance.status}");
 			if (__instance.status != AIAct.Status.Success)
 			{
-				Debug.LogWarning("AutoAct: Failed to continue TaskBuild");
 				return;
 			}
 

@@ -121,12 +121,6 @@ namespace AutoAct
             }
 
             // Debug.Log($"Try continuing {__instance}, status {__instance.status}");
-            if (__instance.status != AIAct.Status.Success)
-            {
-                Debug.LogWarning($"AutoAct: Failed to continue {__instance}");
-                return;
-            }
-
             AutoAct.retry = true;
             if (AutoAct.backToHarvest)
             {
