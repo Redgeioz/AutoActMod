@@ -66,7 +66,7 @@ namespace AutoAct
         public static HashSet<Point> curtField = new HashSet<Point>();
 
         public static bool switchOn = false;
-        public static bool IsSwitchOn => Settings.KeyMode ? switchOn : EInput.isShiftDown;
+        public static bool IsSwitchOn => Settings.KeyMode ? switchOn : Input.GetKey(Settings.KeyCode);
         public static Point lastHitPoint = null;
 
         public static void UpdateState(AIAct a)
