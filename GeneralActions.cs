@@ -107,6 +107,16 @@ namespace AutoAct
         {
             AutoAct.UpdateState(__instance);
         }
+
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(AIAct), "SetChild")]
+        static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
+        {
+            if (seq is AI_Goto go && (__instance is AI_Shear || __instance is TaskHarvest))
+            {
+                go.ignoreConnection = true;
+            }
+        }
     }
 
     [HarmonyPatch(typeof(AIAct), "Success")]
@@ -800,21 +810,6 @@ namespace AutoAct
     }
 
     // Game Fix Patches
-    [HarmonyPatch(typeof(TaskPoint), "destIgnoreConnection", MethodType.Getter)]
-    class TaskPoint_destIgnoreConnection_Patch
-    {
-        [HarmonyPrefix]
-        static bool Prefix(TaskPoint __instance, ref bool __result)
-        {
-            if (__instance is TaskHarvest)
-            {
-                __result = true;
-                return false;
-            }
-            return true;
-        }
-    }
-
     [HarmonyPatch(typeof(AIAct), "Tick")]
     class AIAct_Tick_Patch
     {
