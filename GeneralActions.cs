@@ -210,7 +210,7 @@ namespace AutoAct
                     }
 
                     PathProgress path = EClass.pc.path;
-                    path.RequestPathImmediate(EClass.pc.pos, chara.pos, 1, false, -1);
+                    path.RequestPathImmediate(EClass.pc.pos, chara.pos, 1, true, -1);
                     if (path.state == PathProgress.State.Fail)
                     {
                         return (chara, -1);
@@ -441,7 +441,7 @@ namespace AutoAct
                 }
 
                 Point p = cell.GetPoint();
-                return (p.HasBridge ? p.matBridge : p.matFloor).alias == AutoAct.targetTypeStr && !cell.HasObj && !cell.HasBlock;
+                return (p.HasBridge ? p.matBridge : p.matFloor).alias == AutoAct.targetTypeName && !cell.HasObj && !cell.HasBlock;
             });
 
             if (targetPoint == null)
@@ -505,7 +505,8 @@ namespace AutoAct
                     return true;
                 }
 
-                if (cell.growth.CanHarvest() != AutoAct.targetCanHarvest)
+                if ((cell.growth.IsTree && cell.growth.IsMature != AutoAct.targetCanHarvest) ||
+                    (!cell.growth.IsTree && cell.growth.CanHarvest() != AutoAct.targetCanHarvest))
                 {
                     return false;
                 }
@@ -578,60 +579,14 @@ namespace AutoAct
                     return false;
                 }
 
-                bool TryCheckDiagonalPoint()
-                {
-                    if (!tryBetterPath)
-                    {
-                        return false;
-                    }
-
-                    int min = 0;
-                    Point np = null;
-                    Utils.ForEachNeighborPoint(p, pt =>
-                    {
-                        if (pt.HasBlock || pt.HasObj)
-                        {
-                            return;
-                        }
-
-                        path.RequestPathImmediate(EClass.pc.pos, pt, 0, false, -1);
-                        if (path.state == PathProgress.State.Fail)
-                        {
-                            return;
-                        }
-
-                        if (np == null)
-                        {
-                            min = path.nodes.Count;
-                            np = pt;
-                        }
-                        else if (path.nodes.Count < min)
-                        {
-                            min = path.nodes.Count;
-                            np = pt;
-                        }
-                    });
-
-                    if (np != null)
-                    {
-                        list.Add((np, min, dist2ToLastPoint, 0));
-                        return true;
-                    }
-
-                    return false;
-                }
-
-                path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
                 if (path.state == PathProgress.State.Fail)
                 {
-                    if (!TryCheckDiagonalPoint())
-                    {
-                        TryDestroyObstacle();
-                    }
+                    TryDestroyObstacle();
                     return;
                 }
 
-                if (path.nodes.Count > dist2 && (TryDestroyObstacle() || TryCheckDiagonalPoint()))
+                if (path.nodes.Count >= dist2 && TryDestroyObstacle())
                 {
                     return;
                 }
@@ -655,7 +610,7 @@ namespace AutoAct
             //     }
             //     Debug.Log($"Target: {targetPoint.cell.sourceObj.id} | {targetPoint.cell.sourceObj.name} | {targetPoint}");
             //     Debug.Log($"Target: {targetPoint.cell.sourceBlock.id} | {targetPoint.cell.sourceBlock.name} | {targetPoint}");
-            //     Debug.Log($"Target should be: {AutoAct.targetType}, self: {EClass.pc.pos}");
+            //     Debug.Log($"Target should be: {AutoAct.targetTypeId}, self: {EClass.pc.pos}");
             // }
 
             return targetPoint;
@@ -678,7 +633,7 @@ namespace AutoAct
                     return;
                 }
 
-                Thing thing = p.Things.Find((Thing t) => t.Name == AutoAct.targetTypeStr);
+                Thing thing = p.Things.Find((Thing t) => t.Name == AutoAct.targetTypeName);
                 if (thing == null)
                 {
                     return;
@@ -692,7 +647,7 @@ namespace AutoAct
                 }
 
                 PathProgress path = EClass.pc.path;
-                path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
                 if (path.state == PathProgress.State.Fail)
                 {
                     return;
@@ -789,7 +744,7 @@ namespace AutoAct
             foreach (Point p in AutoAct.curtField)
             {
                 Cell cell = p.cell;
-                if (cell.sourceObj.id != AutoAct.targetType || !(cell.HasObj || cell.HasBlock))
+                if (cell.sourceObj.id != AutoAct.targetTypeId || !(cell.HasObj || cell.HasBlock))
                 {
                     continue;
                 }
@@ -805,7 +760,6 @@ namespace AutoAct
                     if (AutoAct.targetGrowth == 4 && cell.growth.stage.idx != AutoAct.targetGrowth)
                     {
                         continue;
-
                     }
                 }
                 else
@@ -822,7 +776,7 @@ namespace AutoAct
                 }
 
                 PathProgress path = EClass.pc.path;
-                path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+                path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
                 if (path.state == PathProgress.State.Fail)
                 {
                     continue;
@@ -839,9 +793,89 @@ namespace AutoAct
             // {
             //     Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, original stage: {AutoAct.targetGrowth}, can harvest: {targetPoint.cell.growth.CanHarvest()}");
             //     Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
-            //     Debug.Log($"Target should be: {AutoAct.targetType}");
+            //     Debug.Log($"Target should be: {AutoAct.targetTypeId}");
             // }
             return targetPoint;
+        }
+    }
+
+    // Game Fix Patches
+    [HarmonyPatch(typeof(TaskPoint), "destIgnoreConnection", MethodType.Getter)]
+    class TaskPoint_destIgnoreConnection_Patch
+    {
+        [HarmonyPrefix]
+        static bool Prefix(TaskPoint __instance, ref bool __result)
+        {
+            if (__instance is TaskHarvest)
+            {
+                __result = true;
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(AIAct), "Tick")]
+    class AIAct_Tick_Patch
+    {
+        [HarmonyPrefix]
+        static bool Prefix(AIAct __instance, ref AIAct.Status __result)
+        {
+            if (__instance.owner == null || (__instance.isFail != null && __instance.isFail()))
+            {
+                __result = __instance.Cancel();
+                return false;
+            }
+            if (__instance.child != null && __instance.child.status == AIAct.Status.Fail)
+            {
+                if (__instance.onChildFail != null)
+                {
+                    __result = __instance.onChildFail();
+                    return false;
+                }
+                __result = AIAct.Status.Fail;
+                return false;
+            }
+            if (__instance.IsChildRunning)
+            {
+                switch (__instance.child.Tick())
+                {
+                    case AIAct.Status.Running:
+                        __result = AIAct.Status.Running;
+                        return false;
+                    case AIAct.Status.Fail:
+                        if (__instance.onChildFail != null)
+                        {
+                            __result = __instance.onChildFail();
+                            return false;
+                        }
+                        __result = AIAct.Status.Fail;
+                        return false;
+                    case AIAct.Status.Success:
+                        if (__instance.owner == null || (__instance.isFail != null && __instance.isFail()))
+                        {
+                            __result = __instance.Cancel();
+                            return false;
+                        }
+                        break;
+                }
+            }
+            if (__instance.Enumerator == null)
+            {
+                __instance.Start();
+                if (__instance.status != AIAct.Status.Running)
+                {
+                    __result = __instance.status;
+                    return false;
+                }
+            }
+            if (!__instance.Enumerator.MoveNext())
+            {
+                __result = __instance.Success(null);
+                return false;
+            }
+            __result = __instance.status;
+            return false;
         }
     }
 }

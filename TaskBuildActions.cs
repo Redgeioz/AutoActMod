@@ -14,7 +14,8 @@ namespace AutoAct
 		{
 			AutoAct.UpdateStateInstant(__instance);
 
-			if (!AutoAct.active || EClass.pc.held == null)
+			Card held = EClass.pc.held;
+			if (!AutoAct.active || AutoAct.held != held)
 			{
 				return;
 			}
@@ -25,7 +26,6 @@ namespace AutoAct
 				return;
 			}
 
-			Card held = EClass.pc.held;
 			if (held.category.id == "seed")
 			{
 				ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null && p.Installed == null, Settings.SowRangeExists);
@@ -102,7 +102,7 @@ namespace AutoAct
 						continue;
 					}
 
-					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
+					path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
 					if (path.state == PathProgress.State.Fail)
 					{
 						continue;
@@ -120,11 +120,7 @@ namespace AutoAct
 
 				if (dist2 > 2)
 				{
-					path.RequestPathImmediate(EClass.pc.pos, p, 1, false, -1);
-					// if (p.Equals(new Point(44, 62)))
-					// {
-					// 	Debug.Log($"(44, 62) | {path.state} | {EClass.pc.pos}");
-					// }
+					path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
 					if (path.state == PathProgress.State.Fail)
 					{
 						continue;
@@ -188,11 +184,6 @@ namespace AutoAct
 
 		static bool ShouldFertilize(Point p)
 		{
-			if (p.HasBlock)
-			{
-				return false;
-			}
-
 			bool hasPlant = p.growth != null;
 			if (!p.HasThing)
 			{

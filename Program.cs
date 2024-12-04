@@ -4,7 +4,6 @@ using HarmonyLib;
 using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
-using System.Linq;
 
 namespace AutoAct
 {
@@ -48,9 +47,9 @@ namespace AutoAct
         public static bool retry = false;
         public static bool backToHarvest = false;
 
-        public static int targetType = -1;
+        public static int targetTypeId = -1;
         public static int targetGrowth = -1;
-        public static string targetTypeStr = "";
+        public static string targetTypeName = "";
         public static bool targetCanHarvest = false;
         public static int startDirection = 0;
         public static Point startPoint = null;
@@ -108,9 +107,9 @@ namespace AutoAct
 
             if (a is TaskDrawWater tdw)
             {
-                targetTypeStr = (tdw.pos.HasBridge ? tdw.pos.matBridge : tdw.pos.matFloor).alias;
+                targetTypeName = (tdw.pos.HasBridge ? tdw.pos.matBridge : tdw.pos.matFloor).alias;
                 drawWaterPoint = tdw.pos.Copy();
-                // Debug.Log($"===New start target: {tdw.pos}, floor id: {targetTypeStr}");
+                // Debug.Log($"===New start target: {tdw.pos}, floor id: {targetTypeName}");
                 return;
             }
             else
@@ -147,14 +146,14 @@ namespace AutoAct
 
             if (t.harvestType == BaseTaskHarvest.HarvestType.Thing)
             {
-                targetTypeStr = t.target.Name;
+                targetTypeName = t.target.Name;
                 // Debug.Log($"===New start target: {t.pos}, thing: {t.target.Name}");
             }
             else if ((!t.pos.HasObj || Settings.SimpleIdentify) && t.pos.HasBlock)
             {
                 if (Settings.SimpleIdentify)
                 {
-                    targetType = -1;
+                    targetTypeId = -1;
                     backToHarvest = true;
                     return;
                 }
@@ -168,7 +167,7 @@ namespace AutoAct
             {
                 if (Settings.SimpleIdentify && t.pos.sourceObj.HasGrowth)
                 {
-                    targetType = -2;
+                    targetTypeId = t.pos.sourceObj.growth.IsTree ? -2 : -3;
                     return;
                 }
                 else
@@ -185,8 +184,9 @@ namespace AutoAct
                 return;
             }
 
-            targetGrowth = t.pos.growth.stage.idx;
-            targetCanHarvest = t.pos.growth.CanHarvest();
+            GrowSystem growth = t.pos.sourceObj.growth;
+            targetGrowth = growth.stage.idx;
+            targetCanHarvest = growth.IsTree ? growth.IsMature : growth.CanHarvest();
             curtField.Clear();
 
             if (Settings.SameFarmfieldOnly && (t.pos.IsFarmField || (t.pos.sourceObj.id == 88 && t.pos.IsWater)))
@@ -243,7 +243,6 @@ namespace AutoAct
             }
 
             AutoAct.held = held;
-            Debug.Log(1);
             if (held.category.id == "seed" || held.category.id == "fertilizer")
             {
                 InitFarmfield(startPoint, startPoint.IsWater);
@@ -256,7 +255,6 @@ namespace AutoAct
             {
                 InitField(startPoint, p => !p.HasBlock);
             }
-            Debug.Log(2);
         }
 
         public static void SetNextTask(AIAct a)
@@ -276,20 +274,24 @@ namespace AutoAct
             {
                 id = 1;
             }
-            targetType = id;
-            targetTypeStr = r.name;
+            targetTypeId = id;
+            targetTypeName = r.name;
             retry = true;
         }
 
         public static bool IsTarget(TileRow r)
         {
-            if (targetType == -1)
+            if (targetTypeId == -1)
             {
                 return r is SourceBlock.Row || (r is SourceObj.Row obj && obj.tileType.IsBlockMount);
             }
-            else if (targetType == -2)
+            else if (targetTypeId == -2)
             {
-                return r is SourceObj.Row obj && obj.HasGrowth;
+                return r is SourceObj.Row obj && obj.HasGrowth && obj.growth.IsTree;
+            }
+            else if (targetTypeId == -3)
+            {
+                return r is SourceObj.Row obj && obj.HasGrowth && !obj.growth.IsTree;
             }
 
             int id = r.id;
@@ -298,7 +300,7 @@ namespace AutoAct
                 id = 1;
             }
 
-            return id == targetType;
+            return id == targetTypeId;
         }
 
         public static void SetStartPoint(Point p)
@@ -509,17 +511,6 @@ namespace AutoAct
         }
     }
 
-    // [HarmonyPatch(typeof(ButtonGrid), "OnMiddleClick")]
-    // static class ButtonGrid_OnMiddleClick_Patch
-    // {
-    //     [HarmonyPostfix]
-    //     static void Postfix()
-    //     {
-
-    //         AutoAct.lastHitPoint = Scene.HitPoint.Copy();
-    //     }
-    // }
-
     [HarmonyPatch(typeof(Game), "Load", new Type[] { typeof(string) })]
     static class Game_Load_Patch
     {
@@ -566,18 +557,18 @@ namespace AutoAct
     [HarmonyPatch(typeof(AIAct), "Cancel")]
     static class AIAct_Cancel_Patch
     {
-        [HarmonyPrefix]
-        static void Prefix(AIAct __instance)
-        {
-            // Debug.Log($"==Start Cancel {__instance} =============");
-            // Utils.PrintStackTrace();
-            // if (__instance is AI_Goto gt)
-            // {
-            //     Debug.Log($"AI_Goto: from {gt.owner.pos} to {gt.dest}, {gt.destDist}");
-            //     Debug.Log($"{EClass.pc.path.state} | {EClass.pc.path.nodes.Count}");
-            // }
-            // Debug.Log($"===========End {__instance} =============");
-        }
+        // [HarmonyPrefix]
+        // static void Prefix(AIAct __instance)
+        // {
+        //     Debug.Log($"==Start Cancel {__instance} =============");
+        //     Utils.PrintStackTrace();
+        //     if (__instance is AI_Goto gt)
+        //     {
+        //         Debug.Log($"AI_Goto: from {gt.owner.pos} to {gt.dest}, {gt.destDist}");
+        //         Debug.Log($"{EClass.pc.path.state} | {EClass.pc.path.nodes.Count}");
+        //     }
+        //     Debug.Log($"===========End {__instance} =============");
+        // }
 
         [HarmonyPostfix]
         static void Postfix(AIAct __instance)
