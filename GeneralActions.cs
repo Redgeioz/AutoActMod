@@ -122,10 +122,25 @@ namespace AutoAct
     [HarmonyPatch(typeof(AIAct), "Success")]
     static class AIAct_Success_Patch
     {
-        [HarmonyPostfix]
-        static void Postfix(AIAct __instance)
+        // To fix AutoAct being unable to be interrupted by attacks
+        [HarmonyPrefix]
+        static bool Prefix(AIAct __instance, ref AIAct.Status __result)
         {
-            if (!AutoAct.active || __instance != AutoAct.runningTask || __instance is TaskBuild)
+            if (__instance.child != null && __instance.child.status == AIAct.Status.Fail)
+            {
+                if (__instance.onChildFail == null || __instance.onChildFail() == AIAct.Status.Fail)
+                {
+                    __result = AIAct.Status.Fail;
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        [HarmonyPostfix]
+        static void Postfix(AIAct __instance, AIAct.Status __result)
+        {
+            if (!AutoAct.active || __instance != AutoAct.runningTask || __instance is TaskBuild || __result != AIAct.Status.Success)
             {
                 return;
             }
@@ -806,71 +821,6 @@ namespace AutoAct
             //     Debug.Log($"Target should be: {AutoAct.targetTypeId}");
             // }
             return targetPoint;
-        }
-    }
-
-    // Game Fix Patches
-    [HarmonyPatch(typeof(AIAct), "Tick")]
-    class AIAct_Tick_Patch
-    {
-        [HarmonyPrefix]
-        static bool Prefix(AIAct __instance, ref AIAct.Status __result)
-        {
-            if (__instance.owner == null || (__instance.isFail != null && __instance.isFail()))
-            {
-                __result = __instance.Cancel();
-                return false;
-            }
-            if (__instance.child != null && __instance.child.status == AIAct.Status.Fail)
-            {
-                if (__instance.onChildFail != null)
-                {
-                    __result = __instance.onChildFail();
-                    return false;
-                }
-                __result = AIAct.Status.Fail;
-                return false;
-            }
-            if (__instance.IsChildRunning)
-            {
-                switch (__instance.child.Tick())
-                {
-                    case AIAct.Status.Running:
-                        __result = AIAct.Status.Running;
-                        return false;
-                    case AIAct.Status.Fail:
-                        if (__instance.onChildFail != null)
-                        {
-                            __result = __instance.onChildFail();
-                            return false;
-                        }
-                        __result = AIAct.Status.Fail;
-                        return false;
-                    case AIAct.Status.Success:
-                        if (__instance.owner == null || (__instance.isFail != null && __instance.isFail()))
-                        {
-                            __result = __instance.Cancel();
-                            return false;
-                        }
-                        break;
-                }
-            }
-            if (__instance.Enumerator == null)
-            {
-                __instance.Start();
-                if (__instance.status != AIAct.Status.Running)
-                {
-                    __result = __instance.status;
-                    return false;
-                }
-            }
-            if (!__instance.Enumerator.MoveNext())
-            {
-                __result = __instance.Success(null);
-                return false;
-            }
-            __result = __instance.status;
-            return false;
         }
     }
 }
