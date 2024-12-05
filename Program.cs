@@ -511,8 +511,8 @@ namespace AutoAct
         }
     }
 
-    [HarmonyPatch(typeof(Game), "Load", new Type[] { typeof(string) })]
-    static class Game_Load_Patch
+    [HarmonyPatch(typeof(Game), "OnLoad")]
+    static class Game_OnLoad_Patch
     {
         [HarmonyPostfix]
         static void Postfix()
