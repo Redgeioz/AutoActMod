@@ -500,6 +500,64 @@ namespace AutoAct
         }
     }
 
+    public static class PointSetter
+    {
+        public static Point finalPoint = null;
+        public static int factor1 = 0;
+        public static int factor2 = 0;
+        public static int factor3 = 0;
+
+        public static Point FinalPoint => finalPoint;
+        public static int Factor => factor1;
+        public static int MaxDist2 => (int)Math.Pow(factor1 + 1.5f, 2);
+
+        public static void Reset()
+        {
+            finalPoint = null;
+            factor1 = 0;
+            factor2 = 0;
+            factor3 = 0;
+        }
+
+        public static void Set(Point p, int v1, int v2, int v3 = 0)
+        {
+            finalPoint = p;
+            factor1 = v1;
+            factor2 = v2;
+            factor3 = v3;
+        }
+
+        public static void TrySet(Point p, int v1, int v2)
+        {
+            if (p == null) { return; }
+            if (finalPoint == null)
+            {
+                Set(p, v1, v2);
+                return;
+            }
+
+            if (v1 < factor1 || (v1 == factor1 && v2 < factor2))
+            {
+                Set(p, v1, v2);
+            }
+        }
+
+        public static void TrySet(Point p, int v1, int v2, int v3)
+        {
+            if (p == null) { return; }
+            if (finalPoint == null)
+            {
+                Set(p, v1, v2, v3);
+                return;
+            }
+
+            if (v1 < factor1 || (v1 == factor1 && v2 < factor2) || (v1 == factor1 && v2 == factor2 && v3 < factor3))
+            {
+                Set(p, v1, v2, v3);
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(AM_Adv), "_OnUpdateInput")]
     static class AM_Adv_OnUpdateInput_Patch
     {
@@ -625,10 +683,10 @@ namespace AutoAct
     //     static void Prefix(Task __instance)
     //     {
     //         Debug.Log($"==Start Cancel {__instance} =============");
-    //         bool f1 = !__instance.CanPerform();
-    //         bool f2 = !EInput.rightMouse.pressing;
-    //         bool f3 = __instance.HasProgress && !__instance.CanProgress();
-    //         Debug.Log($"{f1}, {f2}, {f3}");
+    //         bool factor1 = !__instance.CanPerform();
+    //         bool factor2 = !EInput.rightMouse.pressing;
+    //         bool factor3 = __instance.HasProgress && !__instance.CanProgress();
+    //         Debug.Log($"{factor1}, {factor2}, {factor3}");
     //         Utils.PrintStackTrace();
     //         Debug.Log($"===========End {__instance} =============");
     //     }

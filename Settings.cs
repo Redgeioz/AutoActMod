@@ -137,6 +137,8 @@ namespace AutoAct
                     item2.slider.maxValue = 12;
                     item1.textSlider.text = v.ToString();
                     item2.textSlider.text = v.ToString();
+                    Settings.BuildRangeW = v;
+                    Settings.BuildRangeH = v;
                 }
                 void ToRect()
                 {

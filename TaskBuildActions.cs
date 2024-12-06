@@ -25,6 +25,8 @@ namespace AutoAct
 			{
 				return;
 			}
+			
+            PointSetter.Reset();
 
 			if (held.category.id == "seed")
 			{
@@ -73,15 +75,8 @@ namespace AutoAct
 					continue;
 				}
 
-				if (AutoAct.startPoint == null)
-				{
-					Debug.LogWarning("AutoAct startPoint: null");
-					break;
-				}
-
 				int dist2 = Utils.Dist2(EClass.pc.pos, p);
-				int dist2ToLastPoint = 0;
-				PathProgress path = EClass.pc.path;
+				int dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
 				if (Settings.StartFromCenter)
 				{
 					int max = AutoAct.MaxDeltaToStartPoint(p);
@@ -95,91 +90,112 @@ namespace AutoAct
 						continue;
 					}
 
-					dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
 					if (max <= 1)
 					{
-						list.Add((p, max, max - 1, dist2ToLastPoint));
+						PointSetter.TrySet(p, max, max - 1, dist2ToLastPoint);
 						continue;
 					}
 
-					path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
-					if (path.state == PathProgress.State.Fail)
-					{
-						continue;
-					}
-
-					list.Add((p, max, path.nodes.Count, dist2ToLastPoint));
-					continue;
+					list.Add((p, max, dist2, dist2ToLastPoint));
 				}
-
-				(int d1, int d2) = AutoAct.GetDelta(p);
-				if (hasRange && (d1 < 0 || d2 < 0 || d1 >= Settings.BuildRangeH || d2 >= Settings.BuildRangeW))
+				else
 				{
-					continue;
+					list.Add((p, 0, dist2, dist2ToLastPoint));
 				}
-
-				if (dist2 > 2)
-				{
-					path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
-					if (path.state == PathProgress.State.Fail)
-					{
-						continue;
-					}
-				}
-
-				if (edgeOnly)
-				{
-					if (d1 == 0)
-					{
-						// nothing
-					}
-					else if (d2 == Settings.BuildRangeW - 1)
-					{
-						d2 = d1;
-						d1 = 1;
-					}
-					else if (d1 == Settings.BuildRangeH - 1)
-					{
-						d2 = -d2;
-						d1 = 2;
-					}
-					else if (d2 == 0)
-					{
-						d2 = -d1;
-						d1 = 3;
-					}
-					else
-					{
-						continue;
-					}
-
-					list.Add((p, d1, d2, 0));
-				}
-
-				if (d1 >= 0)
-				{
-					// hasRange == false
-					(d1, d2) = AutoAct.GetDelta(p, EClass.pc.pos, AutoAct.startDirection);
-					if (d1 < 0)
-					{
-						d1 = -d1 * 2;
-					}
-				}
-
-				dist2ToLastPoint = Utils.Dist2((AutoAct.runningTask as TaskPoint).pos, p);
-				list.Add((p, dist2ToLastPoint, d1, d2));
 			}
 
-			(Point targetPoint, int tdl, int td1, int td2) = list
-				.OrderBy(tuple => tuple.Item2)
-				.ThenBy(tuple => tuple.Item3)
-				.ThenBy(tuple => tuple.Item4)
-				.FirstOrDefault();
-			// if (targetPoint != null)
-			// {
-			// 	Debug.Log($"targetPoint: {targetPoint} | {tdl} | d1: {td1} | d2: {td2} | {AutoAct.startPoint}");
-			// }
-			return targetPoint;
+			foreach (var item in list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
+			{
+				(Point p, int max, int dist2, int dist2ToLastPoint) = item;
+				if (PointSetter.FinalPoint != null &&
+					((Settings.StartFromCenter && max > PointSetter.Factor) ||
+					(!Settings.StartFromCenter && !edgeOnly && dist2ToLastPoint > PointSetter.Factor)))
+				{
+					break;
+				}
+
+				PathProgress path = EClass.pc.path;
+				if (Settings.StartFromCenter)
+				{
+					path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
+					if (path.state == PathProgress.State.Fail)
+					{
+						continue;
+					}
+
+					PointSetter.TrySet(p, max, path.nodes.Count, dist2ToLastPoint);
+				}
+				else
+				{
+					(int d1, int d2) = AutoAct.GetDelta(p);
+					if (hasRange && (d1 < 0 || d2 < 0 || d1 >= Settings.BuildRangeH || d2 >= Settings.BuildRangeW))
+					{
+						continue;
+					}
+
+					if (edgeOnly)
+					{
+						if (d1 == 0)
+						{
+							// nothing
+						}
+						else if (d2 == Settings.BuildRangeW - 1)
+						{
+							d2 = d1;
+							d1 = 1;
+						}
+						else if (d1 == Settings.BuildRangeH - 1)
+						{
+							d2 = -d2;
+							d1 = 2;
+						}
+						else if (d2 == 0)
+						{
+							d2 = -d1;
+							d1 = 3;
+						}
+						else
+						{
+							continue;
+						}
+
+						if (dist2 > 2)
+						{
+							path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
+							if (path.state == PathProgress.State.Fail)
+							{
+								continue;
+							}
+						}
+
+						PointSetter.TrySet(p, d1, d2, 0);
+						continue;
+					}
+
+					if (dist2 > 2)
+					{
+						path.RequestPathImmediate(EClass.pc.pos, p, 1, true, -1);
+						if (path.state == PathProgress.State.Fail)
+						{
+							continue;
+						}
+					}
+
+					if (d1 >= 0)
+					{
+						// hasRange == false
+						(d1, d2) = AutoAct.GetDelta(p, EClass.pc.pos, AutoAct.startDirection);
+						if (d1 < 0)
+						{
+							d1 = -d1 * 2;
+						}
+					}
+
+					PointSetter.TrySet(p, dist2ToLastPoint, d1, d2);
+				}
+			}
+
+			return PointSetter.FinalPoint;
 		}
 
 		static bool ShouldFertilize(Point p)
