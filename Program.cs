@@ -202,7 +202,7 @@ namespace AutoAct
                 originalSeedCount = 0;
                 EClass.pc.things.ForEach(thing =>
                 {
-                    if (thing.trait is TraitSeed seed && seed.row.id == seedId)
+                    if (thing.trait is TraitSeed seed && (seed.row.id == seedId || Settings.SimpleIdentify))
                     {
                         originalSeedCount += thing.Num;
                     }
@@ -596,27 +596,27 @@ namespace AutoAct
         }
     }
 
-    // [HarmonyPatch(typeof(Chara), "SetAI")]
-    // static class SetAI_Patch
-    // {
-    //     [HarmonyPrefix]
-    //     static void Prefix(Chara __instance, AIAct g)
-    //     {
-    //         if (!__instance.IsPC)
-    //         {
-    //             return;
-    //         }
-    //         AIAct prev = __instance.ai;
-    //         // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
-    //         // {
-    //         //     return;
-    //         // }
-    //         Debug.Log($"===  Chara_SetAI_Prefix  ===");
-    //         Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
-    //         Debug.Log($"==== Chara_SetAI_Prefix ====");
-    //         // Utils.PrintStackTrace();
-    //     }
-    // }
+    [HarmonyPatch(typeof(Chara), "SetAI")]
+    static class SetAI_Patch
+    {
+        [HarmonyPrefix]
+        static void Prefix(Chara __instance, AIAct g)
+        {
+            if (!__instance.IsPC)
+            {
+                return;
+            }
+            AIAct prev = __instance.ai;
+            // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
+            // {
+            //     return;
+            // }
+            Debug.Log($"===  Chara_SetAI_Prefix  ===");
+            Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
+            Debug.Log($"==== Chara_SetAI_Prefix ====");
+            // Utils.PrintStackTrace();
+        }
+    }
 
     // [HarmonyPatch(typeof(Task), "OnDestroy")]
     // static class Task_OnDestroy_Patch

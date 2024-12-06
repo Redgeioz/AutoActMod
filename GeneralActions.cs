@@ -187,17 +187,20 @@ namespace AutoAct
             {
                 if (th.wasReapSeed)
                 {
-                    int count = 0;
-                    EClass.pc.things.ForEach(t =>
+                    if (Settings.SeedReapingCount > 0)
                     {
-                        if (t.trait is TraitSeed seed && seed.row.id == AutoAct.seedId)
+                        int count = 0;
+                        EClass.pc.things.ForEach(t =>
                         {
-                            count += t.Num;
+                            if (t.trait is TraitSeed seed && (seed.row.id == AutoAct.seedId || Settings.SimpleIdentify))
+                            {
+                                count += t.Num;
+                            }
+                        });
+                        if (count >= Settings.SeedReapingCount + AutoAct.originalSeedCount)
+                        {
+                            return;
                         }
-                    });
-                    if (Settings.SeedReapingCount > 0 && count >= Settings.SeedReapingCount + AutoAct.originalSeedCount)
-                    {
-                        return;
                     }
                 }
                 else
@@ -526,9 +529,9 @@ namespace AutoAct
 
             if (cell.growth != null)
             {
-                if (AutoAct.seedId >= 0 && cell.CanReapSeed())
+                if (AutoAct.seedId >= 0)
                 {
-                    return true;
+                    return cell.CanReapSeed();
                 }
 
                 bool isWoodTree = AutoAct.targetIsWoodTree && !cell.CanHarvest();
