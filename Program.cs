@@ -51,6 +51,7 @@ namespace AutoAct
         public static int targetGrowth = -1;
         public static string targetTypeName = "";
         public static bool targetCanHarvest = false;
+        public static bool targetIsWoodTree = false;
         public static int startDirection = 0;
         public static Point startPoint = null;
         // Last water drawing point
@@ -186,7 +187,8 @@ namespace AutoAct
 
             GrowSystem growth = t.pos.sourceObj.growth;
             targetGrowth = growth.stage.idx;
-            targetCanHarvest = growth.IsTree ? growth.IsMature : growth.CanHarvest();
+            targetIsWoodTree = growth.IsTree && !growth.CanHarvest();
+            targetCanHarvest = targetIsWoodTree ? growth.IsMature : growth.CanHarvest();
             curtField.Clear();
 
             if (Settings.SameFarmfieldOnly && (t.pos.IsFarmField || (t.pos.sourceObj.id == 88 && t.pos.IsWater)))

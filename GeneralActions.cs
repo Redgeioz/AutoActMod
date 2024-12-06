@@ -360,7 +360,8 @@ namespace AutoAct
             }
             else
             {
-                targetPoint = GetNextTarget(CommonFilter, !Settings.SimpleIdentify);
+                bool isRemoveTrack = EClass.pc.held != null && EClass.pc.held.Thing.HasElement(230, 1);
+                targetPoint = GetNextTarget(CommonFilter, !Settings.SimpleIdentify && !isRemoveTrack);
             }
 
             if (targetPoint == null)
@@ -530,8 +531,9 @@ namespace AutoAct
                     return true;
                 }
 
-                if ((cell.growth.IsTree && cell.growth.IsMature != AutoAct.targetCanHarvest) ||
-                    (!cell.growth.IsTree && cell.growth.CanHarvest() != AutoAct.targetCanHarvest))
+                bool isWoodTree = AutoAct.targetIsWoodTree && !cell.CanHarvest();
+                if ((isWoodTree && cell.growth.IsMature != AutoAct.targetCanHarvest) ||
+                    (!isWoodTree && cell.growth.CanHarvest() != AutoAct.targetCanHarvest))
                 {
                     return false;
                 }
