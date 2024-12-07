@@ -246,7 +246,7 @@ public class AutoAct : BaseUnityPlugin
         else
         {
             InitField(startPoint, p => !p.HasBlock);
-            if (HotItemHeld.taskBuild.isBlock && HotItemHeld.CanRotate())
+            if (HotItemHeld.taskBuild.recipe.IsWallOrFence)
             {
                 int dir = GetBuildDirection(0b1001);
                 if (dir == 3)
@@ -515,21 +515,6 @@ class Utils
         int dx = Math.Abs(p1.x - p2.x);
         int dz = Math.Abs(p1.z - p2.z);
         return Math.Max(dx, dz);
-    }
-
-    public static void ForEachNeighborPoint(Point center, Action<Point> forEach)
-    {
-        for (int i = 0; i < 3; i++)
-        {
-            for (int j = 0; j < 3; j++)
-            {
-                Point p = new Point(center.x + i - 1, center.z + j - 1);
-                if (!p.Equals(center) && p.IsInBounds)
-                {
-                    forEach(p);
-                }
-            }
-        }
     }
 }
 

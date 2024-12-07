@@ -18,16 +18,15 @@ static class Entrance
         }
 
         if (a is TaskHarvest
-            || a is TaskDig
-            || a is TaskMine
-            || a is TaskPlow
-            || a is TaskDrawWater
-            || a is AI_Read
-            || a is AI_Shear)
+            or TaskDig
+            or TaskMine
+            or TaskPlow
+            or TaskDrawWater
+            or AI_Read
+            or AI_Shear)
         {
             AutoAct.UpdateState(a);
         }
-
         if (a is TaskPourWater tpw)
         {
             if (AutoAct.active && !AutoAct.IsTarget(tpw.pos.sourceFloor))
@@ -105,7 +104,7 @@ static class Entrance
         {
             if (__instance is TaskBuild)
             {
-                OnTaskBuildComplete.Run(__instance);
+                OnTaskBuildComplete.Run(__instance, __result);
             }
             else
             {

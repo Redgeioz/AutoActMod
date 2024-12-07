@@ -6,16 +6,10 @@ namespace AutoAct;
 
 static class OnTaskBuildComplete
 {
-	public static void Run(AIAct __instance)
+	public static void Run(AIAct __instance, AIAct.Status __result)
 	{
 		Card held = EClass.pc.held;
-		if (!AutoAct.active || __instance != AutoAct.runningTask || __instance is not TaskBuild || AutoAct.held != held)
-		{
-			return;
-		}
-
-		// Debug.Log($"Try continuing {__instance}, status {__instance.status}");
-		if (__instance.status != AIAct.Status.Success)
+		if (!AutoAct.active || __instance != AutoAct.runningTask || AutoAct.held != held || __result != AIAct.Status.Success)
 		{
 			return;
 		}
@@ -24,7 +18,7 @@ static class OnTaskBuildComplete
 
 		if (held.category.id == "seed")
 		{
-			ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.growth == null && p.Installed == null, Settings.SowRangeExists);
+			ContinueBuild(p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth == null && p.Installed == null, Settings.SowRangeExists);
 		}
 		else if (held.category.id == "fertilizer")
 		{
@@ -166,7 +160,7 @@ static class OnTaskBuildComplete
 						}
 					}
 
-					if (!(HotItemHeld.taskBuild.isBlock && HotItemHeld.CanRotate()))
+					if (!HotItemHeld.taskBuild.recipe.IsWallOrFence)
 					{
 						PointSetter.TrySet(p, d1, d2, 0);
 						continue;

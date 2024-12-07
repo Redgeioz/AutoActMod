@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace AutoAct;
 
@@ -8,14 +9,13 @@ static class OnActionComplete
 {
     public static void Run(AIAct __instance, AIAct.Status __result)
     {
-        if (!AutoAct.active || __instance != AutoAct.runningTask || __instance is TaskBuild || __result != AIAct.Status.Success)
+        if (!AutoAct.active || __instance != AutoAct.runningTask || __result != AIAct.Status.Success)
         {
             return;
         }
 
         PointSetter.Reset();
 
-        // Debug.Log($"Try continuing {__instance}, status {__instance.status}");
         AutoAct.retry = true;
         if (AutoAct.backToHarvest)
         {
@@ -233,8 +233,8 @@ static class OnActionComplete
         }
         else
         {
-            bool isRemoveTrack = EClass.pc.held != null && EClass.pc.held.Thing.HasElement(230, 1);
-            targetPoint = GetNextTarget(CommonFilter, !Settings.SimpleIdentify && !isRemoveTrack);
+            bool isMining = EClass.pc.held != null && EClass.pc.held.HasElement(220, 1);
+            targetPoint = GetNextTarget(CommonFilter, !Settings.SimpleIdentify && isMining);
         }
 
         if (targetPoint == null)
