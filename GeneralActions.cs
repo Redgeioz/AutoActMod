@@ -513,7 +513,11 @@ static class OnActionComplete
             {
                 d2 = Math.Abs(AutoAct.GetDelta(p, EClass.pc.pos, EClass.pc.dir).Item2);
             }
-            PointSetter.TrySet(p, Math.Min(path.nodes.Count, dist2ToLastPoint), dist2ToLastPoint, d2);
+            int factor = path.nodes.Count;
+            if (factor > dist2ToLastPoint && dist2ToLastPoint <= 2) {
+                factor = dist2ToLastPoint;
+            }
+            PointSetter.TrySet(p, factor, dist2ToLastPoint, d2);
         }
         // if (targetPoint != null)
         // {
