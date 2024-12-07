@@ -4,361 +4,361 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 
-namespace AutoAct
+namespace AutoAct;
+
+static class Settings
 {
-    static class Settings
+    public static ConfigEntry<int> detDistSq;
+    public static ConfigEntry<int> buildRangeW;
+    public static ConfigEntry<int> buildRangeH;
+    public static ConfigEntry<bool> sowRangeExists;
+    public static ConfigEntry<int> seedReapingCount;
+    public static ConfigEntry<int> pourDepth;
+    public static ConfigEntry<bool> staminaCheck;
+    public static ConfigEntry<bool> sameFarmfieldOnly;
+    public static ConfigEntry<bool> ignoreEnemySpotted;
+    public static ConfigEntry<bool> simpleIdentify;
+    public static ConfigEntry<bool> startFromCenter;
+    public static ConfigEntry<bool> keyMode;
+
+    public static ConfigEntry<KeyCode> keyCode;
+
+    public static int DetRangeSq
     {
-        public static ConfigEntry<int> detDistSq;
-        public static ConfigEntry<int> buildRangeW;
-        public static ConfigEntry<int> buildRangeH;
-        public static ConfigEntry<bool> sowRangeExists;
-        public static ConfigEntry<int> seedReapingCount;
-        public static ConfigEntry<int> pourDepth;
-        public static ConfigEntry<bool> staminaCheck;
-        public static ConfigEntry<bool> sameFarmfieldOnly;
-        public static ConfigEntry<bool> ignoreEnemySpotted;
-        public static ConfigEntry<bool> simpleIdentify;
-        public static ConfigEntry<bool> startFromCenter;
-        public static ConfigEntry<bool> keyMode;
-
-        public static ConfigEntry<KeyCode> keyCode;
-
-        public static int DetRangeSq
-        {
-            get { return detDistSq.Value; }
-            set { detDistSq.Value = value; }
-        }
-
-        public static int BuildRangeW
-        {
-            get { return buildRangeW.Value; }
-            set { buildRangeW.Value = value; }
-        }
-
-        public static int BuildRangeH
-        {
-            get { return buildRangeH.Value; }
-            set { buildRangeH.Value = value; }
-        }
-
-        public static bool SowRangeExists
-        {
-            get { return sowRangeExists.Value; }
-            set { sowRangeExists.Value = value; }
-        }
-
-        public static int PourDepth
-        {
-            get { return pourDepth.Value; }
-            set { pourDepth.Value = value; }
-        }
-
-        public static int SeedReapingCount
-        {
-            get { return seedReapingCount.Value; }
-            set { seedReapingCount.Value = value; }
-        }
-
-        public static bool StaminaCheck
-        {
-            get { return staminaCheck.Value; }
-            set { staminaCheck.Value = value; }
-        }
-
-        public static bool SameFarmfieldOnly
-        {
-            get { return sameFarmfieldOnly.Value; }
-            set { sameFarmfieldOnly.Value = value; }
-        }
-
-        public static bool IgnoreEnemySpotted
-        {
-            get { return ignoreEnemySpotted.Value; }
-            set { ignoreEnemySpotted.Value = value; }
-        }
-
-        public static bool SimpleIdentify
-        {
-            get { return simpleIdentify.Value; }
-            set { simpleIdentify.Value = value; }
-        }
-
-        public static bool StartFromCenter
-        {
-            get { return startFromCenter.Value; }
-            set { startFromCenter.Value = value; }
-        }
-
-        public static bool KeyMode
-        {
-            get { return keyMode.Value; }
-            set { keyMode.Value = value; }
-        }
-
-        public static KeyCode KeyCode
-        {
-            get { return keyCode.Value; }
-            set { keyCode.Value = value; }
-        }
+        get { return detDistSq.Value; }
+        set { detDistSq.Value = value; }
     }
 
-    [HarmonyPatch(typeof(ActPlan), "ShowContextMenu")]
-    static class ShowContextMenu_Patch
+    public static int BuildRangeW
     {
-        [HarmonyPrefix]
-        public static void Prefix(ActPlan __instance)
-        {
-            if (!__instance.pos.Equals(EClass.pc.pos))
-            {
-                return;
-            }
+        get { return buildRangeW.Value; }
+        set { buildRangeW.Value = value; }
+    }
 
-            string text = ALang.GetText("settings");
-            DynamicAct dynamicAct = new DynamicAct(text, () =>
+    public static int BuildRangeH
+    {
+        get { return buildRangeH.Value; }
+        set { buildRangeH.Value = value; }
+    }
+
+    public static bool SowRangeExists
+    {
+        get { return sowRangeExists.Value; }
+        set { sowRangeExists.Value = value; }
+    }
+
+    public static int PourDepth
+    {
+        get { return pourDepth.Value; }
+        set { pourDepth.Value = value; }
+    }
+
+    public static int SeedReapingCount
+    {
+        get { return seedReapingCount.Value; }
+        set { seedReapingCount.Value = value; }
+    }
+
+    public static bool StaminaCheck
+    {
+        get { return staminaCheck.Value; }
+        set { staminaCheck.Value = value; }
+    }
+
+    public static bool SameFarmfieldOnly
+    {
+        get { return sameFarmfieldOnly.Value; }
+        set { sameFarmfieldOnly.Value = value; }
+    }
+
+    public static bool IgnoreEnemySpotted
+    {
+        get { return ignoreEnemySpotted.Value; }
+        set { ignoreEnemySpotted.Value = value; }
+    }
+
+    public static bool SimpleIdentify
+    {
+        get { return simpleIdentify.Value; }
+        set { simpleIdentify.Value = value; }
+    }
+
+    public static bool StartFromCenter
+    {
+        get { return startFromCenter.Value; }
+        set { startFromCenter.Value = value; }
+    }
+
+    public static bool KeyMode
+    {
+        get { return keyMode.Value; }
+        set { keyMode.Value = value; }
+    }
+
+    public static KeyCode KeyCode
+    {
+        get { return keyCode.Value; }
+        set { keyCode.Value = value; }
+    }
+}
+
+[HarmonyPatch(typeof(ActPlan), "ShowContextMenu")]
+static class ShowContextMenu_Patch
+{
+    [HarmonyPrefix]
+    public static void Prefix(ActPlan __instance)
+    {
+        if (!__instance.pos.Equals(EClass.pc.pos))
+        {
+            return;
+        }
+
+        string text = ALang.GetText("settings");
+        DynamicAct dynamicAct = new DynamicAct(text, () =>
+        {
+            UIContextMenuItem[] list = new UIContextMenuItem[2];
+            void ToSquare()
             {
-                UIContextMenuItem[] list = new UIContextMenuItem[2];
-                void ToSquare()
+                UIContextMenuItem item1 = list[0];
+                if (item1 == null) { return; }
+                UIContextMenuItem item2 = list[1];
+                int min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
+                SetSquare(min);
+            }
+            void SetSquare(int v)
+            {
+                UIContextMenuItem item1 = list[0];
+                if (item1 == null) { return; }
+                UIContextMenuItem item2 = list[1];
+                if (item2 == null) { return; }
+                item1.slider.value = v / 2;
+                item2.slider.value = v / 2;
+                item1.slider.maxValue = 12;
+                item2.slider.maxValue = 12;
+                item1.textSlider.text = v.ToString();
+                item2.textSlider.text = v.ToString();
+                Settings.BuildRangeW = v;
+                Settings.BuildRangeH = v;
+            }
+            void ToRect()
+            {
+                UIContextMenuItem item1 = list[0];
+                if (item1 == null) { return; }
+                UIContextMenuItem item2 = list[1];
+                item1.slider.maxValue = 25;
+                item2.slider.maxValue = 25;
+                item1.slider.value = item1.slider.value * 2 + 1;
+                item2.slider.value = item2.slider.value * 2 + 1;
+                item1.textSlider.text = item1.slider.value.ToString();
+                item2.textSlider.text = item2.slider.value.ToString();
+            }
+            UIContextMenu menu = EClass.ui.CreateContextMenu();
+            menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
+            menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
+            menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), Settings.IgnoreEnemySpotted, v => Settings.IgnoreEnemySpotted = v);
+            menu.AddToggle(ALang.GetText("simpleIdentify"), Settings.SimpleIdentify, v => Settings.SimpleIdentify = v);
+            menu.AddToggle(ALang.GetText("startFromCenter"), Settings.StartFromCenter, v =>
+            {
+                Settings.StartFromCenter = v;
+                if (v)
                 {
-                    UIContextMenuItem item1 = list[0];
-                    if (item1 == null) { return; }
-                    UIContextMenuItem item2 = list[1];
-                    int min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
-                    SetSquare(min);
+                    ToSquare();
                 }
-                void SetSquare(int v)
+                else
                 {
-                    UIContextMenuItem item1 = list[0];
-                    if (item1 == null) { return; }
-                    UIContextMenuItem item2 = list[1];
-                    if (item2 == null) { return; }
-                    item1.slider.value = v / 2;
-                    item2.slider.value = v / 2;
-                    item1.slider.maxValue = 12;
-                    item2.slider.maxValue = 12;
-                    item1.textSlider.text = v.ToString();
-                    item2.textSlider.text = v.ToString();
-                    Settings.BuildRangeW = v;
-                    Settings.BuildRangeH = v;
+                    ToRect();
                 }
-                void ToRect()
+            });
+            menu.AddSlider(
+                ALang.GetText("keyMode"),
+                v =>
                 {
-                    UIContextMenuItem item1 = list[0];
-                    if (item1 == null) { return; }
-                    UIContextMenuItem item2 = list[1];
-                    item1.slider.maxValue = 25;
-                    item2.slider.maxValue = 25;
-                    item1.slider.value = item1.slider.value * 2 + 1;
-                    item2.slider.value = item2.slider.value * 2 + 1;
-                    item1.textSlider.text = item1.slider.value.ToString();
-                    item2.textSlider.text = item2.slider.value.ToString();
-                }
-                UIContextMenu menu = EClass.ui.CreateContextMenu();
-                menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
-                menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
-                menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), Settings.IgnoreEnemySpotted, v => Settings.IgnoreEnemySpotted = v);
-                menu.AddToggle(ALang.GetText("simpleIdentify"), Settings.SimpleIdentify, v => Settings.SimpleIdentify = v);
-                menu.AddToggle(ALang.GetText("startFromCenter"), Settings.StartFromCenter, v =>
-                {
-                    Settings.StartFromCenter = v;
-                    if (v)
+                    if (v == 1)
                     {
-                        ToSquare();
+                        Settings.KeyMode = true;
+                        return ALang.GetText("toggle");
                     }
                     else
                     {
-                        ToRect();
+                        Settings.KeyMode = false;
+                        return ALang.GetText("press");
                     }
-                });
-                menu.AddSlider(
-                    ALang.GetText("keyMode"),
-                    v =>
+                }
+                , Settings.KeyMode ? 1 : 0,
+                v => { },
+                0,
+                1,
+                true,
+                false
+            );
+            menu.AddSlider(
+                ALang.GetText("detDist"),
+                v =>
+                {
+                    float n = v / 2;
+                    Settings.DetRangeSq = (int)(n * n);
+                    return n.ToString();
+                },
+                (int)(Math.Sqrt(Settings.DetRangeSq) * 2),
+                v => { },
+                3,
+                50,
+                true,
+                false
+            );
+            list[0] = menu.AddSlider(
+                ALang.GetText("buildRangeW"),
+                v =>
+                {
+                    if (Settings.StartFromCenter)
                     {
-                        if (v == 1)
-                        {
-                            Settings.KeyMode = true;
-                            return ALang.GetText("toggle");
-                        }
-                        else
-                        {
-                            Settings.KeyMode = false;
-                            return ALang.GetText("press");
-                        }
+                        Settings.BuildRangeW = (int)v * 2 + 1;
+                        SetSquare(Settings.BuildRangeW);
                     }
-                    , Settings.KeyMode ? 1 : 0,
-                    v => { },
-                    0,
-                    1,
-                    true,
-                    false
-                );
-                menu.AddSlider(
-                    ALang.GetText("detDist"),
-                    v =>
+                    else
                     {
-                        float n = v / 2;
-                        Settings.DetRangeSq = (int)(n * n);
-                        return n.ToString();
-                    },
-                    (int)(Math.Sqrt(Settings.DetRangeSq) * 2),
-                    v => { },
-                    3,
-                    50,
-                    true,
-                    false
-                );
-                list[0] = menu.AddSlider(
-                    ALang.GetText("buildRangeW"),
-                    v =>
+                        Settings.BuildRangeW = (int)v;
+                    }
+                    return Settings.BuildRangeW.ToString();
+                },
+                Settings.StartFromCenter ? Settings.BuildRangeW / 2 : Settings.BuildRangeW,
+                v => { },
+                1,
+                Settings.StartFromCenter ? 12 : 25,
+                true,
+                false
+            );
+            list[1] = menu.AddSlider(
+                ALang.GetText("buildRangeH"),
+                v =>
+                {
+                    if (Settings.StartFromCenter)
                     {
-                        if (Settings.StartFromCenter)
-                        {
-                            Settings.BuildRangeW = (int)v * 2 + 1;
-                            SetSquare(Settings.BuildRangeW);
-                        }
-                        else
-                        {
-                            Settings.BuildRangeW = (int)v;
-                        }
-                        return Settings.BuildRangeW.ToString();
-                    },
-                    Settings.StartFromCenter ? Settings.BuildRangeW / 2 : Settings.BuildRangeW,
-                    v => { },
-                    1,
-                    Settings.StartFromCenter ? 12 : 25,
-                    true,
-                    false
-                );
-                list[1] = menu.AddSlider(
-                    ALang.GetText("buildRangeH"),
-                    v =>
+                        Settings.BuildRangeH = (int)v * 2 + 1;
+                        SetSquare(Settings.BuildRangeH);
+                    }
+                    else
                     {
-                        if (Settings.StartFromCenter)
-                        {
-                            Settings.BuildRangeH = (int)v * 2 + 1;
-                            SetSquare(Settings.BuildRangeH);
-                        }
-                        else
-                        {
-                            Settings.BuildRangeH = (int)v;
-                        }
-                        return Settings.BuildRangeH.ToString();
-                    },
-                    Settings.StartFromCenter ? Settings.BuildRangeH / 2 : Settings.BuildRangeH,
-                    v => { },
-                    1,
-                    Settings.StartFromCenter ? 12 : 25,
-                    true,
-                    false
-                );
-                menu.AddSlider(
-                    ALang.GetText("sowRange"),
-                    v =>
+                        Settings.BuildRangeH = (int)v;
+                    }
+                    return Settings.BuildRangeH.ToString();
+                },
+                Settings.StartFromCenter ? Settings.BuildRangeH / 2 : Settings.BuildRangeH,
+                v => { },
+                1,
+                Settings.StartFromCenter ? 12 : 25,
+                true,
+                false
+            );
+            menu.AddSlider(
+                ALang.GetText("sowRange"),
+                v =>
+                {
+                    Settings.SowRangeExists = v == 0;
+                    if (Settings.SowRangeExists)
                     {
-                        Settings.SowRangeExists = v == 0;
-                        if (Settings.SowRangeExists)
-                        {
-                            return ALang.GetText("followBuildRange");
-                        }
-                        else
-                        {
-                            return ALang.GetText("entireFarmfield");
-                        }
-                    },
-                    Settings.SowRangeExists ? 0 : 1,
-                    v => { },
-                    0,
-                    1,
-                    true,
-                    false
-                );
-                menu.AddSlider(
-                    ALang.GetText("pourDepth"),
-                    v =>
+                        return ALang.GetText("followBuildRange");
+                    }
+                    else
                     {
-                        Settings.PourDepth = (int)v;
+                        return ALang.GetText("entireFarmfield");
+                    }
+                },
+                Settings.SowRangeExists ? 0 : 1,
+                v => { },
+                0,
+                1,
+                true,
+                false
+            );
+            menu.AddSlider(
+                ALang.GetText("pourDepth"),
+                v =>
+                {
+                    Settings.PourDepth = (int)v;
+                    return v.ToString();
+                },
+                Settings.PourDepth,
+                v => { },
+                1,
+                4,
+                true,
+                false
+            );
+            int seedReapingCountMax = 101;
+            menu.AddSlider(
+                ALang.GetText("seedReapingCount"),
+                v =>
+                {
+                    Settings.SeedReapingCount = (int)v == seedReapingCountMax ? 0 : (int)v;
+                    if (Settings.SeedReapingCount > 0)
+                    {
                         return v.ToString();
-                    },
-                    Settings.PourDepth,
-                    v => { },
-                    1,
-                    4,
-                    true,
-                    false
-                );
-                int seedReapingCountMax = 101;
-                menu.AddSlider(
-                    ALang.GetText("seedReapingCount"),
-                    v =>
+                    }
+                    else
                     {
-                        Settings.SeedReapingCount = (int)v == seedReapingCountMax ? 0 : (int)v;
-                        if (Settings.SeedReapingCount > 0)
-                        {
-                            return v.ToString();
-                        }
-                        else
-                        {
-                            return "∞".ToString();
-                        }
-                    },
-                    Settings.SeedReapingCount == 0 ? seedReapingCountMax : Settings.SeedReapingCount,
-                    v => { },
-                    1,
-                    seedReapingCountMax,
-                    true,
-                    false
-                );
-                menu.Show();
-                return false;
-            }, false);
-            Act act = dynamicAct;
-            __instance.list.Add(new ActPlan.Item
-            {
-                act = act,
-            });
+                        return "∞".ToString();
+                    }
+                },
+                Settings.SeedReapingCount == 0 ? seedReapingCountMax : Settings.SeedReapingCount,
+                v => { },
+                1,
+                seedReapingCountMax,
+                true,
+                false
+            );
+            menu.Show();
+            return false;
+        }, false);
+        Act act = dynamicAct;
+        __instance.list.Add(new ActPlan.Item
+        {
+            act = act,
+        });
+    }
+}
+
+[HarmonyPatch(typeof(ActPlan.Item), "Perform")]
+static class ActPlan_Patch
+{
+    [HarmonyPrefix]
+    static bool Prefix(ActPlan.Item __instance)
+    {
+        if (__instance.act is DynamicAct act && act.id == ALang.GetText("settings"))
+        {
+            act.Perform();
+            return false;
+        }
+        return true;
+    }
+}
+
+[HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
+static class CharaRenderer_OnEnterScreen_Patch
+{
+    [HarmonyPostfix]
+    public static void Postfix()
+    {
+        if (AutoAct.active && Settings.IgnoreEnemySpotted)
+        {
+            EClass.player.enemySpotted = false;
         }
     }
+}
 
-    [HarmonyPatch(typeof(ActPlan.Item), "Perform")]
-    static class ActPlan_Patch
+static class ALang
+{
+    static public string GetText(string text)
     {
-        [HarmonyPrefix]
-        static bool Prefix(ActPlan.Item __instance)
+        string lang = EClass.core.config.lang;
+        if (!langData.ContainsKey(lang))
         {
-            if (__instance.act is DynamicAct act && act.id == ALang.GetText("settings"))
-            {
-                act.Perform();
-                return false;
-            }
-            return true;
+            lang = "EN";
         }
+        return langData[lang][text];
     }
 
-    [HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
-    static class CharaRenderer_OnEnterScreen_Patch
-    {
-        [HarmonyPostfix]
-        public static void Postfix()
-        {
-            if (AutoAct.active && Settings.IgnoreEnemySpotted)
-            {
-                EClass.player.enemySpotted = false;
-            }
-        }
-    }
-
-    static class ALang
-    {
-        static public string GetText(string text)
-        {
-            string lang = EClass.core.config.lang;
-            if (!langData.ContainsKey(lang))
-            {
-                lang = "EN";
-            }
-            return langData[lang][text];
-        }
-
-        static readonly Dictionary<string, Dictionary<string, string>> langData = new Dictionary<string, Dictionary<string, string>> {
+    static readonly Dictionary<string, Dictionary<string, string>> langData = new Dictionary<string, Dictionary<string, string>> {
             {
                 "CN", new Dictionary<string, string> {
                     { "autoact", "自动行动" },
@@ -468,5 +468,4 @@ namespace AutoAct
                 }
             }
         };
-    }
 }
