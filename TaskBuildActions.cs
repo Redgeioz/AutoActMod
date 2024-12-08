@@ -24,7 +24,7 @@ static class OnTaskBuildComplete
 		{
 			ContinueBuild(ShouldFertilize, false);
 		}
-		else if (held.category.id == "floor")
+		else if (held.category.id == "floor" || held.category.id == "foundation")
 		{
 			ContinueBuild(p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != AutoAct.startPoint.cell.sourceSurface);
 		}
