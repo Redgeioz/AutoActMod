@@ -150,11 +150,19 @@ static class OnActionComplete
         AutoAct.SetNextTask(task);
     }
 
-    public static void ContinuePick(Thing refThing)
+    public static void ContinueClean(TaskPoint fakeTask)
+    {
+        AutoAct.active = true;
+        AutoAct.StartNewTask(fakeTask);
+        PointSetter.Reset();
+        ContinueClean();
+    }
+
+    public static void ContinuePick(TaskPoint fakeTask, Thing refThing)
     {
         if (refThing.IsNull()) { return; }
         AutoAct.active = true;
-        AutoAct.StartNewTask(new TaskPoint { pos = AutoAct.lastHitPoint });
+        AutoAct.StartNewTask(fakeTask);
         AutoAct.SetTarget(refThing);
         PointSetter.Reset();
         ContinuePick();
@@ -297,6 +305,7 @@ static class OnActionComplete
         Point targetPoint = GetNextTarget2(
             cell => !cell.HasBlock && !cell.HasObj && cell.Installed.IsNull() && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil")
         );
+
         if (targetPoint.IsNull())
         {
             return;
