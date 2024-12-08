@@ -392,7 +392,7 @@ static class OnActionComplete
         }
 
         // Check if is withered
-        if (AutoAct.targetGrowth == 4 && cell.growth.stage.idx != AutoAct.targetGrowth)
+        if (AutoAct.targetIsWithered && !cell.growth.IsWithered())
         {
             return false;
         }

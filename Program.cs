@@ -48,8 +48,8 @@ public class AutoAct : BaseUnityPlugin
     public static bool backToHarvest = false;
 
     public static int targetTypeId = -1;
-    public static int targetGrowth = -1;
     public static string targetTypeName = "";
+    public static bool targetIsWithered = false;
     public static bool targetCanHarvest = false;
     public static bool targetIsWoodTree = false;
     public static PlaceState targetPlaceState = PlaceState.none;
@@ -176,7 +176,7 @@ public class AutoAct : BaseUnityPlugin
         }
 
         GrowSystem growth = t.pos.sourceObj.growth;
-        targetGrowth = growth.stage.idx;
+        targetIsWithered = growth.IsWithered();
         targetIsWoodTree = growth.IsTree && !growth.CanHarvest();
         targetCanHarvest = targetIsWoodTree ? growth.IsMature : growth.CanHarvest();
         curtField.Clear();
