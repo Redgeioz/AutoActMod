@@ -277,7 +277,7 @@ static class OnActionComplete
         }
 
         Point targetPoint = GetNextTarget2(
-            cell => AutoAct.IsTarget(cell.sourceFloor) && !cell.HasBlock && !cell.HasObj
+            cell => AutoAct.IsTarget(cell.sourceSurface) && !cell.HasBlock && !cell.HasObj
         );
         if (targetPoint == null)
         {
