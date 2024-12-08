@@ -14,7 +14,7 @@ namespace AutoAct
 
         public override IEnumerable<Status> Run()
         {
-            yield return DoGoto(pos, 0, false, null);
+            yield return DoGoto(pos, 1, true, null);
             if (installed)
             {
                 Thing t = pos.Installed;
