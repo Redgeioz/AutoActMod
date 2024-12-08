@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using UnityEngine;
 
 namespace AutoAct;
 
@@ -21,29 +22,14 @@ static class Entrance
             or TaskDig
             or TaskMine
             or TaskPlow
+            or TaskPourWater
             or TaskDrawWater
             or AI_Read
             or AI_Shear)
         {
             AutoAct.UpdateState(a);
         }
-        if (a is TaskPourWater tpw)
-        {
-            if (AutoAct.active && !AutoAct.IsTarget(tpw.pos.sourceFloor))
-            {
-                AutoAct.pourCount += 1;
-                if (AutoAct.pourCount >= Settings.PourDepth)
-                {
-                    tpw.Success();
-                }
-            }
-            else
-            {
-                AutoAct.UpdateState(tpw);
-            }
-        }
-
-        if (a is TaskBuild tb)
+        else if (a is TaskBuild tb)
         {
             AutoAct.UpdateStateTaskBuild(tb);
         }
@@ -65,19 +51,13 @@ static class Entrance
         {
             List<Thing> list = AutoAct.lastHitPoint.Things;
             Thing refThing = list.FindLast(t => t.placeState == PlaceState.roaming);
-            if (refThing == null) { return; }
-            AutoAct.active = true;
-            AutoAct.SayStart();
             OnActionComplete.ContinuePick(refThing);
         }
         else if (__instance.id == "actHold")
         {
             List<Thing> list = AutoAct.lastHitPoint.Things;
             Thing refThing = list.LastOrDefault();
-            if (refThing == null) { return; }
-            AutoAct.active = true;
-            AutoAct.SayStart();
-            OnActionComplete.ContinuePick(refThing, refThing.placeState == PlaceState.installed);
+            OnActionComplete.ContinuePick(refThing);
         }
     }
 
@@ -88,9 +68,9 @@ static class Entrance
         [HarmonyPrefix]
         static bool Prefix(AIAct __instance, ref AIAct.Status __result)
         {
-            if (__instance.child != null && __instance.child.status == AIAct.Status.Fail)
+            if (__instance.child.IsNotNull() && __instance.child.status == AIAct.Status.Fail)
             {
-                if (__instance.onChildFail == null || __instance.onChildFail() == AIAct.Status.Fail)
+                if (__instance.onChildFail.IsNull() || __instance.onChildFail() == AIAct.Status.Fail)
                 {
                     __result = AIAct.Status.Fail;
                     return false;

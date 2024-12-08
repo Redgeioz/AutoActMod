@@ -10,24 +10,26 @@ namespace AutoAct
 
         public bool installed;
 
+        public bool IsTarget(Card t) => t == refThing || t.CanStackTo(refThing);
+
         public override IEnumerable<Status> Run()
         {
             yield return DoGoto(pos, 0, false, null);
             if (installed)
             {
                 Thing t = pos.Installed;
-                if ((t == null || !refThing.CanStackTo(t)) && pos.HasThing)
+                if ((t.IsNull() || !IsTarget(t)) && pos.HasThing)
                 {
                     foreach (Card c in pos.ListCards())
                     {
-                        if (c is Thing && c.placeState == PlaceState.installed && c.CanStackTo(refThing))
+                        if (c is Thing && c.placeState == PlaceState.installed && IsTarget(c))
                         {
                             t = c as Thing;
                             break;
                         }
                     }
                 }
-                if (t != null && refThing.CanStackTo(t))
+                if (t.IsNotNull() && IsTarget(t))
                 {
                     if (!pc.CanLift(t))
                     {
@@ -52,7 +54,7 @@ namespace AutoAct
                         t.c_editorTags = null;
                     }
                     pc.HoldCard(t, -1);
-                    if (pc.held != null)
+                    if (pc.held.IsNotNull())
                     {
                         t.PlaySoundHold(false);
                         player.RefreshCurrentHotItem();
@@ -67,7 +69,7 @@ namespace AutoAct
                 bool success = false;
                 foreach (Card t in pos.ListCards())
                 {
-                    if (t is Thing && t.CanStackTo(refThing))
+                    if (t is Thing && IsTarget(t))
                     {
                         pc.Pick(t as Thing, true, true);
                         success = true;

@@ -18,7 +18,7 @@ static class OnTaskBuildComplete
 
 		if (held.category.id == "seed")
 		{
-			ContinueBuild(p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth == null && p.Installed == null, Settings.SowRangeExists);
+			ContinueBuild(p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed.IsNull(), Settings.SowRangeExists);
 		}
 		else if (held.category.id == "fertilizer")
 		{
@@ -37,7 +37,7 @@ static class OnTaskBuildComplete
 	static void ContinueBuild(Func<Point, bool> filter, bool hasRange = true, bool edgeOnly = false)
 	{
 		Point targetPoint = GetNextTarget(filter, hasRange, edgeOnly);
-		if (targetPoint == null)
+		if (targetPoint.IsNull())
 		{
 			return;
 		}
@@ -95,7 +95,7 @@ static class OnTaskBuildComplete
 		foreach (var item in list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
 		{
 			(Point p, int max, int dist2, int dist2ToLastPoint) = item;
-			if (PointSetter.FinalPoint != null &&
+			if (PointSetter.FinalPoint.IsNotNull() &&
 				((Settings.StartFromCenter && max > PointSetter.Factor) ||
 				(!Settings.StartFromCenter && !edgeOnly && dist2ToLastPoint > PointSetter.Factor)))
 			{
@@ -208,7 +208,7 @@ static class OnTaskBuildComplete
 
 	static bool ShouldFertilize(Point p)
 	{
-		bool hasPlant = p.growth != null;
+		bool hasPlant = p.growth.IsNotNull();
 		if (!p.HasThing)
 		{
 			return hasPlant;

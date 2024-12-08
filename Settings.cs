@@ -120,7 +120,7 @@ static class ShowContextMenu_Patch
             void ToSquare()
             {
                 UIContextMenuItem item1 = list[0];
-                if (item1 == null) { return; }
+                if (item1.IsNull()) { return; }
                 UIContextMenuItem item2 = list[1];
                 int min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
                 SetSquare(min);
@@ -128,9 +128,9 @@ static class ShowContextMenu_Patch
             void SetSquare(int v)
             {
                 UIContextMenuItem item1 = list[0];
-                if (item1 == null) { return; }
+                if (item1.IsNull()) { return; }
                 UIContextMenuItem item2 = list[1];
-                if (item2 == null) { return; }
+                if (item2.IsNull()) { return; }
                 item1.slider.value = v / 2;
                 item2.slider.value = v / 2;
                 item1.slider.maxValue = 12;
@@ -143,7 +143,7 @@ static class ShowContextMenu_Patch
             void ToRect()
             {
                 UIContextMenuItem item1 = list[0];
-                if (item1 == null) { return; }
+                if (item1.IsNull()) { return; }
                 UIContextMenuItem item2 = list[1];
                 item1.slider.maxValue = 25;
                 item2.slider.maxValue = 25;

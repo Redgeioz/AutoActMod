@@ -52,6 +52,7 @@ public class AutoAct : BaseUnityPlugin
     public static string targetTypeName = "";
     public static bool targetCanHarvest = false;
     public static bool targetIsWoodTree = false;
+    public static PlaceState targetPlaceState = PlaceState.none;
     public static int startDirection = 0;
     public static Point startPoint = null;
     // Last water drawing point
@@ -88,11 +89,6 @@ public class AutoAct : BaseUnityPlugin
         {
             active = true;
         }
-        else if (a is TaskDrawWater tdw2 && drawWaterPoint != null && tdw2.pos.Equals(drawWaterPoint))
-        {
-            // active is already true
-            return;
-        }
         else
         {
             active = false;
@@ -105,7 +101,7 @@ public class AutoAct : BaseUnityPlugin
         {
             targetTypeName = (tdw.pos.HasBridge ? tdw.pos.matBridge : tdw.pos.matFloor).alias;
             drawWaterPoint = tdw.pos.Copy();
-            // Debug.Log($"===New start target: {tdw.pos}, floor id: {targetTypeName}");
+            // Debug.Log($"===New target: {tdw.pos}, floor id: {targetTypeName}");
             return;
         }
         else
@@ -125,7 +121,7 @@ public class AutoAct : BaseUnityPlugin
         {
             SetTarget(td.pos.cell.sourceSurface);
             SetStartPoint(td.pos.Copy());
-            // Debug.Log($"===New start target: {td.pos}, floor id: {(int)td.pos.cell._floor} {td.pos.cell.sourceSurface.id}");
+            // Debug.Log($"===New target: {td.pos}, floor id: {(int)td.pos.cell._floor} {td.pos.cell.sourceSurface.id}");
             return;
         }
 
@@ -140,10 +136,10 @@ public class AutoAct : BaseUnityPlugin
             return;
         }
 
-        if (t.harvestType == BaseTaskHarvest.HarvestType.Thing)
+        if (t.harvestType == BaseTaskHarvest.HarvestType.Thing || t.harvestType == BaseTaskHarvest.HarvestType.Disassemble)
         {
-            targetTypeName = t.target.Name;
-            // Debug.Log($"===New start target: {t.pos}, thing: {t.target.Name}");
+            SetTarget(t.target);
+            // Debug.Log($"===New target: {t.pos}, thing: {t.target.Name}");
         }
         else if ((!t.pos.HasObj || Settings.SimpleIdentify) && t.pos.HasBlock)
         {
@@ -157,7 +153,7 @@ public class AutoAct : BaseUnityPlugin
             {
                 SetTarget(t.pos.sourceBlock);
             }
-            // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}");
+            // Debug.Log($"===New target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}");
         }
         else if (t.pos.HasObj)
         {
@@ -170,12 +166,11 @@ public class AutoAct : BaseUnityPlugin
             {
                 SetTarget(t.pos.sourceObj);
             }
-            // Debug.Log($"===New start target: {t.pos}, obj id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}");
-            // Debug.Log($"===New start target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}");
+            // Debug.Log($"===New target: {t.pos}, obj id: {t.pos.sourceObj.id}, name: {t.pos.sourceObj.name}");
+            // Debug.Log($"===New target: {t.pos}, block id: {t.pos.sourceBlock.id}, name: {t.pos.sourceBlock.name}");
         }
 
-        // Debug.Log($"===New start has block: {t.pos.HasBlock}, has obj: {t.pos.HasObj}");
-        if (t.pos.growth == null)
+        if (t.pos.growth.IsNull())
         {
             return;
         }
@@ -228,7 +223,7 @@ public class AutoAct : BaseUnityPlugin
         curtField.Clear();
 
         Card held = EClass.pc.held;
-        if (held == null || held.Num == 1)
+        if (held.IsNull() || held.Num == 1)
         {
             active = false;
             return;
@@ -283,6 +278,13 @@ public class AutoAct : BaseUnityPlugin
         retry = true;
     }
 
+    public static void SetTarget(Card c)
+    {
+        targetTypeName = c.id;
+        targetPlaceState = c.placeState;
+        retry = true;
+    }
+
     public static bool IsTarget(TileRow r)
     {
         if (targetTypeId == -1)
@@ -305,6 +307,16 @@ public class AutoAct : BaseUnityPlugin
         }
 
         return id == targetTypeId;
+    }
+
+    public static bool IsTarget(Card c)
+    {
+        if (c.IsNull())
+        {
+            return false;
+        }
+
+        return c.id == targetTypeName && c.placeState == targetPlaceState;
     }
 
     public static void SetStartPoint(Point p)
@@ -403,7 +415,7 @@ public class AutoAct : BaseUnityPlugin
 
     public static void Cancel()
     {
-        if (runningTask != null && runningTask.IsRunning)
+        if (runningTask.IsNotNull() && runningTask.IsRunning)
         {
             SayFail();
         }
@@ -488,7 +500,7 @@ public class AutoAct : BaseUnityPlugin
     }
 }
 
-class Utils
+public static class Utils
 {
     public static void PrintStackTrace()
     {
@@ -496,7 +508,7 @@ class Utils
         foreach (System.Diagnostics.StackFrame frame in stackTrace.GetFrames())
         {
             MethodBase method = frame.GetMethod();
-            if (method != null)
+            if (method.IsNotNull())
             {
                 Console.WriteLine($"{method.DeclaringType?.Name}.{method.Name}");
             }
@@ -516,6 +528,8 @@ class Utils
         int dz = Math.Abs(p1.z - p2.z);
         return Math.Max(dx, dz);
     }
+
+    public static bool IsNotNull(this object obj) => obj != null;
 }
 
 public static class PointSetter
@@ -547,8 +561,8 @@ public static class PointSetter
 
     public static bool TrySet(Point p, int v1, int v2)
     {
-        if (p == null) { return false; }
-        if (finalPoint == null)
+        if (p.IsNull()) { return false; }
+        if (finalPoint.IsNull())
         {
             Set(p, v1, v2);
             return true;
@@ -565,8 +579,8 @@ public static class PointSetter
 
     public static bool TrySet(Point p, int v1, int v2, int v3)
     {
-        if (p == null) { return false; }
-        if (finalPoint == null)
+        if (p.IsNull()) { return false; }
+        if (finalPoint.IsNull())
         {
             Set(p, v1, v2, v3);
             return true;
@@ -651,22 +665,28 @@ static class AIAct_SetChild_Patch
     }
 }
 
+[HarmonyPatch(typeof(TaskPourWater), "OnCreateProgress")]
+static class TaskPourWater_CanProgress_Patch
+{
+    [HarmonyPostfix]
+    static void Postfix(TaskPourWater __instance)
+    {
+        if (__instance.owner.IsPC && AutoAct.active && !AutoAct.IsTarget(__instance.pos.cell.sourceSurface))
+        {
+            AutoAct.pourCount += 1;
+            if (AutoAct.pourCount >= Settings.PourDepth)
+            {
+                __instance.Success();
+                return;
+            }
+        }
+        return;
+    }
+}
+
 [HarmonyPatch(typeof(AIAct), "Cancel")]
 static class AIAct_Cancel_Patch
 {
-    // [HarmonyPrefix]
-    // static void Prefix(AIAct __instance)
-    // {
-    //     Debug.Log($"==Start Cancel {__instance} =============");
-    //     Utils.PrintStackTrace();
-    //     if (__instance is AI_Goto gt)
-    //     {
-    //         Debug.Log($"AI_Goto: from {gt.owner.pos} to {gt.dest}, {gt.destDist}");
-    //         Debug.Log($"{EClass.pc.path.state} | {EClass.pc.path.nodes.Count}");
-    //     }
-    //     Debug.Log($"===========End {__instance} =============");
-    // }
-
     [HarmonyPostfix]
     static void Postfix(AIAct __instance)
     {

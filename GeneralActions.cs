@@ -29,7 +29,7 @@ static class OnActionComplete
         {
             ContinueShear();
         }
-        else if ((__instance as DynamicAIAct)?.lang == "actClean__AutoAct")
+        else if (ai is DynamicAIAct { lang: "actClean__AutoAct" })
         {
             ContinueClean();
         }
@@ -119,7 +119,7 @@ static class OnActionComplete
             .OrderBy(Tuple => Tuple.Item2)
             .FirstOrDefault();
 
-        if (target == null)
+        if (target.IsNull())
         {
             AutoAct.SayNoTarget();
             return;
@@ -131,13 +131,13 @@ static class OnActionComplete
     public static void ContinueClean()
     {
         Card held = EClass.pc.held;
-        if (held == null || held.trait is not TraitBroom traitBroom)
+        if (held.IsNull() || held.trait is not TraitBroom traitBroom)
         {
             return;
         }
 
-        Point targetPoint = GetNextTarget(cell => !cell.HasObj && !cell.HasBlock && cell.Installed == null && (cell.decal > 0 || (cell.effect != null && cell.effect.IsLiquid)));
-        if (targetPoint == null)
+        Point targetPoint = GetNextTarget(cell => !cell.HasObj && !cell.HasBlock && cell.Installed.IsNull() && (cell.decal > 0 || (cell.effect.IsNotNull() && cell.effect.IsLiquid)));
+        if (targetPoint.IsNull())
         {
             AutoAct.SayNoTarget();
             return;
@@ -150,42 +150,26 @@ static class OnActionComplete
         AutoAct.SetNextTask(task);
     }
 
-    public static void ContinuePick(Thing refThing = null, bool installed = false)
+    public static void ContinuePick(Thing refThing)
     {
-        if (refThing == null)
-        {
-            AI_Pick last = AutoAct.runningTask as AI_Pick;
-            refThing = last.refThing;
-            installed = last.installed;
-        }
+        if (refThing.IsNull()) { return; }
+        AutoAct.active = true;
+        AutoAct.StartNewTask(new TaskPoint { pos = AutoAct.lastHitPoint });
+        AutoAct.SetTarget(refThing);
+        PointSetter.Reset();
+        ContinuePick();
+    }
 
-        Point targetPoint = GetNextTarget(cell =>
-        {
-            if (cell.HasBlock)
-            {
-                return false;
-            }
-
-            Point p = cell.GetPoint();
-            if (installed)
-            {
-                if (cell.Installed != null && cell.Installed.CanStackTo(refThing))
-                {
-                    return true;
-                }
-
-                return p.Things.Find(t => t.placeState == PlaceState.installed && refThing.CanStackTo(t)) != null;
-            }
-
-            return p.Things.Find(t => refThing.CanStackTo(t)) != null;
-        });
-        if (targetPoint == null)
+    public static void ContinuePick()
+    {
+        Thing targetThing = GetNextThingTarget();
+        if (targetThing.IsNull())
         {
             AutoAct.SayNoTarget();
             return;
         }
 
-        AI_Pick task = new AI_Pick { pos = targetPoint, refThing = refThing, installed = installed };
+        AI_Pick task = new AI_Pick { pos = targetThing.pos, refThing = targetThing, installed = targetThing.IsInstalled };
         AutoAct.SetNextTask(task);
     }
 
@@ -207,10 +191,11 @@ static class OnActionComplete
         TaskHarvest task;
         Point targetPoint = null;
         BaseTaskHarvest lastTask = AutoAct.runningTask as BaseTaskHarvest;
-        if (lastTask != null && lastTask.harvestType == BaseTaskHarvest.HarvestType.Thing)
+        bool targetIsThing = lastTask.IsNotNull() && lastTask.target.IsNotNull();
+        if (targetIsThing)
         {
             Thing thing = GetNextThingTarget();
-            if (thing == null)
+            if (thing.IsNull())
             {
                 AutoAct.SayNoTarget();
                 return;
@@ -219,31 +204,32 @@ static class OnActionComplete
             task = new TaskHarvest
             {
                 pos = thing.pos.Copy(),
-                mode = BaseTaskHarvest.HarvestType.Thing,
+                mode = lastTask.harvestType,
                 target = thing
             };
 
             AutoAct.SetNextTask(task);
             return;
         }
-        else if (lastTask != null && Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
+
+        if (lastTask.IsNotNull() && Settings.SameFarmfieldOnly && (lastTask.pos.IsFarmField || (lastTask.pos.sourceObj.id == 88 && lastTask.pos.IsWater)))
         {
             targetPoint = GetNextFarmfieldTarget();
             AutoAct.curtField.Remove(targetPoint);
         }
         else
         {
-            bool isMining = EClass.pc.held != null && EClass.pc.held.HasElement(220, 1);
+            bool isMining = EClass.pc.held.IsNotNull() && EClass.pc.held.HasElement(220, 1);
             targetPoint = GetNextTarget(CommonFilter, !Settings.SimpleIdentify && isMining);
         }
 
-        if (targetPoint == null)
+        if (targetPoint.IsNull())
         {
             AutoAct.SayNoTarget();
             return;
         }
 
-        if (!targetPoint.HasObj && !targetPoint.HasBlock)
+        if (!targetPoint.HasObj && !targetPoint.HasBlock && !targetIsThing)
         {
             AutoAct.SetNextTask(new AI_Goto(targetPoint, 0));
             AutoAct.backToHarvest = true;
@@ -251,7 +237,7 @@ static class OnActionComplete
         }
 
         task = TaskHarvest.TryGetAct(EClass.pc, targetPoint);
-        if (task != null)
+        if (task.IsNotNull())
         {
             AutoAct.SetNextTask(task);
         }
@@ -279,7 +265,8 @@ static class OnActionComplete
         Point targetPoint = GetNextTarget2(
             cell => AutoAct.IsTarget(cell.sourceSurface) && !cell.HasBlock && !cell.HasObj
         );
-        if (targetPoint == null)
+
+        if (targetPoint.IsNull())
         {
             return;
         }
@@ -295,7 +282,7 @@ static class OnActionComplete
     static void ContinueMine()
     {
         Point targetPoint = GetNextTarget(CommonFilter);
-        if (targetPoint == null)
+        if (targetPoint.IsNull())
         {
             AutoAct.SayNoTarget();
             return;
@@ -308,9 +295,9 @@ static class OnActionComplete
     static void ContinuePlow()
     {
         Point targetPoint = GetNextTarget2(
-            cell => !cell.HasBlock && !cell.HasObj && cell.Installed == null && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil")
+            cell => !cell.HasBlock && !cell.HasObj && cell.Installed.IsNull() && !cell.IsTopWater && !cell.IsFarmField && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil")
         );
-        if (targetPoint == null)
+        if (targetPoint.IsNull())
         {
             return;
         }
@@ -343,7 +330,7 @@ static class OnActionComplete
             return (p.HasBridge ? p.matBridge : p.matFloor).alias == AutoAct.targetTypeName && !cell.HasObj && !cell.HasBlock;
         });
 
-        if (targetPoint == null)
+        if (targetPoint.IsNull())
         {
             return;
         }
@@ -368,7 +355,7 @@ static class OnActionComplete
         if (pot.owner.c_charges == 0)
         {
             Card nextPot = EClass.pc.things.Find(t => t.trait is TraitToolWaterPot twp && twp.owner.c_charges > 0);
-            if (nextPot != null)
+            if (nextPot.IsNotNull())
             {
                 pot = nextPot.trait as TraitToolWaterPot;
                 EClass.pc.HoldCard(nextPot);
@@ -380,7 +367,7 @@ static class OnActionComplete
         }
 
         Point targetPoint = GetNextTarget2(cell => !cell.HasBridge && AutoAct.IsTarget(cell.sourceFloor));
-        if (targetPoint == null)
+        if (targetPoint.IsNull())
         {
             return;
         }
@@ -420,7 +407,7 @@ static class OnActionComplete
             return false;
         }
 
-        if (cell.growth != null)
+        if (cell.growth.IsNotNull())
         {
             return PlantFilter(cell);
         }
@@ -456,7 +443,7 @@ static class OnActionComplete
 
         foreach ((Point p, int dist2, int dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
         {
-            if (PointSetter.FinalPoint != null && dist2 > PointSetter.MaxDist2)
+            if (PointSetter.FinalPoint.IsNotNull() && dist2 > PointSetter.MaxDist2)
             {
                 break;
             }
@@ -514,21 +501,12 @@ static class OnActionComplete
                 d2 = Math.Abs(AutoAct.GetDelta(p, EClass.pc.pos, EClass.pc.dir).Item2);
             }
             int factor = path.nodes.Count;
-            if (factor > dist2ToLastPoint && dist2ToLastPoint <= 2) {
+            if (factor > dist2ToLastPoint && dist2ToLastPoint <= 2)
+            {
                 factor = dist2ToLastPoint;
             }
             PointSetter.TrySet(p, factor, dist2ToLastPoint, d2);
         }
-        // if (targetPoint != null)
-        // {
-        //     if (targetPoint.cell.growth != null)
-        //     {
-        //         Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, OriginalStage: {AutoAct.targetGrowth}, CanHarvest: {targetPoint.cell.growth.CanHarvest()}");
-        //     }
-        //     Debug.Log($"Target: {targetPoint.cell.sourceObj.id} | {targetPoint.cell.sourceObj.name} | {targetPoint}");
-        //     Debug.Log($"Target: {targetPoint.cell.sourceBlock.id} | {targetPoint.cell.sourceBlock.name} | {targetPoint}");
-        //     Debug.Log($"Target should be: {AutoAct.targetTypeId}, self: {EClass.pc.pos}");
-        // }
 
         return PointSetter.FinalPoint;
     }
@@ -550,8 +528,8 @@ static class OnActionComplete
                 return;
             }
 
-            Thing thing = p.Things.Find((Thing t) => t.Name == AutoAct.targetTypeName);
-            if (thing == null)
+            Thing thing = p.Things.Find((Thing t) => AutoAct.IsTarget(t));
+            if (thing.IsNull())
             {
                 return;
             }
@@ -568,7 +546,7 @@ static class OnActionComplete
 
         foreach ((Thing thing, int dist2, int dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
         {
-            if (PointSetter.FinalPoint != null && dist2 > PointSetter.MaxDist2)
+            if (PointSetter.FinalPoint.IsNotNull() && dist2 > PointSetter.MaxDist2)
             {
                 break;
             }
@@ -583,13 +561,7 @@ static class OnActionComplete
             PointSetter.TrySet(thing.pos, path.nodes.Count, dist2ToLastPoint);
         }
 
-        (Thing target, int _, int _) = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3).FirstOrDefault();
-        // if (target == null) {
-        //     Debug.Log("Target: null");
-        // } else {
-        //     Debug.Log($"Target: {target.id} | {target.Name} | {target.pos}");
-        // }
-        return target;
+        return PointSetter.FinalPoint?.Things.Find(t => AutoAct.IsTarget(t));
     }
 
     static Point GetNextTarget2(Func<Cell, bool> filter)
@@ -631,7 +603,7 @@ static class OnActionComplete
         foreach (var item in list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
         {
             (Point p, int max, int dist2, int dist2ToLastPoint) = item;
-            if (PointSetter.FinalPoint != null &&
+            if (PointSetter.FinalPoint.IsNotNull() &&
                 ((Settings.StartFromCenter && max > PointSetter.Factor) ||
                 (!Settings.StartFromCenter && dist2ToLastPoint > PointSetter.Factor)))
             {
@@ -684,7 +656,7 @@ static class OnActionComplete
                 continue;
             }
 
-            if (cell.growth != null)
+            if (cell.growth.IsNotNull())
             {
                 if (!PlantFilter(cell))
                 {
@@ -710,7 +682,7 @@ static class OnActionComplete
 
         foreach ((Point p, int dist2, int dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
         {
-            if (PointSetter.FinalPoint != null && dist2 > PointSetter.MaxDist2)
+            if (PointSetter.FinalPoint.IsNotNull() && dist2 > PointSetter.MaxDist2)
             {
                 break;
             }
@@ -724,12 +696,7 @@ static class OnActionComplete
 
             PointSetter.TrySet(p, path.nodes.Count, dist2ToLastPoint);
         }
-        // if (targetPoint != null && targetPoint.cell.growth != null)
-        // {
-        //     Debug.Log($"Target stage: {targetPoint.cell.growth.stage.idx}, original stage: {AutoAct.targetGrowth}, can harvest: {targetPoint.cell.growth.CanHarvest()}");
-        //     Debug.Log($"Target: {targetPoint?.cell.sourceObj.id} | {targetPoint?.cell.sourceObj.name} | {targetPoint}");
-        //     Debug.Log($"Target should be: {AutoAct.targetTypeId}");
-        // }
+
         return PointSetter.FinalPoint;
     }
 }
