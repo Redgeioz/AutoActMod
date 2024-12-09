@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace AutoAct;
 
-static class Settings
+public static class Settings
 {
     public static ConfigEntry<int> detDistSq;
     public static ConfigEntry<int> buildRangeW;
@@ -346,7 +346,7 @@ static class CharaRenderer_OnEnterScreen_Patch
     }
 }
 
-static class ALang
+public static class ALang
 {
     static public string GetText(string text)
     {
@@ -358,114 +358,114 @@ static class ALang
         return langData[lang][text];
     }
 
-    static readonly Dictionary<string, Dictionary<string, string>> langData = new Dictionary<string, Dictionary<string, string>> {
-            {
-                "CN", new Dictionary<string, string> {
-                    { "autoact", "自动行动" },
-                    { "settings", "自动行动设置" },
-                    { "detDist", "探测距离" },
-                    { "buildRangeW", "建造范围宽"},
-                    { "buildRangeH", "建造范围高"},
-                    { "sowRange", "播种范围" },
-                    { "pourDepth", "倒水深度" },
-                    { "seedReapingCount", "种子收获数" },
-                    { "keyMode", "按键模式" },
-                    { "press", "按住" },
-                    { "toggle", "切换" },
-                    { "start", "自动行动，启动！"},
-                    { "fail", "自动行动已中断。"},
-                    { "noTarget", "自动行动没有找到下一个目标。"},
-                    { "on", "自动行动，启动！"},
-                    { "off", "自动行动，关闭。"},
-                    { "staminaCheck", "精力为零时停止　　　　　　　　" },
-                    { "entireFarmfield", "整个田地" },
-                    { "followBuildRange", "同建造范围" },
-                    { "simpleIdentify", "仅识别目标是方块还是植物　　　" },
-                    { "ignoreEnemySpotted", "忽视发现的敌人　　　　　　　　" },
-                    { "startFromCenter", "从中心开始（限制为正方形）　　" },
-                    { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
-                }
-            },
-            {
-                "ZHTW", new Dictionary<string, string> {
-                    { "autoact", "自動行動" },
-                    { "settings", "自動行動設定" },
-                    { "detDist", "探測距離" },
-                    { "buildRangeW", "建造範圍寬" },
-                    { "buildRangeH", "建造範圍高" },
-                    { "sowRange", "播種範圍" },
-                    { "pourDepth", "倒水深度" },
-                    { "seedReapingCount", "種子收獲數" },
-                    { "keyMode", "按鍵模式" },
-                    { "press", "按住" },
-                    { "toggle", "切換" },
-                    { "start", "自動行動，啟動！"},
-                    { "fail", "自動行動已中斷。"},
-                    { "noTarget", "自動行動沒有找到下一個目標。"},
-                    { "on", "自動行動，啟動！"},
-                    { "off", "自動行動，關閉。"},
-                    { "staminaCheck", "精力為零時停止　　　　　　　　" },
-                    { "entireFarmfield", "整個田地" },
-                    { "followBuildRange", "同建造範圍" },
-                    { "simpleIdentify", "僅識別目標是方塊還是植物　　　" },
-                    { "ignoreEnemySpotted", "忽視發現的敵人　　　　　　　　" },
-                    { "startFromCenter", "从中心開始（限製為正方形）　　" },
-                    { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
-                }
-            },
-            {
-                "JP", new Dictionary<string, string> {
-                    { "autoact", "自動行動" },
-                    { "settings", "自動行動設定" },
-                    { "detDist", "検出距離" },
-                    { "buildRangeW", "建築範囲の幅" },
-                    { "buildRangeH", "建築範囲の高さ" },
-                    { "sowRange", "播種範囲" },
-                    { "pourDepth", "注水深さ" },
-                    { "seedReapingCount", "種子収穫数" },
-                    { "keyMode", "キーモード" },
-                    { "press", "押す" },
-                    { "toggle", "切り替え" },
-                    { "start", "自動行動開始済み。"},
-                    { "fail", "自動行動中断済み。"},
-                    { "noTarget", "自動行動は次目標を発見できず。"},
-                    { "on", "自動行動：オン。"},
-                    { "off", "自動行動：オフ。"},
-                    { "staminaCheck", "スタミナゼロで停止　　　　　　" },
-                    { "entireFarmfield", "現在は農地全体" },
-                    { "followBuildRange", "建築範囲と同じ" },
-                    { "simpleIdentify", "ブロックか植物かだけを識別する" },
-                    { "ignoreEnemySpotted", "発見した敵を無視する　　　　　" },
-                    { "startFromCenter", "中心から開始（正方形に制限）　" },
-                    { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
-                }
-            },
-            {
-                "EN", new Dictionary<string, string> {
-                    { "autoact", "Auto Act" },
-                    { "settings", "Auto Act Settings" },
-                    { "detDist", "Detection Distance" },
-                    { "buildRangeW", "Building Range Width" },
-                    { "buildRangeH", "Building Range Height" },
-                    { "sowRange", "Sowing Range" },
-                    { "pourDepth", "Pouring Depth" },
-                    { "seedReapingCount", "Count For Seed Reaping" },
-                    { "keyMode", "Key Mode" },
-                    { "press", "Press" },
-                    { "toggle", "Toggle" },
-                    { "start", "Auto Act started."},
-                    { "fail", "Auto Act was interrupted."},
-                    { "noTarget", "Auto Act could not find the next target."},
-                    { "on", "Auto Act: On."},
-                    { "off", "Auto Act: Off."},
-                    { "staminaCheck", "Stop When Zero Stamina　　　　　　　　　　　　　　　　　" },
-                    { "entireFarmfield", "The Entire Current Farmfield" },
-                    { "followBuildRange", "Follow The Building Range" },
-                    { "simpleIdentify", "Identify If The Target Is A Block Or A Plant Only" },
-                    { "ignoreEnemySpotted", "Ignore Enemy Spotted　　　　　　　　　　　　　　　　　　　" },
-                    { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
-                    { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
-                }
+    public static Dictionary<string, Dictionary<string, string>> langData = new Dictionary<string, Dictionary<string, string>> {
+        {
+            "CN", new Dictionary<string, string> {
+                { "autoact", "自动行动" },
+                { "settings", "自动行动设置" },
+                { "detDist", "探测距离" },
+                { "buildRangeW", "建造范围宽"},
+                { "buildRangeH", "建造范围高"},
+                { "sowRange", "播种范围" },
+                { "pourDepth", "倒水深度" },
+                { "seedReapingCount", "种子收获数" },
+                { "keyMode", "按键模式" },
+                { "press", "按住" },
+                { "toggle", "切换" },
+                { "start", "自动行动，启动！"},
+                { "fail", "自动行动已中断。"},
+                { "noTarget", "自动行动没有找到下一个目标。"},
+                { "on", "自动行动，启动！"},
+                { "off", "自动行动，关闭。"},
+                { "staminaCheck", "精力为零时停止　　　　　　　　" },
+                { "entireFarmfield", "整个田地" },
+                { "followBuildRange", "同建造范围" },
+                { "simpleIdentify", "仅识别目标是方块还是植物　　　" },
+                { "ignoreEnemySpotted", "忽视发现的敌人　　　　　　　　" },
+                { "startFromCenter", "从中心开始（限制为正方形）　　" },
+                { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
             }
-        };
+        },
+        {
+            "ZHTW", new Dictionary<string, string> {
+                { "autoact", "自動行動" },
+                { "settings", "自動行動設定" },
+                { "detDist", "探測距離" },
+                { "buildRangeW", "建造範圍寬" },
+                { "buildRangeH", "建造範圍高" },
+                { "sowRange", "播種範圍" },
+                { "pourDepth", "倒水深度" },
+                { "seedReapingCount", "種子收獲數" },
+                { "keyMode", "按鍵模式" },
+                { "press", "按住" },
+                { "toggle", "切換" },
+                { "start", "自動行動，啟動！"},
+                { "fail", "自動行動已中斷。"},
+                { "noTarget", "自動行動沒有找到下一個目標。"},
+                { "on", "自動行動，啟動！"},
+                { "off", "自動行動，關閉。"},
+                { "staminaCheck", "精力為零時停止　　　　　　　　" },
+                { "entireFarmfield", "整個田地" },
+                { "followBuildRange", "同建造範圍" },
+                { "simpleIdentify", "僅識別目標是方塊還是植物　　　" },
+                { "ignoreEnemySpotted", "忽視發現的敵人　　　　　　　　" },
+                { "startFromCenter", "从中心開始（限製為正方形）　　" },
+                { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
+            }
+        },
+        {
+            "JP", new Dictionary<string, string> {
+                { "autoact", "自動行動" },
+                { "settings", "自動行動設定" },
+                { "detDist", "検出距離" },
+                { "buildRangeW", "建築範囲の幅" },
+                { "buildRangeH", "建築範囲の高さ" },
+                { "sowRange", "播種範囲" },
+                { "pourDepth", "注水深さ" },
+                { "seedReapingCount", "種子収穫数" },
+                { "keyMode", "キーモード" },
+                { "press", "押す" },
+                { "toggle", "切り替え" },
+                { "start", "自動行動開始済み。"},
+                { "fail", "自動行動中断済み。"},
+                { "noTarget", "自動行動は次目標を発見できず。"},
+                { "on", "自動行動：オン。"},
+                { "off", "自動行動：オフ。"},
+                { "staminaCheck", "スタミナゼロで停止　　　　　　" },
+                { "entireFarmfield", "現在は農地全体" },
+                { "followBuildRange", "建築範囲と同じ" },
+                { "simpleIdentify", "ブロックか植物かだけを識別する" },
+                { "ignoreEnemySpotted", "発見した敵を無視する　　　　　" },
+                { "startFromCenter", "中心から開始（正方形に制限）　" },
+                { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
+            }
+        },
+        {
+            "EN", new Dictionary<string, string> {
+                { "autoact", "Auto Act" },
+                { "settings", "Auto Act Settings" },
+                { "detDist", "Detection Distance" },
+                { "buildRangeW", "Building Range Width" },
+                { "buildRangeH", "Building Range Height" },
+                { "sowRange", "Sowing Range" },
+                { "pourDepth", "Pouring Depth" },
+                { "seedReapingCount", "Count For Seed Reaping" },
+                { "keyMode", "Key Mode" },
+                { "press", "Press" },
+                { "toggle", "Toggle" },
+                { "start", "Auto Act started."},
+                { "fail", "Auto Act was interrupted."},
+                { "noTarget", "Auto Act could not find the next target."},
+                { "on", "Auto Act: On."},
+                { "off", "Auto Act: Off."},
+                { "staminaCheck", "Stop When Zero Stamina　　　　　　　　　　　　　　　　　" },
+                { "entireFarmfield", "The Entire Current Farmfield" },
+                { "followBuildRange", "Follow The Building Range" },
+                { "simpleIdentify", "Identify If The Target Is A Block Or A Plant Only" },
+                { "ignoreEnemySpotted", "Ignore Enemy Spotted　　　　　　　　　　　　　　　　　　　" },
+                { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
+                { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
+            }
+        }
+    };
 }

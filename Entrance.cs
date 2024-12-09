@@ -41,22 +41,21 @@ static class Entrance
     {
         // Debug.Log($"DynamicAct: {__instance.id}");
         if (!AutoAct.IsSwitchOn) { return; }
-        TaskPoint fakeTask =new TaskPoint { pos = AutoAct.lastHitPoint };
         if (__instance.id == "actClean")
         {
-            OnActionComplete.ContinueClean(fakeTask);
+            OnActionComplete.StartContinueClean();
         }
         else if (__instance.id == "actPickOne")
         {
             List<Thing> list = AutoAct.lastHitPoint.Things;
             Thing refThing = list.FindLast(t => t.placeState == PlaceState.roaming);
-            OnActionComplete.ContinuePick(fakeTask, refThing);
+            OnActionComplete.StartContinuePick(refThing);
         }
         else if (__instance.id == "actHold")
         {
             List<Thing> list = AutoAct.lastHitPoint.Things;
             Thing refThing = list.LastOrDefault();
-            OnActionComplete.ContinuePick(fakeTask, refThing);
+            OnActionComplete.StartContinuePick(refThing);
         }
     }
 

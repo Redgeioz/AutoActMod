@@ -136,7 +136,7 @@ static class OnActionComplete
             return;
         }
 
-        Point targetPoint = GetNextTarget(cell => !cell.HasObj && !cell.HasBlock && cell.Installed.IsNull() && (cell.decal > 0 || (cell.effect.IsNotNull() && cell.effect.IsLiquid)));
+        Point targetPoint = GetNextTarget(cell => !cell.HasBlock && (cell.decal > 0 || (cell.effect.IsNotNull() && cell.effect.IsLiquid)));
         if (targetPoint.IsNull())
         {
             AutoAct.SayNoTarget();
@@ -150,19 +150,19 @@ static class OnActionComplete
         AutoAct.SetNextTask(task);
     }
 
-    public static void ContinueClean(TaskPoint fakeTask)
+    public static void StartContinueClean()
     {
         AutoAct.active = true;
-        AutoAct.StartNewTask(fakeTask);
+        AutoAct.StartNewTask(new TaskPoint { pos = AutoAct.lastHitPoint });
         PointSetter.Reset();
         ContinueClean();
     }
 
-    public static void ContinuePick(TaskPoint fakeTask, Thing refThing)
+    public static void StartContinuePick(Thing refThing)
     {
         if (refThing.IsNull()) { return; }
         AutoAct.active = true;
-        AutoAct.StartNewTask(fakeTask);
+        AutoAct.StartNewTask(new TaskPoint { pos = AutoAct.lastHitPoint });
         AutoAct.SetTarget(refThing);
         PointSetter.Reset();
         ContinuePick();

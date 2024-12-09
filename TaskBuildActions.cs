@@ -191,7 +191,6 @@ static class OnTaskBuildComplete
 
 				if (d1 >= 0)
 				{
-					// hasRange == false
 					(d1, d2) = AutoAct.GetDelta(p, EClass.pc.pos, AutoAct.startDirection);
 					if (d1 < 0)
 					{
