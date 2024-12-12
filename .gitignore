@@ -1,3 +1,5 @@
 .history
+.vscode
 bin
 obj
+*.sln

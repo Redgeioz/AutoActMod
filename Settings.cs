@@ -4,7 +4,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 
-namespace AutoAct;
+namespace ElinAutoAct;
 
 public static class Settings
 {
@@ -100,36 +100,26 @@ public static class Settings
         get { return keyCode.Value; }
         set { keyCode.Value = value; }
     }
-}
 
-[HarmonyPatch(typeof(ActPlan), "ShowContextMenu")]
-static class ShowContextMenu_Patch
-{
-    [HarmonyPrefix]
-    public static void Prefix(ActPlan __instance)
+    public static void ShowSettings(ActPlan actPlan)
     {
-        if (!__instance.pos.Equals(EClass.pc.pos))
+        var text = ALang.GetText("settings");
+        var dynamicAct = new DynamicAct(text, () =>
         {
-            return;
-        }
-
-        string text = ALang.GetText("settings");
-        DynamicAct dynamicAct = new DynamicAct(text, () =>
-        {
-            UIContextMenuItem[] list = new UIContextMenuItem[2];
+            var list = new UIContextMenuItem[2];
             void ToSquare()
             {
-                UIContextMenuItem item1 = list[0];
+                var item1 = list[0];
                 if (item1.IsNull()) { return; }
-                UIContextMenuItem item2 = list[1];
-                int min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
+                var item2 = list[1];
+                var min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
                 SetSquare(min);
             }
             void SetSquare(int v)
             {
-                UIContextMenuItem item1 = list[0];
+                var item1 = list[0];
                 if (item1.IsNull()) { return; }
-                UIContextMenuItem item2 = list[1];
+                var item2 = list[1];
                 if (item2.IsNull()) { return; }
                 item1.slider.value = v / 2;
                 item2.slider.value = v / 2;
@@ -137,14 +127,14 @@ static class ShowContextMenu_Patch
                 item2.slider.maxValue = 12;
                 item1.textSlider.text = v.ToString();
                 item2.textSlider.text = v.ToString();
-                Settings.BuildRangeW = v;
-                Settings.BuildRangeH = v;
+                BuildRangeW = v;
+                BuildRangeH = v;
             }
             void ToRect()
             {
-                UIContextMenuItem item1 = list[0];
+                var item1 = list[0];
                 if (item1.IsNull()) { return; }
-                UIContextMenuItem item2 = list[1];
+                var item2 = list[1];
                 item1.slider.maxValue = 25;
                 item2.slider.maxValue = 25;
                 item1.slider.value = item1.slider.value * 2 + 1;
@@ -152,14 +142,14 @@ static class ShowContextMenu_Patch
                 item1.textSlider.text = item1.slider.value.ToString();
                 item2.textSlider.text = item2.slider.value.ToString();
             }
-            UIContextMenu menu = EClass.ui.CreateContextMenu();
-            menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), Settings.SameFarmfieldOnly, v => Settings.SameFarmfieldOnly = v);
-            menu.AddToggle(ALang.GetText("staminaCheck"), Settings.StaminaCheck, v => Settings.StaminaCheck = v);
-            menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), Settings.IgnoreEnemySpotted, v => Settings.IgnoreEnemySpotted = v);
-            menu.AddToggle(ALang.GetText("simpleIdentify"), Settings.SimpleIdentify, v => Settings.SimpleIdentify = v);
-            menu.AddToggle(ALang.GetText("startFromCenter"), Settings.StartFromCenter, v =>
+            var menu = EClass.ui.CreateContextMenu();
+            menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
+            menu.AddToggle(ALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
+            menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), IgnoreEnemySpotted, v => IgnoreEnemySpotted = v);
+            menu.AddToggle(ALang.GetText("simpleIdentify"), SimpleIdentify, v => SimpleIdentify = v);
+            menu.AddToggle(ALang.GetText("startFromCenter"), StartFromCenter, v =>
             {
-                Settings.StartFromCenter = v;
+                StartFromCenter = v;
                 if (v)
                 {
                     ToSquare();
@@ -175,16 +165,16 @@ static class ShowContextMenu_Patch
                 {
                     if (v == 1)
                     {
-                        Settings.KeyMode = true;
+                        KeyMode = true;
                         return ALang.GetText("toggle");
                     }
                     else
                     {
-                        Settings.KeyMode = false;
+                        KeyMode = false;
                         return ALang.GetText("press");
                     }
                 }
-                , Settings.KeyMode ? 1 : 0,
+                , KeyMode ? 1 : 0,
                 v => { },
                 0,
                 1,
@@ -195,11 +185,11 @@ static class ShowContextMenu_Patch
                 ALang.GetText("detDist"),
                 v =>
                 {
-                    float n = v / 2;
-                    Settings.DetRangeSq = (int)(n * n);
+                    var n = v / 2;
+                    DetRangeSq = (int)(n * n);
                     return n.ToString();
                 },
-                (int)(Math.Sqrt(Settings.DetRangeSq) * 2),
+                (int)(Math.Sqrt(DetRangeSq) * 2),
                 v => { },
                 3,
                 50,
@@ -210,21 +200,21 @@ static class ShowContextMenu_Patch
                 ALang.GetText("buildRangeW"),
                 v =>
                 {
-                    if (Settings.StartFromCenter)
+                    if (StartFromCenter)
                     {
-                        Settings.BuildRangeW = (int)v * 2 + 1;
-                        SetSquare(Settings.BuildRangeW);
+                        BuildRangeW = (int)v * 2 + 1;
+                        SetSquare(BuildRangeW);
                     }
                     else
                     {
-                        Settings.BuildRangeW = (int)v;
+                        BuildRangeW = (int)v;
                     }
-                    return Settings.BuildRangeW.ToString();
+                    return BuildRangeW.ToString();
                 },
-                Settings.StartFromCenter ? Settings.BuildRangeW / 2 : Settings.BuildRangeW,
+                StartFromCenter ? BuildRangeW / 2 : BuildRangeW,
                 v => { },
                 1,
-                Settings.StartFromCenter ? 12 : 25,
+                StartFromCenter ? 12 : 25,
                 true,
                 false
             );
@@ -232,21 +222,21 @@ static class ShowContextMenu_Patch
                 ALang.GetText("buildRangeH"),
                 v =>
                 {
-                    if (Settings.StartFromCenter)
+                    if (StartFromCenter)
                     {
-                        Settings.BuildRangeH = (int)v * 2 + 1;
-                        SetSquare(Settings.BuildRangeH);
+                        BuildRangeH = (int)v * 2 + 1;
+                        SetSquare(BuildRangeH);
                     }
                     else
                     {
-                        Settings.BuildRangeH = (int)v;
+                        BuildRangeH = (int)v;
                     }
-                    return Settings.BuildRangeH.ToString();
+                    return BuildRangeH.ToString();
                 },
-                Settings.StartFromCenter ? Settings.BuildRangeH / 2 : Settings.BuildRangeH,
+                StartFromCenter ? BuildRangeH / 2 : BuildRangeH,
                 v => { },
                 1,
-                Settings.StartFromCenter ? 12 : 25,
+                StartFromCenter ? 12 : 25,
                 true,
                 false
             );
@@ -254,8 +244,8 @@ static class ShowContextMenu_Patch
                 ALang.GetText("sowRange"),
                 v =>
                 {
-                    Settings.SowRangeExists = v == 0;
-                    if (Settings.SowRangeExists)
+                    SowRangeExists = v == 0;
+                    if (SowRangeExists)
                     {
                         return ALang.GetText("followBuildRange");
                     }
@@ -264,7 +254,7 @@ static class ShowContextMenu_Patch
                         return ALang.GetText("entireFarmfield");
                     }
                 },
-                Settings.SowRangeExists ? 0 : 1,
+                SowRangeExists ? 0 : 1,
                 v => { },
                 0,
                 1,
@@ -275,23 +265,23 @@ static class ShowContextMenu_Patch
                 ALang.GetText("pourDepth"),
                 v =>
                 {
-                    Settings.PourDepth = (int)v;
+                    PourDepth = (int)v;
                     return v.ToString();
                 },
-                Settings.PourDepth,
+                PourDepth,
                 v => { },
                 1,
                 4,
                 true,
                 false
             );
-            int seedReapingCountMax = 101;
+            var seedReapingCountMax = 101;
             menu.AddSlider(
                 ALang.GetText("seedReapingCount"),
                 v =>
                 {
-                    Settings.SeedReapingCount = (int)v == seedReapingCountMax ? 0 : (int)v;
-                    if (Settings.SeedReapingCount > 0)
+                    SeedReapingCount = (int)v == seedReapingCountMax ? 0 : (int)v;
+                    if (SeedReapingCount > 0)
                     {
                         return v.ToString();
                     }
@@ -300,7 +290,7 @@ static class ShowContextMenu_Patch
                         return "∞".ToString();
                     }
                 },
-                Settings.SeedReapingCount == 0 ? seedReapingCountMax : Settings.SeedReapingCount,
+                SeedReapingCount == 0 ? seedReapingCountMax : SeedReapingCount,
                 v => { },
                 1,
                 seedReapingCountMax,
@@ -310,39 +300,10 @@ static class ShowContextMenu_Patch
             menu.Show();
             return false;
         }, false);
-        Act act = dynamicAct;
-        __instance.list.Add(new ActPlan.Item
+        actPlan.list.Add(new ActPlan.Item
         {
-            act = act,
+            act = dynamicAct,
         });
-    }
-}
-
-[HarmonyPatch(typeof(ActPlan.Item), "Perform")]
-static class ActPlan_Patch
-{
-    [HarmonyPrefix]
-    static bool Prefix(ActPlan.Item __instance)
-    {
-        if (__instance.act is DynamicAct act && act.id == ALang.GetText("settings"))
-        {
-            act.Perform();
-            return false;
-        }
-        return true;
-    }
-}
-
-[HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
-static class CharaRenderer_OnEnterScreen_Patch
-{
-    [HarmonyPostfix]
-    public static void Postfix()
-    {
-        if (AutoAct.active && Settings.IgnoreEnemySpotted)
-        {
-            EClass.player.enemySpotted = false;
-        }
     }
 }
 
