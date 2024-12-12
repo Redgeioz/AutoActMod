@@ -17,8 +17,13 @@ public class AutoAct : AIAct
     {
         get
         {
-            System.Diagnostics.Debug.Assert(child is TaskPoint, "The child action is not TaskPoint or is null");
-            return (child as TaskPoint).pos;
+#if DEBUG
+            if (child is not TaskPoint)
+            {
+                Debug.LogWarning("AutoAct: The child action is not TaskPoint or is null");
+            }
+#endif
+            return (child as TaskPoint)?.pos;
         }
     }
     public Cell Cell
@@ -47,6 +52,8 @@ public class AutoAct : AIAct
             })
             .ToArray();
     }
+
+    public AutoAct() { }
 
     public AutoAct(AIAct source)
     {
@@ -109,9 +116,11 @@ public class AutoAct : AIAct
         return a;
     }
 
-    public static AutoAct TrySetAutoAct(Chara c, DynamicAct source, Point p)
+    public static AutoAct TrySetAutoAct(Chara c, Act source, Point p)
     {
-        if (TryGetAutoAct(source.id, p) is not AutoAct a)
+        var id = source is DynamicAct d ? d.id : source.ToString();
+        Debug.Log("=== TrySetAutoAct ===" + id);
+        if (TryGetAutoAct(id, p) is not AutoAct a)
         {
             return null;
         }
@@ -172,7 +181,7 @@ public class AutoAct : AIAct
 
     public Status Retry()
     {
-        return StartNextTask(false);
+        return child.IsNull() ? Cancel() : StartNextTask(false);
     }
 
     public override Status Cancel()
@@ -244,6 +253,10 @@ public class AutoAct : AIAct
 
     public void SetStartPos()
     {
+        if (Pos.IsNull())
+        {
+            return;
+        }
         startPos = Pos.Copy();
         var dx = startPos.x - owner.pos.x;
         var dz = startPos.z - owner.pos.z;
@@ -445,7 +458,7 @@ public class AutoAct : AIAct
         return Utils.MaxDelta(p, startPos);
     }
 
-    public Point FindNextTarget(Func<Cell, bool> filter, int detRangeSq, bool tryBetterPath = false)
+    public Point FindNextPos(Func<Cell, bool> filter, int detRangeSq, bool tryBetterPath = false)
     {
         var list = new List<(Point, int, int)>();
         _map.bounds.ForeachCell(cell =>
@@ -541,7 +554,7 @@ public class AutoAct : AIAct
         return selector.FinalPoint;
     }
 
-    public Point FindNextTargetRefToStartPos(Func<Cell, bool> filter, int w, int h = 0)
+    public Point FindNextPosRefToStartPos(Func<Cell, bool> filter, int w, int h = 0)
     {
         var startFromCenter = h == 0;
         var list = new List<(Point, int, int, int)>();
@@ -674,7 +687,7 @@ public class AutoAct : AIAct
         return selector.FinalTarget as Thing;
     }
 
-    public Point FindNextTargetInField(HashSet<Point> field, Func<Cell, bool> filter)
+    public Point FindNextPosInField(HashSet<Point> field, Func<Cell, bool> filter)
     {
         var list = new List<(Point, int, int)>();
         foreach (var p in field)

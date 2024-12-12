@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ElinAutoAct.Actions;
@@ -26,13 +27,13 @@ static class Entrance
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(DynamicAct), "Perform")]
-    static bool DaynamicAct_Perform_Patch(DynamicAct __instance)
+    [HarmonyPatch(typeof(Act), "Perform", new Type[] { typeof(Chara), typeof(Card), typeof(Point) })]
+    static bool Act_Perform_Patch(Act __instance, ref bool __result)
     {
         if (!AutoActMod.IsSwitchOn) { return true; }
-        // Debug.Log($"DynamicAct: {__instance.id} | {Act.CC}");
         if (AutoAct.TrySetAutoAct(Act.CC, __instance, AutoActMod.lastHitPoint).HasValue())
         {
+            __result = true;
             return false;
         }
         return true;

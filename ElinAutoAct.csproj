@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove=".history\**"/>
     <Reference Include="Plugins.UI">
       <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Plugins.UI.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>

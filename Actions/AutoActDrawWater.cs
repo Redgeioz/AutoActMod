@@ -31,7 +31,7 @@ public class AutoActDrawWater : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
-            var targetPos = FindNextTarget(cell =>
+            var targetPos = FindNextPos(cell =>
             {
                 if (!cell.IsTopWaterAndNoSnow)
                 {

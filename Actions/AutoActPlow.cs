@@ -30,7 +30,7 @@ public class AutoActPlow : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
-            var targetPos = FindNextTargetRefToStartPos(
+            var targetPos = FindNextPosRefToStartPos(
                 cell => !cell.HasBlock
                     && !cell.HasObj
                     && cell.Installed.IsNull()

@@ -37,7 +37,7 @@ public class AutoActDig : AutoAct
                 continue;
             }
 
-            var targetPos = FindNextTargetRefToStartPos(
+            var targetPos = FindNextPosRefToStartPos(
                 cell => IsTarget(cell.sourceSurface) && !cell.HasBlock && !cell.HasObj,
                 w,
                 h

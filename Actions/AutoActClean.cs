@@ -7,9 +7,10 @@ namespace ElinAutoAct.Actions;
 public class AutoActClean : AutoAct
 {
     public int detRangeSq;
-    public TaskClean Child => child as TaskClean;
+    public Point pos;
+    public override Point Pos => pos;
 
-    public AutoActClean(TaskClean source) : base(source)
+    public AutoActClean()
     {
         detRangeSq = Settings.DetRangeSq;
     }
@@ -17,27 +18,41 @@ public class AutoActClean : AutoAct
     public static AutoActClean TryCreate(string id, Point pos)
     {
         if (id != "actClean") { return null; }
-        return new AutoActClean(new TaskClean { pos = pos });
+        return new AutoActClean { pos = pos };
     }
 
     public override IEnumerable<Status> Run()
     {
-        if (Child.broom.IsNull())
+        Status Process()
         {
-            Child.broom = owner.held?.trait as TraitBroom;
-        }
-        yield return StartNextTask();
+            var held = owner.held;
+            if (held?.trait is not TraitBroom)
+            {
+                return Status.Fail;
+            }
+
+            _map.SetDecal(pos.x, pos.z, 0, 1, true);
+            _map.SetLiquid(pos.x, pos.z, 0, 0);
+            pos.PlayEffect("vanish");
+            owner.Say("clean", held, null, null);
+            owner.PlaySound("clean_floor", 1f, true);
+            owner.stamina.Mod(-1);
+            owner.ModExp(293, 40);
+            return KeepRunning();
+        };
+
+        yield return Process();
         while (CanProgress())
         {
-            var targetPos = FindNextTarget(cell => !cell.HasBlock && (cell.decal > 0 || (cell.effect.HasValue() && cell.effect.IsLiquid)), detRangeSq);
+            var targetPos = FindNextPos(cell => !cell.HasBlock && (cell.decal > 0 || (cell.effect.HasValue() && cell.effect.IsLiquid)), detRangeSq);
             if (targetPos.IsNull())
             {
                 SayNoTarget();
                 yield break;
             }
 
-            Child.pos = targetPos;
-            yield return StartNextTask();
+            pos = targetPos;
+            yield return Process();
         }
         yield break;
     }

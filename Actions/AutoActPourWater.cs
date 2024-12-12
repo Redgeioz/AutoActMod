@@ -54,7 +54,7 @@ public class AutoActPourWater : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
-            var targetPos = FindNextTargetRefToStartPos(cell => !cell.HasBridge && IsTarget(cell.sourceFloor), w, h);
+            var targetPos = FindNextPosRefToStartPos(cell => !cell.HasBridge && IsTarget(cell.sourceFloor), w, h);
             if (targetPos.IsNull())
             {
                 End();
