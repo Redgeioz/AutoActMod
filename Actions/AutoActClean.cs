@@ -23,12 +23,13 @@ public class AutoActClean : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        Status Process()
+        IEnumerable<Status> Process()
         {
+            yield return DoGoto(pos, 1, true);
             var held = owner.held;
             if (held?.trait is not TraitBroom)
             {
-                return Status.Fail;
+                yield return Cancel();
             }
 
             _map.SetDecal(pos.x, pos.z, 0, 1, true);
@@ -38,10 +39,9 @@ public class AutoActClean : AutoAct
             owner.PlaySound("clean_floor", 1f, true);
             owner.stamina.Mod(-1);
             owner.ModExp(293, 40);
-            return KeepRunning();
+            yield return KeepRunning();
         };
 
-        yield return Process();
         while (CanProgress())
         {
             var targetPos = FindNextPos(cell => !cell.HasBlock && (cell.decal > 0 || (cell.effect.HasValue() && cell.effect.IsLiquid)), detRangeSq);
@@ -52,7 +52,10 @@ public class AutoActClean : AutoAct
             }
 
             pos = targetPos;
-            yield return Process();
+            foreach (var status in Process())
+            {
+                yield return status;
+            }
         }
         yield break;
     }

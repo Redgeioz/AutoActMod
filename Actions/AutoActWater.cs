@@ -56,7 +56,7 @@ public class AutoActWater : AutoAct
                     yield return Cancel();
                 }
 
-                // Avoid use ActDrawAct here because it might create another AutoAct
+                // Avoid using ActDrawAct here because it might create another AutoAct
                 yield return Do(new DynamicAIAct(
                     "ActDrawWater_AutoAct",
                     () =>

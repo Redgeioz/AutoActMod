@@ -60,7 +60,7 @@ public class AutoAct : AIAct
         System.Diagnostics.Debug.Assert(source.parent is not AutoAct, "Source cannot be a child of a instance of AutoAct");
         child = source;
         child.status = Status.Fail;
-        // Avoid to call AIAct.Reset if it is created in AIAct.Tick
+        // Avoid calling AIAct.Reset if it is created in AIAct.Tick
     }
 
     public static AIAct TryGetAutoAct(AIAct source)
@@ -119,7 +119,9 @@ public class AutoAct : AIAct
     public static AutoAct TrySetAutoAct(Chara c, Act source, Point p)
     {
         var id = source is DynamicAct d ? d.id : source.ToString();
-        Debug.Log("=== TrySetAutoAct ===" + id);
+#if DEBUG
+        Debug.Log("=== TrySetAutoAct === " + id);
+#endif
         if (TryGetAutoAct(id, p) is not AutoAct a)
         {
             return null;
