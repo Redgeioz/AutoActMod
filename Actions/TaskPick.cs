@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class TaskPick : TaskPoint
 {

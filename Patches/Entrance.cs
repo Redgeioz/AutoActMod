@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ElinAutoAct.Actions;
+using AutoActMod.Actions;
 using HarmonyLib;
 using UnityEngine;
 
-namespace ElinAutoAct.Patches;
+namespace AutoActMod.Patches;
 
 [HarmonyPatch]
 static class Entrance

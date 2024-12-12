@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ElinAutoAct;
+namespace AutoActMod;
 
 [BepInPlugin("redgeioz.plugin.AutoAct", "AutoAct", "1.0.0")]
 public class AutoActMod : BaseUnityPlugin

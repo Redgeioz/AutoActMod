@@ -4,7 +4,7 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
 
-namespace ElinAutoAct;
+namespace AutoActMod;
 
 public static class Settings
 {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoAct : AIAct
 {
@@ -181,9 +181,20 @@ public class AutoAct : AIAct
         SetStartPos();
     }
 
+    public override void OnSuccess()
+    {
+        CancelRetry();
+    }
+
     public Status Retry()
     {
-        return child.IsNull() ? Cancel() : StartNextTask(false);
+        return child.IsNull() ? End() : StartNextTask(false);
+    }
+
+    public Status End()
+    {
+        CancelRetry();
+        return Cancel();
     }
 
     public override Status Cancel()
@@ -426,18 +437,13 @@ public class AutoAct : AIAct
 
     public void SayNoTarget()
     {
-        End();
+        CancelRetry();
         Say(ALang.GetText("noTarget"));
     }
 
     public void SayFail()
     {
         Say(ALang.GetText("fail"));
-    }
-
-    public void End()
-    {
-        CancelRetry();
     }
 
     public int CalcDist2(Point p)

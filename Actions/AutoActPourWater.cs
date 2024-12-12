@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActPourWater : AutoAct
 {
@@ -57,8 +57,7 @@ public class AutoActPourWater : AutoAct
             var targetPos = FindNextPosRefToStartPos(cell => !cell.HasBridge && IsTarget(cell.sourceFloor), w, h);
             if (targetPos.IsNull())
             {
-                End();
-                break;
+                yield break;
             }
 
             Child.pos = targetPos;
@@ -76,7 +75,7 @@ public class TaskPourWaterCustom : TaskPourWater
 
     public TaskPourWaterCustom(TaskPourWater source, int depth) : base()
     {
-        source.Cancel();
+        source.status = Status.Fail;
         pos = source.pos;
         pot = source.pot;
         targetCount = depth;

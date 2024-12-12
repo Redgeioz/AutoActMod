@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActBuild : AutoAct
 {
@@ -52,7 +52,6 @@ public class AutoActBuild : AutoAct
             var targetPos = FindNextBuildPosition();
             if (targetPos.IsNull())
             {
-                End();
                 yield break;
             }
 

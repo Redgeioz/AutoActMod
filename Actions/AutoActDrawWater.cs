@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActDrawWater : AutoAct
 {
@@ -44,7 +44,6 @@ public class AutoActDrawWater : AutoAct
 
             if (targetPos.IsNull())
             {
-                End();
                 break;
             }
 

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActPlow : AutoAct
 {
@@ -43,7 +43,6 @@ public class AutoActPlow : AutoAct
 
             if (targetPos.IsNull())
             {
-                End();
                 yield break;
             }
 

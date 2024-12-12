@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using ElinAutoAct;
-using ElinAutoAct.Actions;
 using HarmonyLib;
 using UnityEngine;
+
+namespace AutoActMod.Patches;
 
 [HarmonyPatch]
 static class Misc

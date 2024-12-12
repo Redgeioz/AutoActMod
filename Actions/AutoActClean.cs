@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActClean : AutoAct
 {
@@ -29,7 +29,7 @@ public class AutoActClean : AutoAct
             var held = owner.held;
             if (held?.trait is not TraitBroom)
             {
-                yield return Cancel();
+                yield return End();
             }
 
             _map.SetDecal(pos.x, pos.z, 0, 1, true);

@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActWater : AutoAct
 {
@@ -10,7 +10,6 @@ public class AutoActWater : AutoAct
     public bool waterFirst;
     public TaskWater taskWater;
     public TraitToolWaterCan waterCan;
-    // public override Point Pos => owner.pos;
 
     public AutoActWater()
     {
@@ -43,7 +42,7 @@ public class AutoActWater : AutoAct
         waterCan = owner.held?.trait as TraitToolWaterCan;
         if (waterCan.IsNull())
         {
-            yield return Cancel();
+            yield return End();
         }
 
         do
@@ -53,7 +52,7 @@ public class AutoActWater : AutoAct
                 var targetPos = FindNextPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), detRangeSq);
                 if (targetPos.IsNull())
                 {
-                    yield return Cancel();
+                    yield return End();
                 }
 
                 // Avoid using ActDrawAct here because it might create another AutoAct
@@ -62,7 +61,7 @@ public class AutoActWater : AutoAct
                     () =>
                     {
                         owner.PlaySound("water_draw", 1f, true);
-                        waterCan.owner.SetCharge(this.waterCan.MaxCharge);
+                        waterCan.owner.SetCharge(waterCan.MaxCharge);
                         owner.Say("water_draw", owner, waterCan.owner, null, null);
                         return true;
                     }

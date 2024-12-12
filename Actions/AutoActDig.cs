@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace ElinAutoAct.Actions;
+namespace AutoActMod.Actions;
 
 public class AutoActDig : AutoAct
 {
@@ -45,7 +45,6 @@ public class AutoActDig : AutoAct
 
             if (targetPos.IsNull())
             {
-                End();
                 yield break;
             }
 
