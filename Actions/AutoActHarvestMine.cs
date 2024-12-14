@@ -59,6 +59,25 @@ public class AutoActHarvestMine : AutoAct
 
     public void Init()
     {
+        void PrepareForHarvest()
+        {
+            if (sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
+            {
+                InitFarmfield(field, Pos);
+            }
+
+            if (taskHarvest.IsReapSeed)
+            {
+                seedId = Pos.sourceObj.id;
+                Child.owner.things.ForEach(thing =>
+                {
+                    if (thing.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                    {
+                        originalSeedCount += thing.Num;
+                    }
+                });
+            }
+        }
         RestoreChild();
         if (Child.target.HasValue())
         {
@@ -71,22 +90,20 @@ public class AutoActHarvestMine : AutoAct
                 targetId = -1;
                 return;
             }
-            else
-            {
-                SetTarget(Pos.sourceBlock);
-            }
+            SetTarget(Pos.sourceBlock);
         }
         else if (Pos.HasObj)
         {
             if (simpleIdentify && Pos.sourceObj.HasGrowth)
             {
                 targetId = Pos.sourceObj.growth.IsTree ? -2 : -3;
+                if (Child is TaskHarvest th)
+                {
+                    PrepareForHarvest();
+                }
                 return;
             }
-            else
-            {
-                SetTarget(Pos.sourceObj);
-            }
+            SetTarget(Pos.sourceObj);
         }
 
         if (Child is not TaskHarvest t)
@@ -105,23 +122,7 @@ public class AutoActHarvestMine : AutoAct
         targetCanHarvest = targetIsWoodTree ? growth.IsMature : growth.CanHarvest();
         field.Clear();
 
-        if (sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
-        {
-            InitFarmfield(field, Pos);
-        }
-
-        if (t.IsReapSeed)
-        {
-            seedId = Pos.sourceObj.id;
-            originalSeedCount = 0;
-            Child.owner.things.ForEach(thing =>
-            {
-                if (thing.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
-                {
-                    originalSeedCount += thing.Num;
-                }
-            });
-        }
+        PrepareForHarvest();
     }
 
     public override IEnumerable<Status> Run()
@@ -208,7 +209,7 @@ public class AutoActHarvestMine : AutoAct
 
     bool PlantFilter(Cell cell)
     {
-        if (seedId >= 0)
+        if (taskHarvest.wasReapSeed)
         {
             return cell.CanReapSeed();
         }

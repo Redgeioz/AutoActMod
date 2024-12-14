@@ -31,16 +31,13 @@ public class AutoActDrawWater : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
-            var targetPos = FindNextPos(cell =>
-            {
-                if (!cell.IsTopWaterAndNoSnow)
-                {
-                    return false;
-                }
-
-                var p = cell.GetPoint();
-                return (p.HasBridge ? p.matBridge : p.matFloor).alias == targetName && !cell.HasObj && !cell.HasBlock;
-            }, detRangeSq);
+            var targetPos = FindNextPos(
+                cell => cell.IsTopWaterAndNoSnow
+                    && (cell.HasBridge ? cell.matBridge : cell.matFloor).alias == targetName
+                    && !cell.HasObj
+                    && !cell.HasBlock,
+                detRangeSq
+            );
 
             if (targetPos.IsNull())
             {
