@@ -14,15 +14,10 @@ static class Entrance
     [HarmonyPatch(typeof(AIAct), "Start")]
     static void AIAct_Start_Patch(AIAct __instance)
     {
-        var a = __instance;
-        if (!a.owner.IsPC)
-        {
-            return;
-        }
-
+        if (!__instance.owner.IsPC) { return; }
         if (AutoActMod.IsSwitchOn)
         {
-            AutoAct.TrySetAutoAct(a.owner, a);
+            AutoAct.TrySetAutoAct(__instance.owner, __instance);
         }
     }
 
@@ -30,7 +25,7 @@ static class Entrance
     [HarmonyPatch(typeof(Act), "Perform", new Type[] { typeof(Chara), typeof(Card), typeof(Point) })]
     static bool Act_Perform_Patch(Act __instance, ref bool __result)
     {
-        if (!AutoActMod.IsSwitchOn) { return true; }
+        if (!Act.CC.IsPC || !AutoActMod.IsSwitchOn) { return true; }
         if (AutoAct.TrySetAutoAct(Act.CC, __instance, AutoActMod.lastHitPoint).HasValue())
         {
             __result = true;

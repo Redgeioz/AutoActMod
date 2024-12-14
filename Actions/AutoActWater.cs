@@ -8,8 +8,9 @@ public class AutoActWater : AutoAct
 {
     public int detRangeSq;
     public bool waterFirst;
-    public TaskWater taskWater;
+    public Point pos;
     public TraitToolWaterCan waterCan;
+    public override Point Pos => pos;
 
     public AutoActWater()
     {
@@ -19,16 +20,24 @@ public class AutoActWater : AutoAct
     public static AutoActWater TryCreate(AIAct source)
     {
         if (source is not TaskWater a) { return null; }
-        return new AutoActWater { waterFirst = true, taskWater = a };
+        return new AutoActWater { waterFirst = true };
     }
 
     public static AutoActWater TryCreate(string id, Point pos)
     {
         if (id != "ActDrawWater") { return null; }
-        return new AutoActWater()
+        return new AutoActWater();
+    }
+
+    public bool IsWaterCanValid(bool msg = true)
+    {
+        bool num = waterCan.HasValue() && owner.held?.trait == waterCan && waterCan.owner.c_charges > 0;
+        if (!num && msg)
         {
-            taskWater = new TaskWater()
-        };
+            Msg.Say("water_deplete");
+        }
+
+        return num;
     }
 
     public override bool CanProgress()
@@ -38,7 +47,7 @@ public class AutoActWater : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        taskWater.dest = owner.pos;
+        pos = owner.pos;
         waterCan = owner.held?.trait as TraitToolWaterCan;
         if (waterCan.IsNull())
         {
@@ -70,7 +79,57 @@ public class AutoActWater : AutoAct
             }
 
             waterFirst = false;
-            yield return Do(taskWater, KeepRunning);
+            // 原版的自动浇水如果有栅栏挡着就会围着栅栏绕来绕去，多少有点幽默了
+            var list = new List<Point>();
+            _map.ForeachPoint(p =>
+            {
+                if (CalcDist2(p) <= detRangeSq && TaskWater.ShouldWater(p))
+                {
+                    list.Add(p.Copy());
+                }
+            });
+            while (list.Count > 0)
+            {
+                var targetPos2 = FindNextPosInField(list, _ => true);
+                if (targetPos2.IsNull())
+                {
+                    SayNoTarget();
+                    yield break;
+                }
+
+                list.Remove(targetPos2);
+                yield return DoGoto(targetPos2, 1, ignoreConnection: true, () =>
+                {
+                    return Status.Running;
+                });
+
+                if (!IsWaterCanValid())
+                {
+                    yield return KeepRunning();
+                    break;
+                }
+
+                targetPos2.cell.isWatered = true;
+                if (!targetPos2.cell.blocked && EClass.rnd(5) == 0)
+                {
+                    _map.SetLiquid(targetPos2.x, targetPos2.z, 1);
+                }
+
+                if (targetPos2.cell.HasFire)
+                {
+                    _map.ModFire(targetPos2.x, targetPos2.z, -50);
+                }
+
+                owner.PlaySound("water_farm");
+                owner.Say("water_farm", owner, targetPos2.cell.GetFloorName());
+                waterCan.owner.ModCharge(-1);
+                owner.ModExp(286, 15);
+                yield return KeepRunning();
+                if (!IsWaterCanValid())
+                {
+                    break;
+                }
+            }
         } while (CanProgress());
         yield break;
     }

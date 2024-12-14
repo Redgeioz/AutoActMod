@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -36,6 +37,7 @@ public class AutoAct : AIAct
     public PathProgress Path => owner.path;
     public Selector selector = new();
     public int startDir;
+    public Action<AIAct> onSetNextTask;
     public override int MaxRestart => 1;
     public static Type[] subClasses = GetSubClasses();
 
@@ -131,14 +133,19 @@ public class AutoAct : AIAct
         return a;
     }
 
-    public virtual Status StartNextTask(bool resetRestartCount = true)
+    public Status StartNextTask(bool resetRestartCount = true)
     {
-        return SetNextTask(child, resetRestartCount);
+        return SetNextTask(child, null, resetRestartCount);
     }
 
-    public Status SetNextTask(AIAct a, bool resetRestartCount = true)
+    public Status StartNextTask(Func<Status> _onChildFail, bool resetRestartCount = true)
     {
-        SetChild(a);
+        return SetNextTask(child, _onChildFail, resetRestartCount);
+    }
+
+    public Status SetNextTask(AIAct a, Func<Status> _onChildFail = null, bool resetRestartCount = true)
+    {
+        SetChild(a, _onChildFail);
         if (a is Task t)
         {
             t.isDestroyed = false;
@@ -151,6 +158,11 @@ public class AutoAct : AIAct
         {
             restartCount = 0;
         }
+        if (onSetNextTask.HasValue())
+        {
+            onSetNextTask(a);
+        }
+
         return Status.Running;
     }
 
@@ -695,7 +707,7 @@ public class AutoAct : AIAct
         return selector.FinalTarget as Thing;
     }
 
-    public Point FindNextPosInField(HashSet<Point> field, Func<Cell, bool> filter)
+    public Point FindNextPosInField(IEnumerable<Point> field, Func<Cell, bool> filter)
     {
         var list = new List<(Point, int, int)>();
         foreach (var p in field)
