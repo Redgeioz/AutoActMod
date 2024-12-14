@@ -49,6 +49,6 @@ public class AutoActPlow : AutoAct
             Child.pos = targetPos;
             yield return StartNextTask();
         }
-        yield break;
+        yield return Fail();
     }
 }

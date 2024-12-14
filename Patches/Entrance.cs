@@ -11,13 +11,13 @@ namespace AutoActMod.Patches;
 static class Entrance
 {
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(AIAct), "Start")]
-    static void AIAct_Start_Patch(AIAct __instance)
+    [HarmonyPatch(typeof(Chara), "SetAI")]
+    static void Chara_SetAI_Patch(Chara __instance, AIAct g)
     {
-        if (!__instance.owner.IsPC) { return; }
+        if (!__instance.IsPC) { return; }
         if (AutoActMod.IsSwitchOn)
         {
-            AutoAct.TrySetAutoAct(__instance.owner, __instance);
+            AutoAct.TrySetAutoAct(__instance, g);
         }
     }
 

@@ -62,7 +62,6 @@ public class AutoAct : AIAct
         System.Diagnostics.Debug.Assert(source.parent is not AutoAct, "Source cannot be a child of a instance of AutoAct");
         child = source;
         child.status = Status.Fail;
-        // Avoid calling AIAct.Reset if it is created in AIAct.Tick
     }
 
     public static AIAct TryGetAutoAct(AIAct source)
@@ -113,8 +112,7 @@ public class AutoAct : AIAct
             return null;
         }
 
-        c.SetAIImmediate(a);
-        source.status = Status.Fail;
+        c.SetAI(a);
         return a;
     }
 
@@ -129,7 +127,7 @@ public class AutoAct : AIAct
             return null;
         }
 
-        c.SetAIImmediate(a);
+        c.SetAI(a).Start();
         return a;
     }
 
@@ -191,6 +189,7 @@ public class AutoAct : AIAct
     {
         SayStart();
         SetStartPos();
+        child?.Reset();
     }
 
     public override void OnSuccess()
@@ -200,10 +199,10 @@ public class AutoAct : AIAct
 
     public Status Retry()
     {
-        return child.IsNull() ? End() : StartNextTask(false);
+        return child.IsNull() ? Fail() : StartNextTask(false);
     }
 
-    public Status End()
+    public Status Fail()
     {
         CancelRetry();
         return Cancel();
@@ -449,7 +448,6 @@ public class AutoAct : AIAct
 
     public void SayNoTarget()
     {
-        CancelRetry();
         Say(ALang.GetText("noTarget"));
     }
 

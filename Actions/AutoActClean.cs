@@ -21,6 +21,11 @@ public class AutoActClean : AutoAct
         return new AutoActClean { pos = pos };
     }
 
+    public override bool CanProgress()
+    {
+        return base.CanProgress() && owner.held?.trait is TraitBroom;
+    }
+
     public override IEnumerable<Status> Run()
     {
         IEnumerable<Status> Process()
@@ -29,7 +34,7 @@ public class AutoActClean : AutoAct
             var held = owner.held;
             if (held?.trait is not TraitBroom)
             {
-                yield return End();
+                yield return Fail();
             }
 
             _map.SetDecal(pos.x, pos.z, 0, 1, true);
@@ -57,6 +62,6 @@ public class AutoActClean : AutoAct
                 yield return status;
             }
         }
-        yield break;
+        yield return Fail();
     }
 }

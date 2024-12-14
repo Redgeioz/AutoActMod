@@ -26,6 +26,11 @@ public class AutoActDig : AutoAct
         return new AutoActDig(a);
     }
 
+    public override bool CanProgress()
+    {
+        return base.CanProgress() && owner.held.HasValue() && owner.held.HasElement(230, 1) && owner.held == Child.tool;
+    }
+
     public override IEnumerable<Status> Run()
     {
         yield return StartNextTask();
@@ -51,6 +56,6 @@ public class AutoActDig : AutoAct
             Child.pos = targetPos;
             yield return StartNextTask();
         }
-        yield break;
+        yield return Fail();
     }
 }

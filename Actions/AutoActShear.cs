@@ -24,7 +24,7 @@ public class AutoActShear : AutoAct
     public override IEnumerable<Status> Run()
     {
         yield return StartNextTask();
-        while (true)
+        while (CanProgress())
         {
             var list = new List<(Chara, int)>();
             _map.charas.ForEach(chara =>
@@ -70,5 +70,6 @@ public class AutoActShear : AutoAct
             Child.target = target;
             yield return StartNextTask();
         }
+        yield return Fail();
     }
 }

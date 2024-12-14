@@ -50,6 +50,6 @@ public class AutoActDrawWater : AutoAct
             Child.pos = targetPos;
             yield return StartNextTask();
         }
-        yield break;
+        yield return Fail();
     }
 }

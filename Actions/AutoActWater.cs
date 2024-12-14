@@ -51,7 +51,7 @@ public class AutoActWater : AutoAct
         waterCan = owner.held?.trait as TraitToolWaterCan;
         if (waterCan.IsNull())
         {
-            yield return End();
+            yield return Fail();
         }
 
         do
@@ -61,7 +61,7 @@ public class AutoActWater : AutoAct
                 var targetPos = FindNextPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), detRangeSq);
                 if (targetPos.IsNull())
                 {
-                    yield return End();
+                    yield return Fail();
                 }
 
                 // Avoid using ActDrawAct here because it might create another AutoAct
@@ -131,6 +131,6 @@ public class AutoActWater : AutoAct
                 }
             }
         } while (CanProgress());
-        yield break;
+        yield return Fail();
     }
 }

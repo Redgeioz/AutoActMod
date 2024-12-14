@@ -59,6 +59,7 @@ public class AutoActHarvestMine : AutoAct
 
     public void Init()
     {
+        RestoreChild();
         if (Child.target.HasValue())
         {
             SetTarget(Child.target);
@@ -129,6 +130,10 @@ public class AutoActHarvestMine : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
+            if (IsSeedCountEnough())
+            {
+                yield break;
+            }
             Point targetPos;
             if (Child is TaskHarvest && Child.target.HasValue())
             {
@@ -139,6 +144,7 @@ public class AutoActHarvestMine : AutoAct
                     yield break;
                 }
 
+                taskHarvest.target = thing;
                 SetPosition(thing.pos);
 
                 yield return StartNextTask();
@@ -173,15 +179,10 @@ public class AutoActHarvestMine : AutoAct
             }
             else
             {
-                yield break;
+                yield return Fail();
             }
         }
-        yield break;
-    }
-
-    public override bool CanProgress()
-    {
-        return base.CanProgress() && !IsSeedCountEnough();
+        yield return Fail();
     }
 
     bool IsSeedCountEnough()
@@ -247,11 +248,6 @@ public class AutoActHarvestMine : AutoAct
     {
         RestoreChild();
         Child.pos.Set(p.x, p.z);
-    }
-
-    public override void OnSetOwner()
-    {
-        RestoreChild();
     }
 
     public void RestoreChild()

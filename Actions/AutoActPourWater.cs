@@ -75,7 +75,6 @@ public class TaskPourWaterCustom : TaskPourWater
 
     public TaskPourWaterCustom(TaskPourWater source, int depth) : base()
     {
-        source.status = Status.Fail;
         pos = source.pos;
         pot = source.pot;
         targetCount = depth;
