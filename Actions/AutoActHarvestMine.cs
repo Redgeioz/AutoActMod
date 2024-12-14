@@ -69,13 +69,23 @@ public class AutoActHarvestMine : AutoAct
             if (taskHarvest.IsReapSeed)
             {
                 seedId = Pos.sourceObj.id;
-                Child.owner.things.ForEach(thing =>
-                {
-                    if (thing.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
-                    {
-                        originalSeedCount += thing.Num;
-                    }
-                });
+                owner.things.ForEach(thing =>
+               {
+                   if (thing.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                   {
+                       originalSeedCount += thing.Num;
+                   }
+                   else
+                   {
+                       thing.things.ForEach(t =>
+                       {
+                           if (t.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                           {
+                               originalSeedCount += t.Num;
+                           }
+                       });
+                   }
+               });
             }
         }
         RestoreChild();
@@ -198,6 +208,16 @@ public class AutoActHarvestMine : AutoAct
             if (t.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
             {
                 count += t.Num;
+            }
+            else
+            {
+                t.things.ForEach(tt =>
+                {
+                    if (tt.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                    {
+                        count += tt.Num;
+                    }
+                });
             }
         });
         if (count >= targetSeedCount + originalSeedCount)

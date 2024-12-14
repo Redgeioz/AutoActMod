@@ -33,7 +33,7 @@ static class Misc
     [HarmonyPatch(typeof(AIAct), "SetChild")]
     static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
     {
-        if (seq is AI_Goto go && (__instance is AI_Shear or TaskHarvest or TaskBuild))
+        if (seq is AI_Goto go && __instance is AI_Shear or TaskPoint && __instance is not TaskPlow)
         {
             go.ignoreConnection = true;
         }
