@@ -45,7 +45,7 @@ public class AutoActMod : BaseUnityPlugin
     public static bool active = false;
     public static bool switchOn = false;
     public static bool IsSwitchOn => Settings.KeyMode ? switchOn : Input.GetKey(Settings.KeyCode);
-    public static Point lastHitPoint = null;
+    public static Point lastHitPoint = Point.Zero;
     public static void Say(string text)
     {
         Msg.SetColor(Msg.colors.TalkGod);

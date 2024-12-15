@@ -21,6 +21,16 @@ public class AutoActClean : AutoAct
         return new AutoActClean { pos = pos };
     }
 
+    public static bool CanClean(Point p)
+    {
+        return CanClean(p.cell);
+    }
+
+    public static bool CanClean(Cell cell)
+    {
+        return !cell.HasBlock && (cell.decal > 0 || (cell.effect.HasValue() && cell.effect.IsLiquid));
+    }
+
     public override bool CanProgress()
     {
         return base.CanProgress() && owner.held?.trait is TraitBroom;
@@ -32,7 +42,7 @@ public class AutoActClean : AutoAct
         {
             yield return DoGoto(pos, 1, true);
             var held = owner.held;
-            if (held?.trait is not TraitBroom)
+            if (held?.trait is not TraitBroom || !CanClean(pos))
             {
                 yield return Fail();
             }
@@ -49,7 +59,12 @@ public class AutoActClean : AutoAct
 
         while (CanProgress())
         {
-            var targetPos = FindNextPos(cell => !cell.HasBlock && (cell.decal > 0 || (cell.effect.HasValue() && cell.effect.IsLiquid)), detRangeSq);
+            foreach (var status in Process())
+            {
+                yield return status;
+            }
+
+            var targetPos = FindNextPos(cell => CanClean(cell), detRangeSq);
             if (targetPos.IsNull())
             {
                 SayNoTarget();
@@ -57,10 +72,6 @@ public class AutoActClean : AutoAct
             }
 
             pos = targetPos;
-            foreach (var status in Process())
-            {
-                yield return status;
-            }
         }
         yield return Fail();
     }
