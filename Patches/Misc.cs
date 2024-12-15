@@ -81,7 +81,7 @@ static class Misc
     //     // return true;
     //     if (__instance is AutoAct)
     //     {
-    //         Debug.Log(__instance);
+    //         Debug.Log(__instance + " Start Tick | " + __instance.status);
     //         if (__instance.owner == null || (__instance.isFail != null && __instance.isFail()))
     //         {
     //             __result = __instance.Cancel();
@@ -129,10 +129,11 @@ static class Misc
     //         if (!__instance.Enumerator.MoveNext())
     //         {
     //             __result = __instance.Success(null);
+    //             Debug.Log("Suc result" + __result);
     //             return false;
     //         }
     //         Debug.Log("Tick 4");
-    //         Debug.Log(__instance + " | " + __instance.status);
+    //         Debug.Log(__instance + " End Tick | " + __instance.status);
     //         __result = __instance.status;
     //         return false;
     //     }

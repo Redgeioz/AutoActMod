@@ -10,15 +10,16 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class Entrance
 {
-    [HarmonyPostfix]
+    [HarmonyPrefix]
     [HarmonyPatch(typeof(Chara), "SetAI")]
-    static void Chara_SetAI_Patch(Chara __instance, AIAct g)
+    static bool Chara_SetAI_Patch(Chara __instance, AIAct g)
     {
-        if (!__instance.IsPC) { return; }
+        if (!__instance.IsPC) { return true; }
         if (AutoActMod.IsSwitchOn)
         {
-            AutoAct.TrySetAutoAct(__instance, g);
+            return AutoAct.TrySetAutoAct(__instance, g).IsNull();
         }
+        return true;
     }
 
     [HarmonyPrefix]
@@ -43,11 +44,15 @@ static class Entrance
             && __instance.child.status == AIAct.Status.Fail
             && (__instance.onChildFail.IsNull() || __instance.onChildFail() == AIAct.Status.Fail))
         {
-            if (__instance.parent is AutoAct aa)
+            if (__instance is AutoAct aa)
             {
                 aa.CancelRetry();
             }
-            __result = AIAct.Status.Fail;
+            if (__instance.parent is AutoAct aa2)
+            {
+                aa2.CancelRetry();
+            }
+            __result = __instance.Cancel();
             return false;
         }
         return true;
