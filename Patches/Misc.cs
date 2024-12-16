@@ -41,21 +41,6 @@ static class Misc
 
 #if DEBUG
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(VirtualDate), "BuildSunMap")]
-    static bool ShutUp(VirtualDate __instance)
-    {
-        __instance.sunMap = new HashSet<int>();
-        foreach (Trait trait in EClass._map.props.installed.traits.suns.Values)
-        {
-            foreach (Point point in trait.ListPoints(null, false))
-            {
-                __instance.sunMap.Add(point.index);
-            }
-        }
-        return false;
-    }
-
-    [HarmonyPrefix]
     [HarmonyPatch(typeof(Chara), "SetAI")]
     static void Chara_SetAI_Patch(Chara __instance, AIAct g)
     {

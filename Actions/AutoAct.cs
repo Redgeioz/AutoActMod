@@ -27,13 +27,7 @@ public class AutoAct : AIAct
             return (child as TaskPoint)?.pos;
         }
     }
-    public Cell Cell
-    {
-        get
-        {
-            return Pos.cell;
-        }
-    }
+    public Cell Cell => Pos.cell;
     public PathProgress Path => owner.path;
     public Selector selector = new();
     public int startDir;
@@ -166,7 +160,7 @@ public class AutoAct : AIAct
 
     public override bool CanProgress()
     {
-        if (!owner.IsPC || Settings.StaminaCheck)
+        if (owner.HasValue() && (!owner.IsPC || Settings.StaminaCheck))
         {
             return owner.stamina.value >= 0;
         }
@@ -435,7 +429,7 @@ public class AutoAct : AIAct
 
     public void Say(string text)
     {
-        if (owner.IsPC)
+        if (owner.HasValue() && owner.IsPC)
         {
             AutoActMod.Say(text);
         }
