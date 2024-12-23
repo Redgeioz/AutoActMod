@@ -148,7 +148,7 @@ public class AutoActHarvestMine : AutoAct
             Point targetPos;
             if (Child is TaskHarvest && Child.target.HasValue())
             {
-                var thing = FindNextThingTarget(t => IsTarget(t), detRangeSq);
+                var thing = FindThing(t => IsTarget(t), detRangeSq);
                 if (thing.IsNull())
                 {
                     SayNoTarget();
@@ -164,13 +164,13 @@ public class AutoActHarvestMine : AutoAct
 
             if (Child is TaskHarvest && sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
             {
-                targetPos = FindNextPosInField(field, c => c.growth.HasValue() && IsTarget(c.sourceObj) && PlantFilter(c));
+                targetPos = FindPosInField(field, c => c.growth.HasValue() && IsTarget(c.sourceObj) && PlantFilter(c));
                 field.Remove(targetPos);
             }
             else
             {
                 bool isMining = owner.held.HasValue() && owner.held.HasElement(220, 1);
-                targetPos = FindNextPos(CommonFilter, detRangeSq, !simpleIdentify && isMining);
+                targetPos = FindPos(CommonFilter, detRangeSq, !simpleIdentify && isMining);
             }
 
             if (targetPos.IsNull())

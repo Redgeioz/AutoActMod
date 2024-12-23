@@ -23,7 +23,7 @@ public class AutoActWater : AutoAct
         return new AutoActWater { waterFirst = true };
     }
 
-    public static AutoActWater TryCreate(string id, Point pos)
+    public static AutoActWater TryCreate(string id, Card target, Point pos)
     {
         if (id != "ActDrawWater") { return null; }
         return new AutoActWater();
@@ -58,7 +58,7 @@ public class AutoActWater : AutoAct
         {
             if (waterCan.owner.c_charges < waterCan.MaxCharge && !waterFirst)
             {
-                var targetPos = FindNextPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), detRangeSq);
+                var targetPos = FindPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), detRangeSq);
                 if (targetPos.IsNull())
                 {
                     yield return Fail();
@@ -89,7 +89,7 @@ public class AutoActWater : AutoAct
             });
             while (list.Count > 0)
             {
-                var targetPos2 = FindNextPosInField(list, _ => true);
+                var targetPos2 = FindPosInField(list, _ => true);
                 if (targetPos2.IsNull())
                 {
                     SayNoTarget();

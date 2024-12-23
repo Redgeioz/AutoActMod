@@ -15,7 +15,7 @@ public class AutoActClean : AutoAct
         detRangeSq = Settings.DetRangeSq;
     }
 
-    public static AutoActClean TryCreate(string id, Point pos)
+    public static AutoActClean TryCreate(string id, Card target, Point pos)
     {
         if (id != "actClean") { return null; }
         return new AutoActClean { pos = pos };
@@ -64,7 +64,7 @@ public class AutoActClean : AutoAct
                 yield return status;
             }
 
-            var targetPos = FindNextPos(cell => CanClean(cell), detRangeSq);
+            var targetPos = FindPos(cell => CanClean(cell), detRangeSq);
             if (targetPos.IsNull())
             {
                 SayNoTarget();

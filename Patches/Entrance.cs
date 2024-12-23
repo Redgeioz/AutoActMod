@@ -30,12 +30,17 @@ static class Entrance
 
     [HarmonyPrefix]
     [HarmonyPatch(typeof(Act), "Perform", new Type[] { typeof(Chara), typeof(Card), typeof(Point) })]
-    static bool Act_Perform_Patch(Act __instance, Chara _cc, Point _tp, ref bool __result)
+    static bool Act_Perform_Patch(Act __instance, Chara _cc, Card _tc, Point _tp, ref bool __result)
     {
         if (!_cc.IsPC || !AutoActMod.IsSwitchOn) { return true; }
-        if (AutoAct.TrySetAutoAct(_cc, __instance, _tp).HasValue())
+#if DEBUG
+        Debug.Log($"===   Act_Perform_Patch   ===");
+        Debug.Log($"Perform Action: {__instance}");
+        Debug.Log($"=== Act_Perform_Patch End ===");
+#endif
+        if (AutoAct.TrySetAutoAct(_cc, __instance, _tc, _tp).HasValue())
         {
-            __result = true;
+            __result = false;
             return false;
         }
         return true;

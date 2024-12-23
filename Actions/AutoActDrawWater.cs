@@ -31,7 +31,7 @@ public class AutoActDrawWater : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
-            var targetPos = FindNextPos(
+            var targetPos = FindPos(
                 cell => cell.IsTopWaterAndNoSnow
                     && (cell.HasBridge ? cell.matBridge : cell.matFloor).alias == targetName
                     && !cell.HasObj

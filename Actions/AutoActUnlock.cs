@@ -29,7 +29,7 @@ public class AutoActUnlock : AutoAct
             yield return DoGoto(Pos, 1, true);
             yield return SetNextTask(openLock);
 
-            var target = FindNextThingTarget(t => t.trait is TraitContainer && t.c_lockLv > 0, detRangeSq);
+            var target = FindThing(t => t.trait is TraitContainer && t.c_lockLv > 0, detRangeSq);
             if (target.IsNull())
             {
                 SayNoTarget();

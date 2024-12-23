@@ -60,14 +60,12 @@ public class AutoAct : AIAct
 
     public static AIAct TryGetAutoAct(AIAct source)
     {
-        if (source is AutoAct) { return null; }
-
-        var act = source.parent;
-        while (act.HasValue())
+        var act = source;
+        do
         {
-            if (act is AutoAct) { return null; }
+            if (act is AutoAct aa && aa.IsRunning) { return null; }
             act = act.parent;
-        }
+        } while (act.HasValue());
 
         foreach (var t in subClasses)
         {
@@ -83,13 +81,13 @@ public class AutoAct : AIAct
         return null;
     }
 
-    public static AutoAct TryGetAutoAct(string id, Point p)
+    public static AutoAct TryGetAutoAct(string id, Card target, Point p)
     {
         foreach (var t in subClasses)
         {
-            var info = t.GetMethod("TryCreate", new Type[] { typeof(string), typeof(Point) });
+            var info = t.GetMethod("TryCreate", new Type[] { typeof(string), typeof(Card), typeof(Point) });
             if (info.IsNull()) { continue; }
-            var a = info.Invoke(null, new object[] { id, p }) as AutoAct;
+            var a = info.Invoke(null, new object[] { id, target, p }) as AutoAct;
             if (a.HasValue())
             {
                 return a;
@@ -110,18 +108,20 @@ public class AutoAct : AIAct
         return a;
     }
 
-    public static AutoAct TrySetAutoAct(Chara c, Act source, Point p)
+    public static AutoAct TrySetAutoAct(Chara c, Act source, Card target, Point p)
     {
         var id = source is DynamicAct d ? d.id : source.ToString();
+
 #if DEBUG
         Debug.Log("AutoAct: TrySetAutoAct: " + id);
 #endif
-        if (TryGetAutoAct(id, p) is not AutoAct a)
+
+        if (TryGetAutoAct(id, target, p) is not AutoAct a)
         {
             return null;
         }
 
-        c.SetAI(a).Start();
+        c.SetAI(a);
         return a;
     }
 
@@ -261,12 +261,7 @@ public class AutoAct : AIAct
 
     public bool IsTarget(Card c)
     {
-        if (c.IsNull())
-        {
-            return false;
-        }
-
-        return c.id == targetName && c.placeState == targetPlaceState;
+        return c.HasValue() && (targetId == -1 || (c.id == targetName && c.placeState == targetPlaceState));
     }
 
     public void SetStartPos()
@@ -470,7 +465,7 @@ public class AutoAct : AIAct
         return Utils.MaxDelta(p, startPos);
     }
 
-    public Point FindNextPos(Func<Cell, bool> filter, int detRangeSq, bool tryBetterPath = false)
+    public Point FindPos(Func<Cell, bool> filter, int detRangeSq, bool tryBetterPath = false)
     {
         var list = new List<(Point, int, int)>();
         _map.bounds.ForeachCell(cell =>
@@ -566,7 +561,7 @@ public class AutoAct : AIAct
         return selector.FinalPoint;
     }
 
-    public Point FindNextPosRefToStartPos(Func<Cell, bool> filter, int w, int h = 0)
+    public Point FindPosRefToStartPos(Func<Cell, bool> filter, int w, int h = 0)
     {
         var startFromCenter = h == 0;
         var list = new List<(Point, int, int, int)>();
@@ -647,7 +642,7 @@ public class AutoAct : AIAct
         return selector.FinalPoint;
     }
 
-    public Thing FindNextThingTarget(Predicate<Thing> filter, int detRangeSq)
+    public Thing FindThing(Predicate<Thing> filter, int detRangeSq)
     {
         var list = new List<(Thing, int, int)>();
         _map.bounds.ForeachCell(cell =>
@@ -699,7 +694,51 @@ public class AutoAct : AIAct
         return selector.FinalTarget as Thing;
     }
 
-    public Point FindNextPosInField(IEnumerable<Point> field, Func<Cell, bool> filter)
+    public Chara FindChara(Predicate<Chara> filter, int detRangeSq)
+    {
+        var list = new List<(Chara, int)>();
+        _map.charas.ForEach(chara =>
+        {
+            if (!filter(chara))
+            {
+                return;
+            }
+
+            var dist2 = CalcDist2(chara.pos);
+            if (dist2 > detRangeSq)
+            {
+                return;
+            }
+
+            if (dist2 <= 2)
+            {
+                selector.TrySet(chara, dist2 == 0 ? -1 : 0);
+                return;
+            }
+
+            list.Add((chara, dist2));
+        });
+
+        foreach (var (chara, dist2) in list.OrderBy(Tuple => Tuple.Item2))
+        {
+            if (selector.curtPoint.HasValue() && dist2 > selector.MaxDist2)
+            {
+                break;
+            }
+
+            Path.RequestPathImmediate(pc.pos, chara.pos, 1, true, -1);
+            if (Path.state == PathProgress.State.Fail)
+            {
+                continue;
+            }
+
+            selector.TrySet(chara, Path.nodes.Count);
+        }
+
+        return selector.FinalTarget as Chara;
+    }
+
+    public Point FindPosInField(IEnumerable<Point> field, Func<Cell, bool> filter)
     {
         var list = new List<(Point, int, int)>();
         foreach (var p in field)
