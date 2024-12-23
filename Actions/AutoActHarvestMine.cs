@@ -148,7 +148,7 @@ public class AutoActHarvestMine : AutoAct
             Point targetPos;
             if (Child is TaskHarvest && Child.target.HasValue())
             {
-                var thing = FindNextThingTarget(detRangeSq);
+                var thing = FindNextThingTarget(t => IsTarget(t), detRangeSq);
                 if (thing.IsNull())
                 {
                     SayNoTarget();

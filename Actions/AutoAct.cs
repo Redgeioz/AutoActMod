@@ -114,7 +114,7 @@ public class AutoAct : AIAct
     {
         var id = source is DynamicAct d ? d.id : source.ToString();
 #if DEBUG
-        Debug.Log("=== TrySetAutoAct === " + id);
+        Debug.Log("AutoAct: TrySetAutoAct: " + id);
 #endif
         if (TryGetAutoAct(id, p) is not AutoAct a)
         {
@@ -647,7 +647,7 @@ public class AutoAct : AIAct
         return selector.FinalPoint;
     }
 
-    public Thing FindNextThingTarget(int detRangeSq)
+    public Thing FindNextThingTarget(Predicate<Thing> filter, int detRangeSq)
     {
         var list = new List<(Thing, int, int)>();
         _map.bounds.ForeachCell(cell =>
@@ -664,7 +664,7 @@ public class AutoAct : AIAct
                return;
            }
 
-           var thing = p.Things.Find(t => IsTarget(t));
+           var thing = p.Things.Find(filter);
            if (thing.IsNull())
            {
                return;

@@ -79,7 +79,6 @@ public class AutoActWater : AutoAct
             }
 
             waterFirst = false;
-            // 原版的自动浇水如果有栅栏挡着就会围着栅栏绕来绕去，多少有点幽默了
             var list = new List<Point>();
             _map.ForeachPoint(p =>
             {
@@ -98,7 +97,7 @@ public class AutoActWater : AutoAct
                 }
 
                 list.Remove(targetPos2);
-                yield return DoGoto(targetPos2, 1, ignoreConnection: true, () =>
+                yield return DoGoto(targetPos2, 1, true, () =>
                 {
                     return Status.Running;
                 });
@@ -110,7 +109,7 @@ public class AutoActWater : AutoAct
                 }
 
                 targetPos2.cell.isWatered = true;
-                if (!targetPos2.cell.blocked && EClass.rnd(5) == 0)
+                if (!targetPos2.cell.blocked && rnd(5) == 0)
                 {
                     _map.SetLiquid(targetPos2.x, targetPos2.z, 1);
                 }

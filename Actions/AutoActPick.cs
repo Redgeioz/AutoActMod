@@ -37,7 +37,7 @@ public class AutoActPick : AutoAct
         yield return StartNextTask();
         while (CanProgress())
         {
-            var targetThing = FindNextThingTarget(detRangeSq);
+            var targetThing = FindNextThingTarget(t => IsTarget(t), detRangeSq);
             if (targetThing.IsNull())
             {
                 SayNoTarget();

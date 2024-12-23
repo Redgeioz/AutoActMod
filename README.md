@@ -19,6 +19,8 @@ Automatically perform the same type of action, hold down Shift and take the acti
 |阅读     |読む               |Read              |
 |拾取     |拾う               |Pick              |
 |挖掘地面 |地面を掘る          |Dig               |
+|解锁     |解錠               |Pick lock          |
+|灌溉作物 |作物に水をやる      |Water crops(Auto refill)|
 
 收割的植物是否成熟决定了之后会收割成熟的植物还是未成熟植物。
 刈り取った植物が成熟するかどうかは、その後に成熟した植物を刈り取るか未成熟植物かを決める。

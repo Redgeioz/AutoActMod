@@ -40,25 +40,6 @@ static class Misc
     }
 
 #if DEBUG
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(Chara), "SetAI")]
-    static void Chara_SetAI_Patch(Chara __instance, AIAct g)
-    {
-        if (!__instance.IsPC)
-        {
-            return;
-        }
-        AIAct prev = __instance.ai;
-        // if (prev is GoalIdle || prev is GoalManualMove || prev is NoGoal)
-        // {
-        //     return;
-        // }
-        Debug.Log($"===  Chara_SetAI_Prefix  ===");
-        Debug.Log($"Prev: {prev}, {prev.status}, Next: {g}");
-        Debug.Log($"==== Chara_SetAI_Prefix ====");
-        // Utils.PrintStackTrace();
-    }
-
     // [HarmonyPrefix]
     // [HarmonyPatch(typeof(AIAct), "Tick")]
     // static bool AIAct_Tick_Prefix(AIAct __instance, ref AIAct.Status __result)

@@ -15,6 +15,12 @@ static class Entrance
     static bool Chara_SetAI_Patch(Chara __instance, AIAct g)
     {
         if (!__instance.IsPC) { return true; }
+#if DEBUG
+        AIAct prev = __instance.ai;
+        Debug.Log($"===   Chara_SetAI_Prefix   ===");
+        Debug.Log($"Prev: {prev}, {prev.status} | Next: {g}");
+        Debug.Log($"=== Chara_SetAI_Prefix End ===");
+#endif
         if (AutoActMod.IsSwitchOn)
         {
             return AutoAct.TrySetAutoAct(__instance, g).IsNull();
