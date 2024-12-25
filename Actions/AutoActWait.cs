@@ -5,6 +5,7 @@ namespace AutoActMod.Actions;
 public class AutoActWait : AutoAct
 {
     public override int MaxRestart => 0;
+    public override Point Pos => owner.pos;
 
     public AutoActWait() { }
 

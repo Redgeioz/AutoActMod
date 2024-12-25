@@ -5,6 +5,7 @@ namespace AutoActMod.Actions;
 public class AutoActShear : AutoAct
 {
     public AI_Shear Child => child as AI_Shear;
+    public override Point Pos => Child.target?.pos;
 
     public AutoActShear(AIAct source) : base(source) { }
 

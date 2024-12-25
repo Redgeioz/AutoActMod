@@ -50,9 +50,7 @@ public class AutoAct : AIAct
 
     public AutoAct(AIAct source)
     {
-        System.Diagnostics.Debug.Assert(source.parent is not AutoAct, "Source cannot be a child of a instance of AutoAct");
         child = source;
-        child.status = Status.Fail;
     }
 
     public static AIAct TryGetAutoAct(AIAct source)

@@ -5,6 +5,7 @@ namespace AutoActMod.Actions;
 public class AutoActRead : AutoAct
 {
     public AI_Read Child => child as AI_Read;
+    public override Point Pos => owner.pos;
 
     public AutoActRead(AIAct source) : base(source) { }
 
