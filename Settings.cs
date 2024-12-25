@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using BepInEx.Configuration;
-using HarmonyLib;
 using UnityEngine;
 
 namespace AutoActMod;
@@ -101,7 +100,7 @@ public static class Settings
         set { keyCode.Value = value; }
     }
 
-    public static void ShowSettings(ActPlan actPlan)
+    public static void SetupSettings(ActPlan actPlan)
     {
         var text = ALang.GetText("settings");
         var dynamicAct = new DynamicAct(text, () =>

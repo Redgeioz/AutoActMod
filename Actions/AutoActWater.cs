@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
 
 namespace AutoActMod.Actions;
 
@@ -116,6 +114,7 @@ public class AutoActWater : AutoAct
 
                 if (targetPos2.cell.HasFire)
                 {
+                    // targetPos2.ModFire(-50, true);
                     _map.ModFire(targetPos2.x, targetPos2.z, -50);
                 }
 

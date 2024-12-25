@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
-using UnityEngine;
 
 namespace AutoActMod.Actions;
 
@@ -21,7 +19,7 @@ public class AutoAct : AIAct
 #if DEBUG
             if (child is not TaskPoint)
             {
-                Debug.LogWarning("AutoAct: The child action is not TaskPoint or is null");
+                AutoActMod.LogWarning("The child action is not TaskPoint or is null");
             }
 #endif
             return (child as TaskPoint)?.pos;
@@ -31,7 +29,6 @@ public class AutoAct : AIAct
     public PathProgress Path => owner.path;
     public Selector selector = new();
     public int startDir;
-    public Action<AIAct> onSetNextTask;
     public override int MaxRestart => 1;
     public static Type[] subClasses = GetSubClasses();
 
@@ -113,7 +110,7 @@ public class AutoAct : AIAct
         var id = source is DynamicAct d ? d.id : source.ToString();
 
 #if DEBUG
-        Debug.Log("AutoAct: TrySetAutoAct: " + id);
+        AutoActMod.Log("TrySetAutoAct: " + id);
 #endif
 
         if (TryGetAutoAct(id, target, p) is not AutoAct a)
@@ -149,10 +146,6 @@ public class AutoAct : AIAct
         if (resetRestartCount)
         {
             restartCount = 0;
-        }
-        if (onSetNextTask.HasValue())
-        {
-            onSetNextTask(a);
         }
 
         return Status.Running;
@@ -465,17 +458,60 @@ public class AutoAct : AIAct
         return Utils.MaxDelta(p, startPos);
     }
 
+    public List<Point> GetSelectedPoints()
+    {
+        var list = new List<Point>();
+        if (!owner.IsPCParty)
+        {
+            return list;
+        }
+        pc.party.members.ForEach(chara =>
+        {
+            AutoAct a;
+            if (chara.ai.child.HasValue() && chara.ai.child.GetType() == GetType())
+            {
+                a = chara.ai.child as AutoAct;
+            }
+            else if (chara.ai.GetType() == GetType())
+            {
+                a = chara.ai as AutoAct;
+            }
+            else
+            {
+                return;
+            }
+
+            if (!a.IsRunning)
+            {
+                return;
+            }
+
+            var p = a.Pos;
+            if (p.HasValue())
+            {
+                list.Add(p);
+            }
+        });
+        return list;
+    }
+
     public Point FindPos(Func<Cell, bool> filter, int detRangeSq, bool tryBetterPath = false)
     {
+        var selected = GetSelectedPoints();
         var list = new List<(Point, int, int)>();
         _map.bounds.ForeachCell(cell =>
         {
+            var p = cell.GetPoint();
+            if (selected.Contains(p))
+            {
+                return;
+            }
+
             if (!filter(cell))
             {
                 return;
             }
 
-            var p = cell.GetPoint();
             var dist2 = CalcDist2(p);
             if (dist2 > detRangeSq)
             {
@@ -563,16 +599,21 @@ public class AutoAct : AIAct
 
     public Point FindPosRefToStartPos(Func<Cell, bool> filter, int w, int h = 0)
     {
+        var selected = GetSelectedPoints();
         var startFromCenter = h == 0;
         var list = new List<(Point, int, int, int)>();
         _map.bounds.ForeachCell(cell =>
         {
-            if (!filter(cell))
+            var p = cell.GetPoint();
+            if (selected.Contains(p))
             {
                 return;
             }
 
-            var p = cell.GetPoint();
+            if (!filter(cell))
+            {
+                return;
+            }
 
             var dist2 = CalcDist2(p);
             var dist2ToLastPoint = CalcDist2ToLastPoint(p);
@@ -644,10 +685,16 @@ public class AutoAct : AIAct
 
     public Thing FindThing(Predicate<Thing> filter, int detRangeSq)
     {
+        var selected = GetSelectedPoints();
         var list = new List<(Thing, int, int)>();
         _map.bounds.ForeachCell(cell =>
        {
            var p = cell.GetPoint();
+           if (selected.Contains(p))
+           {
+               return;
+           }
+
            if (!p.HasThing)
            {
                return;
@@ -696,9 +743,16 @@ public class AutoAct : AIAct
 
     public Chara FindChara(Predicate<Chara> filter, int detRangeSq)
     {
+        var selected = GetSelectedPoints();
         var list = new List<(Chara, int)>();
         _map.charas.ForEach(chara =>
         {
+            var p = chara.pos;
+            if (selected.Contains(p))
+            {
+                return;
+            }
+
             if (!filter(chara))
             {
                 return;
@@ -740,9 +794,15 @@ public class AutoAct : AIAct
 
     public Point FindPosInField(IEnumerable<Point> field, Func<Cell, bool> filter)
     {
+        var selected = GetSelectedPoints();
         var list = new List<(Point, int, int)>();
         foreach (var p in field)
         {
+            if (selected.Contains(p))
+            {
+                continue;
+            }
+
             var cell = p.cell;
             if (!filter(cell))
             {

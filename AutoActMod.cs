@@ -1,8 +1,6 @@
 ﻿using System;
 using BepInEx;
 using HarmonyLib;
-using System.Reflection;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace AutoActMod;
@@ -12,19 +10,20 @@ public class AutoActMod : BaseUnityPlugin
 {
     void Awake()
     {
-        Settings.startFromCenter = base.Config.Bind("Settings", "StartFromCenter", true);
-        Settings.detDistSq = base.Config.Bind("Settings", "DetectionRangeSquared", 25, "Sqaure of detection range.");
-        Settings.buildRangeW = base.Config.Bind("Settings", "BuildingRangeW", 5);
-        Settings.buildRangeH = base.Config.Bind("Settings", "BuildingRangeH", 5);
-        Settings.sowRangeExists = base.Config.Bind("Settings", "SowingRangeExists", false);
-        Settings.pourDepth = base.Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
-        Settings.seedReapingCount = base.Config.Bind("Settings", "SeedReapingCount", 25);
-        Settings.staminaCheck = base.Config.Bind("Settings", "StaminaCheck", true);
-        Settings.ignoreEnemySpotted = base.Config.Bind("Settings", "IgnoreEnemySpotted", true);
-        Settings.simpleIdentify = base.Config.Bind("Settings", "SimpleIdentify", false);
-        Settings.sameFarmfieldOnly = base.Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
-        Settings.keyMode = base.Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
-        Settings.keyCode = base.Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
+        Instance = this;
+        Settings.startFromCenter = Config.Bind("Settings", "StartFromCenter", true);
+        Settings.detDistSq = Config.Bind("Settings", "DetectionRangeSquared", 25, "Sqaure of detection range.");
+        Settings.buildRangeW = Config.Bind("Settings", "BuildingRangeW", 5);
+        Settings.buildRangeH = Config.Bind("Settings", "BuildingRangeH", 5);
+        Settings.sowRangeExists = Config.Bind("Settings", "SowingRangeExists", false);
+        Settings.pourDepth = Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
+        Settings.seedReapingCount = Config.Bind("Settings", "SeedReapingCount", 25);
+        Settings.staminaCheck = Config.Bind("Settings", "StaminaCheck", true);
+        Settings.ignoreEnemySpotted = Config.Bind("Settings", "IgnoreEnemySpotted", true);
+        Settings.simpleIdentify = Config.Bind("Settings", "SimpleIdentify", false);
+        Settings.sameFarmfieldOnly = Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
+        Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
+        Settings.keyCode = Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
         new Harmony("AutoActMod").PatchAll();
     }
 
@@ -42,15 +41,27 @@ public class AutoActMod : BaseUnityPlugin
         }
     }
 
-    public static bool active = false;
-    public static bool switchOn = false;
-    public static bool IsSwitchOn => Settings.KeyMode ? switchOn : Input.GetKey(Settings.KeyCode);
-    public static Point lastHitPoint = Point.Zero;
     public static void Say(string text)
     {
         Msg.SetColor(Msg.colors.TalkGod);
         Msg.Say(text);
     }
+
+    internal static void Log(object payload)
+    {
+        Instance.Logger.LogInfo(payload);
+    }
+
+    internal static void LogWarning(object payload)
+    {
+        Instance.Logger.LogWarning(payload);
+    }
+
+    public static bool active = false;
+    public static bool switchOn = false;
+    public static bool IsSwitchOn => Settings.KeyMode ? switchOn : Input.GetKey(Settings.KeyCode);
+    public static Point lastHitPoint = Point.Zero;
+    public static AutoActMod Instance { get; private set; }
 }
 
 public static class Utils

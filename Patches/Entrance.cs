@@ -1,9 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using AutoActMod.Actions;
 using HarmonyLib;
-using UnityEngine;
 
 namespace AutoActMod.Patches;
 
@@ -17,9 +14,9 @@ static class Entrance
         if (!__instance.IsPC) { return true; }
 #if DEBUG
         AIAct prev = __instance.ai;
-        Debug.Log($"===   Chara_SetAI_Prefix   ===");
-        Debug.Log($"Prev: {prev}, {prev.status} | Next: {g}");
-        Debug.Log($"=== Chara_SetAI_Prefix End ===");
+        AutoActMod.Log($"===   Chara_SetAI_Prefix   ===");
+        AutoActMod.Log($"Prev: {prev}, {prev.status} | Next: {g}");
+        AutoActMod.Log($"=== Chara_SetAI_Prefix End ===");
 #endif
         if (AutoActMod.IsSwitchOn)
         {
@@ -34,9 +31,9 @@ static class Entrance
     {
         if (!_cc.IsPC || !AutoActMod.IsSwitchOn) { return true; }
 #if DEBUG
-        Debug.Log($"===   Act_Perform_Patch   ===");
-        Debug.Log($"Perform Action: {__instance}");
-        Debug.Log($"=== Act_Perform_Patch End ===");
+        AutoActMod.Log($"===   Act_Perform_Patch   ===");
+        AutoActMod.Log($"Perform Action: {__instance}");
+        AutoActMod.Log($"=== Act_Perform_Patch End ===");
 #endif
         if (AutoAct.TrySetAutoAct(_cc, __instance, _tc, _tp).HasValue())
         {
@@ -78,7 +75,7 @@ static class Entrance
             return;
         }
 
-        Settings.ShowSettings(__instance);
+        Settings.SetupSettings(__instance);
     }
 
     [HarmonyPrefix]
