@@ -102,7 +102,7 @@ public static class Settings
 
     public static void SetupSettings(ActPlan actPlan)
     {
-        var text = ALang.GetText("settings");
+        var text = AALang.GetText("settings");
         var dynamicAct = new DynamicAct(text, SetupSettingsUI, false);
         actPlan.list.Add(new ActPlan.Item { act = dynamicAct });
     }
@@ -146,11 +146,11 @@ public static class Settings
             item2.textSlider.text = item2.slider.value.ToString();
         }
         var menu = EClass.ui.CreateContextMenu();
-        menu.AddToggle(ALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
-        menu.AddToggle(ALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
-        menu.AddToggle(ALang.GetText("ignoreEnemySpotted"), IgnoreEnemySpotted, v => IgnoreEnemySpotted = v);
-        menu.AddToggle(ALang.GetText("simpleIdentify"), SimpleIdentify, v => SimpleIdentify = v);
-        menu.AddToggle(ALang.GetText("startFromCenter"), StartFromCenter, v =>
+        menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
+        menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
+        menu.AddToggle(AALang.GetText("ignoreEnemySpotted"), IgnoreEnemySpotted, v => IgnoreEnemySpotted = v);
+        menu.AddToggle(AALang.GetText("simpleIdentify"), SimpleIdentify, v => SimpleIdentify = v);
+        menu.AddToggle(AALang.GetText("startFromCenter"), StartFromCenter, v =>
         {
             StartFromCenter = v;
             if (v)
@@ -163,18 +163,18 @@ public static class Settings
             }
         });
         menu.AddSlider(
-            ALang.GetText("keyMode"),
+            AALang.GetText("keyMode"),
             v =>
             {
                 if (v == 1)
                 {
                     KeyMode = true;
-                    return ALang.GetText("toggle");
+                    return AALang.GetText("toggle");
                 }
                 else
                 {
                     KeyMode = false;
-                    return ALang.GetText("press");
+                    return AALang.GetText("press");
                 }
             }
             , KeyMode ? 1 : 0,
@@ -185,7 +185,7 @@ public static class Settings
             false
         );
         menu.AddSlider(
-            ALang.GetText("detDist"),
+            AALang.GetText("detDist"),
             v =>
             {
                 var n = v / 2;
@@ -200,7 +200,7 @@ public static class Settings
             false
         );
         list[0] = menu.AddSlider(
-            ALang.GetText("buildRangeW"),
+            AALang.GetText("buildRangeW"),
             v =>
             {
                 if (StartFromCenter)
@@ -222,7 +222,7 @@ public static class Settings
             false
         );
         list[1] = menu.AddSlider(
-            ALang.GetText("buildRangeH"),
+            AALang.GetText("buildRangeH"),
             v =>
             {
                 if (StartFromCenter)
@@ -244,17 +244,17 @@ public static class Settings
             false
         );
         menu.AddSlider(
-            ALang.GetText("sowRange"),
+            AALang.GetText("sowRange"),
             v =>
             {
                 SowRangeExists = v == 0;
                 if (SowRangeExists)
                 {
-                    return ALang.GetText("followBuildRange");
+                    return AALang.GetText("followBuildRange");
                 }
                 else
                 {
-                    return ALang.GetText("entireFarmfield");
+                    return AALang.GetText("entireFarmfield");
                 }
             },
             SowRangeExists ? 0 : 1,
@@ -265,7 +265,7 @@ public static class Settings
             false
         );
         menu.AddSlider(
-            ALang.GetText("pourDepth"),
+            AALang.GetText("pourDepth"),
             v =>
             {
                 PourDepth = (int)v;
@@ -280,7 +280,7 @@ public static class Settings
         );
         var seedReapingCountMax = 101;
         menu.AddSlider(
-            ALang.GetText("seedReapingCount"),
+            AALang.GetText("seedReapingCount"),
             v =>
             {
                 SeedReapingCount = (int)v == seedReapingCountMax ? 0 : (int)v;
@@ -306,7 +306,7 @@ public static class Settings
     }
 }
 
-public static class ALang
+public static class AALang
 {
     static public string GetText(string text)
     {

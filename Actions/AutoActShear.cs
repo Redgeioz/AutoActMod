@@ -17,12 +17,11 @@ public class AutoActShear : AutoAct
 
     public override bool CanProgress()
     {
-        return owner.Tool?.trait is TraitToolShears;
+        return canContinue && owner.Tool?.trait is TraitToolShears;
     }
 
     public override IEnumerable<Status> Run()
     {
-        yield return StartNextTask();
         while (CanProgress())
         {
             var target = FindChara(chara => chara.CanBeSheared(), 80000);
@@ -35,6 +34,6 @@ public class AutoActShear : AutoAct
             Child.target = target;
             yield return StartNextTask();
         }
-        yield return Fail();
+        yield return FailOrSuccess();
     }
 }

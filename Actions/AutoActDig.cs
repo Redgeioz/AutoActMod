@@ -32,8 +32,7 @@ public class AutoActDig : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        yield return StartNextTask();
-        while (CanProgress())
+        do
         {
             if (_zone.IsRegion)
             {
@@ -41,8 +40,20 @@ public class AutoActDig : AutoAct
                 continue;
             }
 
+            var originalPos = Pos.Copy();
             var targetPos = FindPosRefToStartPos(
-                cell => IsTarget(cell.sourceSurface) && !cell.HasBlock && !cell.HasObj,
+                cell =>
+                {
+                    if (!IsTarget(cell.sourceSurface))
+                    {
+                        return false;
+                    }
+
+                    Child.pos.Set(cell.x, cell.z);
+                    HitResult hitResult = Child.GetHitResult();
+                    Child.pos.Set(originalPos.x, originalPos.z);
+                    return hitResult == HitResult.Valid || hitResult == HitResult.Warning;
+                },
                 w,
                 h
             );
@@ -54,7 +65,7 @@ public class AutoActDig : AutoAct
 
             Child.pos = targetPos;
             yield return StartNextTask();
-        }
-        yield return Fail();
+        } while (CanProgress());
+        yield return FailOrSuccess();
     }
 }

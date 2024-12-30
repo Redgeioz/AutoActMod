@@ -39,13 +39,14 @@ public class AutoActBuild : AutoAct
         return base.CanProgress() && Held == Child.held;
     }
 
+    public override void OnStart()
+    {
+        base.OnStart();
+        Init();
+    }
+
     public override IEnumerable<Status> Run()
     {
-        var performFirstTask = Init();
-        if (performFirstTask)
-        {
-            yield return StartNextTask();
-        }
         while (CanProgress())
         {
             var targetPos = FindNextBuildPosition();
@@ -63,7 +64,7 @@ public class AutoActBuild : AutoAct
         yield break;
     }
 
-    public bool Init()
+    public void Init()
     {
         field.Clear();
         Child.held = Held;
@@ -80,7 +81,7 @@ public class AutoActBuild : AutoAct
                 if (Child.recipe.IsWallOrFence || Child.recipe.IsBlock)
                 {
                     // skip
-                    return false;
+                    useOriginalPos = false;
                 }
             }
             else if (Child.recipe.IsWallOrFence)
@@ -89,7 +90,7 @@ public class AutoActBuild : AutoAct
                 if (dir == 3)
                 {
                     // skip
-                    return false;
+                    useOriginalPos = false;
                 }
                 else
                 {
@@ -97,8 +98,6 @@ public class AutoActBuild : AutoAct
                 }
             }
         }
-
-        return true;
     }
 
     public int CalcPositionInfo(int d1, int d2)
@@ -137,9 +136,21 @@ public class AutoActBuild : AutoAct
             edgeOnly = true;
         }
 
+        if (useOriginalPos)
+        {
+            useOriginalPos = false;
+            return Pos;
+        }
+
+        var selected = GetSelectedPoints();
         var list = new List<(Point, int, int, int)>();
         foreach (var p in field)
         {
+            if (selected.Contains(p))
+            {
+                continue;
+            }
+
             if (!filter(p))
             {
                 continue;

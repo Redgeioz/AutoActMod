@@ -129,6 +129,6 @@ public class AutoActWater : AutoAct
                 }
             }
         } while (CanProgress());
-        yield return Fail();
+        yield return FailOrSuccess();
     }
 }

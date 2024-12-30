@@ -25,9 +25,6 @@ public class AutoActUnlock : AutoAct
     {
         do
         {
-            yield return DoGoto(Pos, 1, true);
-            yield return SetNextTask(openLock);
-
             var target = FindThing(t => t.trait is TraitContainer && t.c_lockLv > 0, detRangeSq);
             if (target.IsNull())
             {
@@ -36,6 +33,8 @@ public class AutoActUnlock : AutoAct
             }
 
             Child.target = target;
+            yield return DoGoto(Pos, 1, true);
+            yield return SetNextTask(openLock);
         } while (CanProgress());
         yield break;
     }

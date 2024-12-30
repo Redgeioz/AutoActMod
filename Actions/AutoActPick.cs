@@ -29,7 +29,6 @@ public class AutoActPick : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        yield return StartNextTask();
         while (CanProgress())
         {
             var targetThing = FindThing(t => IsTarget(t), detRangeSq);

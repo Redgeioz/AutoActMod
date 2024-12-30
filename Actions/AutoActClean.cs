@@ -39,10 +39,19 @@ public class AutoActClean : AutoAct
         IEnumerable<Status> Process()
         {
             yield return DoGoto(pos, 1, true);
+
             var held = owner.held;
             if (held?.trait is not TraitBroom || !CanClean(pos))
             {
                 yield return Fail();
+            }
+
+            var dur = pos.cell.HasLiquid ? 5 : 1;
+            for (int i = 0; i < dur; i++)
+            {
+                owner.LookAt(pos);
+                owner.renderer.NextFrame();
+                yield return KeepRunning();
             }
 
             _map.SetDecal(pos.x, pos.z, 0, 1, true);
@@ -51,7 +60,7 @@ public class AutoActClean : AutoAct
             owner.Say("clean", held, null, null);
             owner.PlaySound("clean_floor", 1f, true);
             owner.stamina.Mod(-1);
-            owner.ModExp(293, 40);
+            owner.ModExp(293, 30);
             yield return KeepRunning();
         };
 
@@ -71,6 +80,6 @@ public class AutoActClean : AutoAct
 
             pos = targetPos;
         }
-        yield return Fail();
+        yield return FailOrSuccess();
     }
 }

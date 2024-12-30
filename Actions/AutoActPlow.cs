@@ -26,8 +26,7 @@ public class AutoActPlow : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        yield return StartNextTask();
-        while (CanProgress())
+        do
         {
             var targetPos = FindPosRefToStartPos(
                 cell => !cell.HasBlock
@@ -47,7 +46,7 @@ public class AutoActPlow : AutoAct
 
             Child.pos = targetPos;
             yield return StartNextTask();
-        }
-        yield return Fail();
+        } while (CanProgress());
+        yield return FailOrSuccess();
     }
 }

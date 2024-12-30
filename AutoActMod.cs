@@ -37,7 +37,7 @@ public class AutoActMod : BaseUnityPlugin
         if (Input.GetKeyDown(Settings.KeyCode))
         {
             switchOn = !switchOn;
-            Say(ALang.GetText(switchOn ? "on" : "off"));
+            Say(AALang.GetText(switchOn ? "on" : "off"));
         }
     }
 
@@ -49,7 +49,11 @@ public class AutoActMod : BaseUnityPlugin
 
     internal static void Log(object payload)
     {
+#if DEBUG
+        Instance.Logger.LogMessage(payload);
+#else
         Instance.Logger.LogInfo(payload);
+#endif
     }
 
     internal static void LogWarning(object payload)

@@ -22,12 +22,11 @@ public class AutoActDrawWater : AutoAct
     public override bool CanProgress()
     {
         var pot = Child.pot;
-        return owner.held == pot.owner && pot.owner.c_charges < pot.MaxCharge;
+        return canContinue && owner.held == pot.owner && pot.owner.c_charges < pot.MaxCharge;
     }
 
     public override IEnumerable<Status> Run()
     {
-        yield return StartNextTask();
         while (CanProgress())
         {
             var targetPos = FindPos(
@@ -46,6 +45,6 @@ public class AutoActDrawWater : AutoAct
             Child.pos = targetPos;
             yield return StartNextTask();
         }
-        yield return Fail();
+        yield return FailOrSuccess();
     }
 }

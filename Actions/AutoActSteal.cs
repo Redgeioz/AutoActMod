@@ -43,15 +43,8 @@ public class AutoActSteal : AutoAct
     {
         do
         {
-            var chara = Child.target as Chara;
-
-            yield return DoGoto(Pos, 1, true);
-            if (chara.IsNull() || chara.things.FindStealable().HasValue())
-            {
-                yield return SetNextTask(steal);
-            }
-
             Card target = null;
+            var chara = Child.target as Chara;
             if (chara.IsNull())
             {
                 target = FindThing(t => IsTarget(t) && CanSteal(t), detRangeSq);
@@ -72,6 +65,9 @@ public class AutoActSteal : AutoAct
             }
 
             Child.target = target;
+
+            yield return DoGoto(Pos, 1, true);
+            yield return SetNextTask(steal);
         } while (CanProgress());
         yield break;
     }

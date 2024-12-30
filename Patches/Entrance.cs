@@ -43,29 +43,6 @@ static class Entrance
         return true;
     }
 
-    // To fix AutoAct being unable to be interrupted by attacks
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(AIAct), "Success")]
-    static bool AIAct_Success_Patch(AIAct __instance, ref AIAct.Status __result)
-    {
-        if (__instance.child.HasValue()
-            && __instance.child.status == AIAct.Status.Fail
-            && (__instance.onChildFail.IsNull() || __instance.onChildFail() == AIAct.Status.Fail))
-        {
-            if (__instance is AutoAct aa)
-            {
-                aa.CancelRetry();
-            }
-            if (__instance.parent is AutoAct aa2)
-            {
-                aa2.CancelRetry();
-            }
-            __result = __instance.Cancel();
-            return false;
-        }
-        return true;
-    }
-
     [HarmonyPrefix]
     [HarmonyPatch(typeof(ActPlan), "ShowContextMenu")]
     public static void ActPlan_ShowContextMenu_Patch(ActPlan __instance)
@@ -82,7 +59,7 @@ static class Entrance
     [HarmonyPatch(typeof(ActPlan.Item), "Perform")]
     static bool ActPlan_Item_Perform_Patch(ActPlan.Item __instance)
     {
-        if (__instance.act is DynamicAct a && a.id == ALang.GetText("settings"))
+        if (__instance.act is DynamicAct a && a.id == AALang.GetText("settings"))
         {
             a.Perform();
             return false;

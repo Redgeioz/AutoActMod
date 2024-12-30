@@ -27,7 +27,7 @@ public class AutoActPourWater : AutoAct
 
     public override bool CanProgress()
     {
-        if (owner.held?.trait is not TraitToolWaterPot pot)
+        if (owner.held?.trait is not TraitToolWaterPot pot || !canContinue)
         {
             return false;
         }
@@ -50,7 +50,6 @@ public class AutoActPourWater : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        yield return StartNextTask();
         while (CanProgress())
         {
             var targetPos = FindPosRefToStartPos(cell => !cell.HasBridge && IsTarget(cell.sourceFloor), w, h);

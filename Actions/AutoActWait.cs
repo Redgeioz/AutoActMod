@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
@@ -6,6 +7,7 @@ public class AutoActWait : AutoAct
 {
     public override int MaxRestart => 0;
     public override Point Pos => owner.pos;
+    public new Func<bool> canContinue;
 
     public AutoActWait() { }
 
@@ -17,12 +19,12 @@ public class AutoActWait : AutoAct
 
     public override bool CanProgress()
     {
-        return true;
+        return canContinue.IsNull() || canContinue();
     }
 
     public override IEnumerable<Status> Run()
     {
-        while (true)
+        while (CanProgress())
         {
             yield return KeepRunning();
         }

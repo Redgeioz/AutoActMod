@@ -10,9 +10,8 @@ public class AutoActHarvestMine : AutoAct
     public bool targetIsWithered = false;
     public bool targetIsWoodTree = false;
     public bool targetCanHarvest = false;
-    public int seedId = -1;
-    public int targetSeedCount;
-    public int originalSeedCount = 0;
+    public static int seedId = -1;
+    public static int originalSeedCount = 0;
     public HashSet<Point> field = new();
     public BaseTaskHarvest initTask;
     public TaskHarvest taskHarvest;
@@ -43,7 +42,6 @@ public class AutoActHarvestMine : AutoAct
         simpleIdentify = Settings.SimpleIdentify;
         sameFarmfieldOnly = Settings.SameFarmfieldOnly;
         detRangeSq = Settings.DetRangeSq;
-        targetSeedCount = Settings.SeedReapingCount;
     }
 
     public static AutoActHarvestMine TryCreate(AIAct source)
@@ -64,28 +62,34 @@ public class AutoActHarvestMine : AutoAct
                 InitFarmfield(field, Pos);
             }
 
-            if (taskHarvest.IsReapSeed)
+            if (!taskHarvest.IsReapSeed || !owner.IsPC)
             {
-                seedId = Pos.sourceObj.id;
-                owner.things.ForEach(thing =>
-               {
-                   if (thing.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
-                   {
-                       originalSeedCount += thing.Num;
-                   }
-                   else
-                   {
-                       thing.things.ForEach(t =>
-                       {
-                           if (t.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
-                           {
-                               originalSeedCount += t.Num;
-                           }
-                       });
-                   }
-               });
+                return;
             }
+
+            seedId = Pos.sourceObj.id;
+            pc.party.members.ForEach(chara =>
+            {
+                chara.things.ForEach(thing =>
+                {
+                    if (thing.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                    {
+                        originalSeedCount += thing.Num;
+                    }
+                    else
+                    {
+                        thing.things.ForEach(t =>
+                        {
+                            if (t.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                            {
+                                originalSeedCount += t.Num;
+                            }
+                        });
+                    }
+                });
+            });
         }
+
         RestoreChild();
         if (Child.target.HasValue())
         {
@@ -133,16 +137,21 @@ public class AutoActHarvestMine : AutoAct
         PrepareForHarvest();
     }
 
+    public override void OnStart()
+    {
+        base.OnStart();
+        Init();
+    }
+
     public override IEnumerable<Status> Run()
     {
-        Init();
-        yield return StartNextTask();
         while (CanProgress())
         {
             if (IsSeedCountEnough())
             {
                 yield break;
             }
+
             Point targetPos;
             if (Child is TaskHarvest && Child.target.HasValue())
             {
@@ -191,34 +200,38 @@ public class AutoActHarvestMine : AutoAct
                 yield return Fail();
             }
         }
-        yield return Fail();
+        yield return FailOrSuccess();
     }
 
     bool IsSeedCountEnough()
     {
-        if ((seedId < 0 && !simpleIdentify) || targetSeedCount <= 0)
+        if (!owner.IsPC || (seedId < 0 && !simpleIdentify) || Settings.SeedReapingCount <= 0)
         {
             return false;
         }
         var count = 0;
-        owner.things.ForEach(t =>
+        pc.party.members.ForEach(chara =>
         {
-            if (t.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+            owner.things.ForEach(t =>
             {
-                count += t.Num;
-            }
-            else
-            {
-                t.things.ForEach(tt =>
+                if (t.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
                 {
-                    if (tt.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                    count += t.Num;
+                }
+                else
+                {
+                    t.things.ForEach(tt =>
                     {
-                        count += tt.Num;
-                    }
-                });
-            }
+                        if (tt.trait is TraitSeed seed && (seed.row.id == seedId || simpleIdentify))
+                        {
+                            count += tt.Num;
+                        }
+                    });
+                }
+            });
         });
-        if (count >= targetSeedCount + originalSeedCount)
+
+        if (count >= Settings.SeedReapingCount + originalSeedCount)
         {
             return true;
         }
