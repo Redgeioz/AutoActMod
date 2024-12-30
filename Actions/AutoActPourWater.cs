@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoActMod.Actions;
 
@@ -6,10 +7,13 @@ public class AutoActPourWater : AutoAct
 {
     public int w;
     public int h;
-    public TaskPourWaterCustom Child => child as TaskPourWaterCustom;
+    public TaskPourWaterCustom pourWater;
+    public TaskPourWaterCustom Child => pourWater;
 
     AutoActPourWater(TaskPourWaterCustom source) : base(source)
     {
+        pourWater = source;
+
         SetTarget(Cell.sourceSurface);
         w = Settings.BuildRangeW;
         h = Settings.BuildRangeH;
@@ -27,35 +31,37 @@ public class AutoActPourWater : AutoAct
 
     public override bool CanProgress()
     {
-        if (owner.held?.trait is not TraitToolWaterPot pot || !canContinue)
-        {
-            return false;
-        }
-
-        if (pot.owner.c_charges == 0)
-        {
-            var nextPot = owner.things.Find(t => t.trait is TraitToolWaterPot twp && twp.owner.c_charges > 0);
-            if (nextPot.HasValue())
-            {
-                pot = nextPot.trait as TraitToolWaterPot;
-                owner.HoldCard(nextPot);
-            }
-            else
-            {
-                return false;
-            }
-        }
-        return true;
+        return canContinue && owner.held?.trait is TraitToolWaterPot;
     }
 
     public override IEnumerable<Status> Run()
     {
         while (CanProgress())
         {
+            var pot = owner.held?.trait as TraitToolWaterPot;
+            if (pot.IsNull())
+            {
+                yield return Fail();
+            }
+
             var targetPos = FindPosRefToStartPos(cell => !cell.HasBridge && IsTarget(cell.sourceFloor), w, h);
             if (targetPos.IsNull())
             {
                 yield break;
+            }
+
+            if (pot.owner.c_charges == 0)
+            {
+                var nextPot = owner.things.Find(t => t.trait is TraitToolWaterPot twp && twp.owner.c_charges > 0);
+                if (nextPot.HasValue())
+                {
+                    pot = nextPot.trait as TraitToolWaterPot;
+                    owner.HoldCard(nextPot);
+                }
+                else
+                {
+                    yield return Fail();
+                }
             }
 
             Child.pos = targetPos;

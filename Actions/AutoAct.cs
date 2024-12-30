@@ -456,7 +456,10 @@ public class AutoAct : AIAct
     {
         if (owner.HasValue() && owner.IsPC)
         {
-            AutoActMod.Say(text);
+            if (parent is not AutoAct)
+            {
+                AutoActMod.Say(text);
+            }
         }
         else
         {

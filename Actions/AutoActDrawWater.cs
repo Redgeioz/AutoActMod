@@ -11,6 +11,7 @@ public class AutoActDrawWater : AutoAct
     AutoActDrawWater(TaskDrawWater source) : base(source)
     {
         targetName = (Pos.HasBridge ? Pos.matBridge : Pos.matFloor).alias;
+        detRangeSq = Settings.DetRangeSq;
     }
 
     public static AutoActDrawWater TryCreate(AIAct source)
@@ -27,7 +28,7 @@ public class AutoActDrawWater : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        while (CanProgress())
+        do
         {
             var targetPos = FindPos(
                 cell => cell.IsTopWaterAndNoSnow
@@ -39,12 +40,13 @@ public class AutoActDrawWater : AutoAct
 
             if (targetPos.IsNull())
             {
-                break;
+                SayNoTarget();
+                yield break;
             }
 
             Child.pos = targetPos;
             yield return StartNextTask();
-        }
+        } while (CanProgress());
         yield return FailOrSuccess();
     }
 }

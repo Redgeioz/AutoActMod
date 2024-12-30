@@ -64,36 +64,6 @@ static class Misc
 
 #if DEBUG
     // [HarmonyPrefix]
-    // [HarmonyPatch(typeof(WidgetTracker), "Refresh")]
-    // static void Debug_Log_Prefix()
-    // {
-    //     if (AutoActMod.IsSwitchOn)
-    //     {
-    //         var info = Harmony.GetPatchInfo(AccessTools.Method(typeof(WidgetTracker), nameof(WidgetTracker.Refresh)));
-    //         AutoActMod.Log("Prefixes: ");
-    //         foreach (var p in info.Prefixes)
-    //         {
-    //             AutoActMod.Log("Prefix - index: " + p.index);
-    //             AutoActMod.Log("Prefix - owner: " + p.owner);
-    //             AutoActMod.Log("Prefix - patch method: " + p.PatchMethod);
-    //             AutoActMod.Log("Prefix - priority: " + p.priority);
-    //             AutoActMod.Log("Prefix - before: " + string.Join(", ", p.before));
-    //             AutoActMod.Log("Prefix - after: " + string.Join(", ", p.after));
-    //         }
-    //         AutoActMod.Log("Postfixes: ");
-    //         foreach (var p in info.Postfixes)
-    //         {
-    //             AutoActMod.Log("Prefix - index: " + p.index);
-    //             AutoActMod.Log("Prefix - owner: " + p.owner);
-    //             AutoActMod.Log("Prefix - patch method: " + p.PatchMethod);
-    //             AutoActMod.Log("Prefix - priority: " + p.priority);
-    //             AutoActMod.Log("Prefix - before: " + string.Join(", ", p.before));
-    //             AutoActMod.Log("Prefix - after: " + string.Join(", ", p.after));
-    //         }
-    //     }
-    // }
-
-    // [HarmonyPrefix]
     // [HarmonyPatch(typeof(AIAct), "Tick")]
     // static bool AIAct_Tick_Prefix(AIAct __instance, ref AIAct.Status __result)
     // {
