@@ -21,12 +21,12 @@ public class AutoActClean : AutoAct
 
     public static bool CanClean(Point p)
     {
-        return CanClean(p.cell);
+        return TaskClean.CanClean(p);
     }
 
     public static bool CanClean(Cell cell)
     {
-        return !cell.HasBlock && (cell.decal > 0 || (cell.effect.HasValue() && cell.effect.IsLiquid));
+        return CanClean(cell.GetPoint());
     }
 
     public override bool CanProgress()

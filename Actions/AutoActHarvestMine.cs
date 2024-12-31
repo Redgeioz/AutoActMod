@@ -16,6 +16,9 @@ public class AutoActHarvestMine : AutoAct
     public BaseTaskHarvest initTask;
     public TaskHarvest taskHarvest;
     public TaskMine taskMine;
+    public bool isHarvest;
+    public bool IsTaskMine => !isHarvest;
+    public bool IsTaskHarvest => isHarvest;
     public BaseTaskHarvest Child => child as BaseTaskHarvest;
 
     public AutoActHarvestMine(BaseTaskHarvest source) : base(source)
@@ -23,6 +26,7 @@ public class AutoActHarvestMine : AutoAct
         initTask = source;
         if (source is TaskHarvest th)
         {
+            isHarvest = true;
             taskHarvest = th;
             taskMine = new TaskMine()
             {
@@ -176,8 +180,16 @@ public class AutoActHarvestMine : AutoAct
             }
             else
             {
-                bool isMining = owner.held.HasValue() && owner.held.HasElement(220, 1);
-                targetPos = FindPos(CommonFilter, detRangeSq, !simpleIdentify && isMining);
+                var tryBetterPath = 0;
+                if (isHarvest && Child is TaskMine)
+                {
+                    tryBetterPath = 2;
+                }
+                else if (!simpleIdentify && owner.held.HasValue() && owner.held.HasElement(220, 1))
+                {
+                    tryBetterPath = 1;
+                }
+                targetPos = FindPos(CommonFilter, detRangeSq, tryBetterPath);
             }
 
             if (targetPos.IsNull())

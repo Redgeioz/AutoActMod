@@ -548,7 +548,7 @@ public class AutoAct : AIAct
         return list;
     }
 
-    public Point FindPos(Predicate<Cell> filter, int detRangeSq, bool tryBetterPath = false)
+    public Point FindPos(Predicate<Cell> filter, int detRangeSq, int tryBetterPath = 0)
     {
         if (useOriginalPos)
         {
@@ -596,7 +596,7 @@ public class AutoAct : AIAct
 
             bool TryDestroyObstacle()
             {
-                if (dist2 > 5 || dist2 < 4 || !tryBetterPath)
+                if (dist2 > 5 || dist2 < 4 || tryBetterPath != 1)
                 {
                     return false;
                 }
@@ -645,11 +645,13 @@ public class AutoAct : AIAct
             {
                 d2 = Math.Abs(CalcDelta(p).Item2);
             }
+
             var factor = Path.nodes.Count;
-            if (factor > dist2ToLastPoint && dist2ToLastPoint <= 2)
+            if (tryBetterPath == 2 && factor > dist2ToLastPoint && dist2ToLastPoint <= 2)
             {
                 factor = 1;
             }
+
             selector.TrySet(p, factor, dist2ToLastPoint, d2);
         }
 
@@ -820,6 +822,16 @@ public class AutoAct : AIAct
             return Pos.cell.Charas.Find(filter);
         }
 
+        int CountNeighborChara(Chara chara)
+        {
+            var count = 0;
+            chara.pos.ForeachNeighbor(p =>
+            {
+                count += p.Charas.Count(chara => filter(chara));
+            });
+            return count;
+        }
+
         var selected = GetSelectedPoints();
         var list = new List<(Chara, int)>();
         _map.charas.ForEach(chara =>
@@ -843,7 +855,7 @@ public class AutoAct : AIAct
 
             if (dist2 <= 2)
             {
-                selector.TrySet(chara, dist2 == 0 ? -1 : 0);
+                selector.TrySet(chara, dist2 == 0 ? -1 : 0, -CountNeighborChara(chara));
                 return;
             }
 
@@ -863,7 +875,7 @@ public class AutoAct : AIAct
                 continue;
             }
 
-            selector.TrySet(chara, Path.nodes.Count);
+            selector.TrySet(chara, Path.nodes.Count, -CountNeighborChara(chara));
         }
 
         return selector.FinalTarget as Chara;
