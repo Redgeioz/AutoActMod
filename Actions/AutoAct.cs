@@ -567,12 +567,12 @@ public class AutoAct : AIAct
                 return;
             }
 
-            if (selected.Contains(p))
+            if (!filter(cell))
             {
                 return;
             }
 
-            if (!filter(cell))
+            if (selected.Contains(p))
             {
                 return;
             }
@@ -670,12 +670,12 @@ public class AutoAct : AIAct
         _map.bounds.ForeachCell(cell =>
         {
             var p = cell.GetPoint();
-            if (selected.Contains(p))
+            if (!filter(cell))
             {
                 return;
             }
 
-            if (!filter(cell))
+            if (selected.Contains(p))
             {
                 return;
             }
@@ -831,12 +831,12 @@ public class AutoAct : AIAct
                 return;
             }
 
-            if (selected.Contains(p))
+            if (!filter(chara))
             {
                 return;
             }
 
-            if (!filter(chara))
+            if (selected.Contains(p))
             {
                 return;
             }
@@ -871,17 +871,23 @@ public class AutoAct : AIAct
 
     public Point FindPosInField(IEnumerable<Point> field, Predicate<Cell> filter)
     {
+        if (useOriginalPos)
+        {
+            useOriginalPos = false;
+            return Pos;
+        }
+
         var selected = GetSelectedPoints();
         var list = new List<(Point, int, int)>();
         foreach (var p in field)
         {
-            if (selected.Contains(p))
+            var cell = p.cell;
+            if (!filter(cell))
             {
                 continue;
             }
 
-            var cell = p.cell;
-            if (!filter(cell))
+            if (selected.Contains(p))
             {
                 continue;
             }
