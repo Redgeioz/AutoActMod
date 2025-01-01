@@ -324,7 +324,7 @@ public class AutoActBuild : AutoAct
     public void SetPosition(Point p)
     {
         Child.pos = p;
-        // field.Remove(p);
+        field.Remove(p);
         RestoreChild();
     }
 
