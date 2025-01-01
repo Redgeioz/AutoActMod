@@ -78,6 +78,10 @@ static class Misc
     //     // return true;
     //     if (__instance is AutoAct a && a is not AutoActWait)
     //     {
+    //         if (__instance.owner.IsPC)
+    //         {
+    //             return true;
+    //         }
     //         AutoActMod.Log(a + " Start Tick" + "Owner: " + a.owner.Name + "Held: " + a.owner.held + "Tool: " + a.owner.Tool);
     //         if (a.child.HasValue())
     //         {
