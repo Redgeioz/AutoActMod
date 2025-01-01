@@ -57,6 +57,74 @@ public class AutoActHarvestMine : AutoAct
         return null;
     }
 
+    public override IEnumerable<Status> Run()
+    {
+        while (CanProgress())
+        {
+            if (IsSeedCountEnough())
+            {
+                yield break;
+            }
+
+            Point targetPos;
+            if (Child is TaskHarvest && Child.target.HasValue())
+            {
+                var thing = FindThing(t => IsTarget(t), detRangeSq);
+                if (thing.IsNull())
+                {
+                    SayNoTarget();
+                    yield break;
+                }
+
+                taskHarvest.target = thing;
+                SetPosition(thing.pos);
+
+                yield return StartNextTask();
+                continue;
+            }
+
+            if (Child is TaskHarvest && sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
+            {
+                targetPos = FindPosInField(field, c => c.growth.HasValue() && IsTarget(c.sourceObj) && PlantFilter(c));
+                field.Remove(targetPos);
+            }
+            else
+            {
+                var tryBetterPath = 0;
+                if (isHarvest && Child is TaskMine)
+                {
+                    tryBetterPath = 2;
+                }
+                else if (!simpleIdentify && owner.held.HasValue() && owner.held.HasElement(220, 1))
+                {
+                    tryBetterPath = 1;
+                }
+                targetPos = FindPos(CommonFilter, detRangeSq, tryBetterPath);
+            }
+
+            if (targetPos.IsNull())
+            {
+                SayNoTarget();
+                yield break;
+            }
+
+            SetPosition(targetPos);
+            if (taskHarvest.CanProgress())
+            {
+                yield return SetNextTask(taskHarvest);
+            }
+            else if (TaskMine.CanMine(Pos, owner.held))
+            {
+                yield return SetNextTask(taskMine);
+            }
+            else
+            {
+                yield return Fail();
+            }
+        }
+        yield return FailOrSuccess();
+    }
+
     public void Init()
     {
         void PrepareForHarvest()
@@ -145,74 +213,6 @@ public class AutoActHarvestMine : AutoAct
     {
         base.OnStart();
         Init();
-    }
-
-    public override IEnumerable<Status> Run()
-    {
-        while (CanProgress())
-        {
-            if (IsSeedCountEnough())
-            {
-                yield break;
-            }
-
-            Point targetPos;
-            if (Child is TaskHarvest && Child.target.HasValue())
-            {
-                var thing = FindThing(t => IsTarget(t), detRangeSq);
-                if (thing.IsNull())
-                {
-                    SayNoTarget();
-                    yield break;
-                }
-
-                taskHarvest.target = thing;
-                SetPosition(thing.pos);
-
-                yield return StartNextTask();
-                continue;
-            }
-
-            if (Child is TaskHarvest && sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
-            {
-                targetPos = FindPosInField(field, c => c.growth.HasValue() && IsTarget(c.sourceObj) && PlantFilter(c));
-                field.Remove(targetPos);
-            }
-            else
-            {
-                var tryBetterPath = 0;
-                if (isHarvest && Child is TaskMine)
-                {
-                    tryBetterPath = 2;
-                }
-                else if (!simpleIdentify && owner.held.HasValue() && owner.held.HasElement(220, 1))
-                {
-                    tryBetterPath = 1;
-                }
-                targetPos = FindPos(CommonFilter, detRangeSq, tryBetterPath);
-            }
-
-            if (targetPos.IsNull())
-            {
-                SayNoTarget();
-                yield break;
-            }
-
-            SetPosition(targetPos);
-            if (taskHarvest.CanProgress())
-            {
-                yield return SetNextTask(taskHarvest);
-            }
-            else if (TaskMine.CanMine(Pos, owner.held))
-            {
-                yield return SetNextTask(taskMine);
-            }
-            else
-            {
-                yield return Fail();
-            }
-        }
-        yield return FailOrSuccess();
     }
 
     bool IsSeedCountEnough()

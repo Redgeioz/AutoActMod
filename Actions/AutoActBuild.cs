@@ -10,7 +10,7 @@ public class AutoActBuild : AutoAct
     public int h;
     public bool hasSowRange;
     public HashSet<Point> field = new();
-    public Card Held => owner.held;
+    public Card Held => Child.held;
     public TaskBuild Child => child as TaskBuild;
     public override int MaxRestart => 0;
 
@@ -29,14 +29,17 @@ public class AutoActBuild : AutoAct
     public static AutoActBuild TryCreate(AIAct source)
     {
         if (source is not TaskBuild a) { return null; }
-        var held = source.owner.held;
-        if (held.IsNull() || held.Num == 1) { return null; }
+        if (source.owner.IsPC)
+        {
+            var held = source.owner.held;
+            if (held.IsNull() || held.Num == 1) { return null; }
+        }
         return new AutoActBuild(a);
     }
 
     public override bool CanProgress()
     {
-        return base.CanProgress() && Held == Child.held;
+        return base.CanProgress() && !Held.isDestroyed;
     }
 
     public override void OnStart()
@@ -52,14 +55,16 @@ public class AutoActBuild : AutoAct
             var targetPos = FindNextBuildPosition();
             if (targetPos.IsNull())
             {
+                SayNoTarget();
                 yield break;
             }
 
-            Child.pos = targetPos;
-            Child.lastPos = null;
-            Child.isDestroyed = false;
-            field.Remove(targetPos);
-            yield return StartNextTask();
+            SetPosition(targetPos);
+            yield return StartNextTask(() =>
+            {
+                field.Add(targetPos);
+                return Status.Fail;
+            });
         }
         yield break;
     }
@@ -67,14 +72,14 @@ public class AutoActBuild : AutoAct
     public void Init()
     {
         field.Clear();
-        Child.held = Held;
+        RestoreChild();
         if (Held.category.id == "seed" || Held.category.id == "fertilizer")
         {
             InitFarmfield(field, startPos);
         }
         else
         {
-            InitField(field, startPos, p => !p.HasBlock);
+            InitField(field, startPos, p => !p.HasBlock, useOriginalPos);
             var startFromCenter = h == 0;
             if (startFromCenter)
             {
@@ -146,12 +151,12 @@ public class AutoActBuild : AutoAct
         var list = new List<(Point, int, int, int)>();
         foreach (var p in field)
         {
-            if (selected.Contains(p))
+            if (!filter(p))
             {
                 continue;
             }
 
-            if (!filter(p))
+            if (selected.Contains(p))
             {
                 continue;
             }
@@ -314,6 +319,19 @@ public class AutoActBuild : AutoAct
         }
 
         return selector.FinalPoint;
+    }
+
+    public void SetPosition(Point p)
+    {
+        Child.pos = p;
+        // field.Remove(p);
+        RestoreChild();
+    }
+
+    public void RestoreChild()
+    {
+        Child.lastPos = null;
+        Child.isDestroyed = false;
     }
 
     static bool ShouldFertilize(Point p)

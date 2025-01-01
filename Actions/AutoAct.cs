@@ -32,7 +32,7 @@ public class AutoAct : AIAct
     public Selector selector = new();
     public int startDir;
     public override int MaxRestart => 1;
-    public static bool isSetting = false;
+    public static bool IsSetting = false;
     public static List<Type> SubClasses = GetSubClasses();
 
     public static List<Type> GetSubClasses()
@@ -98,7 +98,7 @@ public class AutoAct : AIAct
 
     public static AutoAct TrySetAutoAct(Chara c, AIAct source)
     {
-        isSetting = true;
+        IsSetting = true;
         source.owner = c;
 
         if (TryGetAutoAct(source) is not AutoAct a)
@@ -112,13 +112,13 @@ public class AutoAct : AIAct
         }
 
         c.SetAI(a);
-        isSetting = false;
+        IsSetting = false;
         return a;
     }
 
     public static AutoAct TrySetAutoAct(Chara c, Act source, Card target, Point p)
     {
-        isSetting = true;
+        IsSetting = true;
         var id = source is DynamicAct d ? d.id : source.ToString();
 
 #if DEBUG
@@ -136,7 +136,7 @@ public class AutoAct : AIAct
         }
 
         c.SetAI(a);
-        isSetting = false;
+        IsSetting = false;
         return a;
     }
 
@@ -417,11 +417,10 @@ public class AutoAct : AIAct
             filter = pt => pt.IsFarmField;
         }
 
-        InitField(field, p, filter);
-        field.Remove(p);
+        InitField(field, p, filter, useOriginalPos);
     }
 
-    public static void InitField(HashSet<Point> field, Point start, Predicate<Point> filter)
+    public static void InitField(HashSet<Point> field, Point start, Predicate<Point> filter, bool useOriginalPos = true)
     {
         var directions = new (int dx, int dz, int mask, int nextDir)[]
         {
@@ -450,11 +449,21 @@ public class AutoAct : AIAct
                 }
             }
         }
+
+        if (!useOriginalPos)
+        {
+            field.Add(start);
+        }
     }
 
     public void Say(string text)
     {
-        if (owner.HasValue() && owner.IsPC)
+        if (owner.IsNull())
+        {
+            return;
+        }
+
+        if (owner.IsPC)
         {
             if (parent is not AutoAct)
             {
@@ -755,7 +764,11 @@ public class AutoAct : AIAct
         if (useOriginalPos)
         {
             useOriginalPos = false;
-            return Pos.cell.Things.Find(filter);
+            var t = Pos.cell.Things.Find(filter);
+            if (t.HasValue())
+            {
+                return t;
+            }
         }
 
         var selected = GetSelectedPoints();
@@ -769,11 +782,6 @@ public class AutoAct : AIAct
                return;
            }
 
-           if (selected.Contains(p))
-           {
-               return;
-           }
-
            if (!p.HasThing)
            {
                return;
@@ -781,6 +789,11 @@ public class AutoAct : AIAct
 
            var thing = p.Things.Find(filter);
            if (thing.IsNull())
+           {
+               return;
+           }
+
+           if (selected.Contains(p))
            {
                return;
            }
@@ -811,6 +824,7 @@ public class AutoAct : AIAct
             selector.TrySet(thing, Path.nodes.Count, dist2ToLastPoint);
         }
 
+
         return selector.FinalTarget as Thing;
     }
 
@@ -819,17 +833,11 @@ public class AutoAct : AIAct
         if (useOriginalPos)
         {
             useOriginalPos = false;
-            return Pos.cell.Charas.Find(filter);
-        }
-
-        int CountNeighborChara(Chara chara)
-        {
-            var count = 0;
-            chara.pos.ForeachNeighbor(p =>
+            var chara = Pos.cell.Charas.Find(filter);
+            if (chara.HasValue())
             {
-                count += p.Charas.Count(chara => filter(chara));
-            });
-            return count;
+                return chara;
+            }
         }
 
         var selected = GetSelectedPoints();
@@ -843,7 +851,7 @@ public class AutoAct : AIAct
                 return;
             }
 
-            if (!filter(chara))
+            if (!chara.IsAliveInCurrentZone || !filter(chara))
             {
                 return;
             }
@@ -855,7 +863,7 @@ public class AutoAct : AIAct
 
             if (dist2 <= 2)
             {
-                selector.TrySet(chara, dist2 == 0 ? -1 : 0, -CountNeighborChara(chara));
+                selector.TrySet(chara, dist2 == 0 ? -1 : 0);
                 return;
             }
 
@@ -869,13 +877,13 @@ public class AutoAct : AIAct
                 break;
             }
 
-            Path.RequestPathImmediate(Pos, chara.pos, 1, true, -1);
+            Path.RequestPathImmediate(owner.pos, chara.pos, 1, true, -1);
             if (Path.state == PathProgress.State.Fail)
             {
                 continue;
             }
 
-            selector.TrySet(chara, Path.nodes.Count, -CountNeighborChara(chara));
+            selector.TrySet(chara, Path.nodes.Count);
         }
 
         return selector.FinalTarget as Chara;

@@ -64,13 +64,21 @@ static class Misc
 
 #if DEBUG
     // [HarmonyPrefix]
+    // [HarmonyPatch(typeof(Task), nameof(Task.Destroy))]
+    // static bool Task_Destroy_Prefix(Task __instance)
+    // {
+    //     Utils.Trace();
+    //     return true;
+    // }
+
+    // [HarmonyPrefix]
     // [HarmonyPatch(typeof(AIAct), "Tick")]
     // static bool AIAct_Tick_Prefix(AIAct __instance, ref AIAct.Status __result)
     // {
     //     // return true;
-    //     if (__instance is AutoAct a)
+    //     if (__instance is AutoAct a && a is not AutoActWait)
     //     {
-    //         AutoActMod.Log(a + " Start Tick" + "Owner: " + a.owner.Name + "Held: " + a.owner.held + "Tool: " + a.owner.Tool + "Pos: " + a.Pos);
+    //         AutoActMod.Log(a + " Start Tick" + "Owner: " + a.owner.Name + "Held: " + a.owner.held + "Tool: " + a.owner.Tool);
     //         if (a.child.HasValue())
     //         {
     //             AutoActMod.Log("==Child: " + a.child + " | " + a.child.status);
@@ -115,6 +123,7 @@ static class Misc
     //         AutoActMod.Log("Tick 2");
     //         if (__instance.Enumerator == null)
     //         {
+    //             AutoActMod.Log("Start Action");
     //             __instance.Start();
     //             if (__instance.status != AIAct.Status.Running)
     //             {
@@ -126,7 +135,7 @@ static class Misc
     //         if (!__instance.Enumerator.MoveNext())
     //         {
     //             __result = __instance.Success(null);
-    //             AutoActMod.Log("Suc result" + __result);
+    //             AutoActMod.Log("Success result" + __result);
     //             return false;
     //         }
     //         AutoActMod.Log("Tick 4");

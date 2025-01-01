@@ -70,15 +70,16 @@ public class AutoActMod : BaseUnityPlugin
 
 public static class Utils
 {
-    public static void PrintStackTrace()
+    public static void Trace()
     {
         var stackTrace = new System.Diagnostics.StackTrace(true);
-        foreach (System.Diagnostics.StackFrame frame in stackTrace.GetFrames())
+        AutoActMod.Log($"StackTrace:");
+        foreach (var frame in stackTrace.GetFrames())
         {
             var method = frame.GetMethod();
             if (method.HasValue())
             {
-                Console.WriteLine($"{method.DeclaringType?.Name}.{method.Name}");
+                AutoActMod.Log($"\t{method.DeclaringType?.Name}.{method}");
             }
         }
     }

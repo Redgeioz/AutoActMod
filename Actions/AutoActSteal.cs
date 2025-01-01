@@ -7,12 +7,14 @@ public class AutoActSteal : AutoAct
     public int detRangeSq;
     public AI_Steal steal;
     public AI_Steal Child => steal;
-    public override Point Pos => steal.target.pos;
+    public Point pos;
+    public override Point Pos => pos;
 
     public AutoActSteal(AIAct source) : base(source)
     {
         steal = source as AI_Steal;
         steal.target ??= TC;
+        pos = Child.target.pos;
         detRangeSq = Settings.DetRangeSq;
         if (Settings.SimpleIdentify && Child.target is not Chara)
         {
@@ -32,7 +34,7 @@ public class AutoActSteal : AutoAct
 
     public bool CanSteal(Card c)
     {
-        if (c.ChildrenAndSelfWeight > owner.Evalue(281) * 200 + owner.STR * 100 + 1000)
+        if (c.things.FindStealable().IsNull() && c.ChildrenAndSelfWeight > owner.Evalue(281) * 200 + owner.STR * 100 + 1000)
         {
             return false;
         }
@@ -41,17 +43,15 @@ public class AutoActSteal : AutoAct
 
     public override IEnumerable<Status> Run()
     {
+        var lastTarget = Child.target;
         do
         {
             Card target = null;
-            var chara = Child.target as Chara;
+
+            var chara = lastTarget as Chara;
             if (chara.IsNull())
             {
                 target = FindThing(t => IsTarget(t) && CanSteal(t), detRangeSq);
-            }
-            else if (chara.things.FindStealable().HasValue())
-            {
-                target = chara;
             }
             else
             {
@@ -64,6 +64,8 @@ public class AutoActSteal : AutoAct
                 yield break;
             }
 
+            pos = target.pos;
+            lastTarget = target;
             Child.target = target;
 
             yield return DoGoto(Pos, 1, true);

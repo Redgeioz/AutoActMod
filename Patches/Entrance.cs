@@ -11,13 +11,16 @@ static class Entrance
     [HarmonyPatch(typeof(Chara), "SetAI")]
     static bool Chara_SetAI_Patch(Chara __instance, AIAct g)
     {
-        if (!__instance.IsPC) { return true; }
 #if DEBUG
+        if (!__instance.IsPC) { return true; }
+        if (!__instance.IsPCParty) { return true; }
         AIAct prev = __instance.ai;
         AutoActMod.Log($"===   Chara_SetAI_Prefix   ===");
+        AutoActMod.Log($"Chara: {__instance.Name}");
         AutoActMod.Log($"Prev: {prev}, {prev.status} | Next: {g}");
         AutoActMod.Log($"=== Chara_SetAI_Prefix End ===");
 #endif
+        if (!__instance.IsPC) { return true; }
         if (AutoActMod.IsSwitchOn)
         {
             return AutoAct.TrySetAutoAct(__instance, g).IsNull();
