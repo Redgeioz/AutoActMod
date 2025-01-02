@@ -14,6 +14,7 @@ public class AutoAct : AIAct
     public bool canContinue = true;
     public PlaceState targetPlaceState;
     public Point startPos;
+    public int startDir;
     public virtual Point Pos
     {
         get
@@ -30,7 +31,6 @@ public class AutoAct : AIAct
     public Cell Cell => Pos.cell;
     public PathProgress Path => owner.path;
     public Selector selector = new();
-    public int startDir;
     public override int MaxRestart => 1;
     public static bool IsSetting = false;
     public static List<Type> SubClasses = GetSubClasses();
@@ -513,50 +513,6 @@ public class AutoAct : AIAct
         return Utils.MaxDelta(p, startPos);
     }
 
-    public List<Point> GetSelectedPoints()
-    {
-        var len = pc.party.members.Count - 1;
-        var list = new List<Point>(len);
-        if (!owner.IsPCParty)
-        {
-            return list;
-        }
-
-        pc.party.members.ForEach(chara =>
-        {
-            if (chara == owner)
-            {
-                return;
-            }
-
-            AutoAct a;
-            if (chara.ai.child.HasValue() && chara.ai.child.GetType() == GetType())
-            {
-                a = chara.ai.child as AutoAct;
-            }
-            else if (chara.ai.GetType() == GetType())
-            {
-                a = chara.ai as AutoAct;
-            }
-            else
-            {
-                return;
-            }
-
-            if (!a.IsRunning)
-            {
-                return;
-            }
-
-            var p = a.Pos;
-            if (p.HasValue())
-            {
-                list.Add(p);
-            }
-        });
-        return list;
-    }
-
     public Point FindPos(Predicate<Cell> filter, int detRangeSq, int tryBetterPath = 0)
     {
         if (useOriginalPos)
@@ -565,7 +521,6 @@ public class AutoAct : AIAct
             return Pos;
         }
 
-        var selected = GetSelectedPoints();
         var list = new List<(Point, int, int)>();
         _map.bounds.ForeachCell(cell =>
         {
@@ -577,11 +532,6 @@ public class AutoAct : AIAct
             }
 
             if (!filter(cell))
-            {
-                return;
-            }
-
-            if (selected.Contains(p))
             {
                 return;
             }
@@ -675,18 +625,12 @@ public class AutoAct : AIAct
             return Pos;
         }
 
-        var selected = GetSelectedPoints();
         var startFromCenter = h == 0;
         var list = new List<(Point, int, int, int)>();
         _map.bounds.ForeachCell(cell =>
         {
             var p = cell.GetPoint();
             if (!filter(cell))
-            {
-                return;
-            }
-
-            if (selected.Contains(p))
             {
                 return;
             }
@@ -771,7 +715,6 @@ public class AutoAct : AIAct
             }
         }
 
-        var selected = GetSelectedPoints();
         var list = new List<(Thing, int, int)>();
         _map.bounds.ForeachCell(cell =>
        {
@@ -789,11 +732,6 @@ public class AutoAct : AIAct
 
            var thing = p.Things.Find(filter);
            if (thing.IsNull())
-           {
-               return;
-           }
-
-           if (selected.Contains(p))
            {
                return;
            }
@@ -840,7 +778,6 @@ public class AutoAct : AIAct
             }
         }
 
-        var selected = GetSelectedPoints();
         var list = new List<(Chara, int)>();
         _map.charas.ForEach(chara =>
         {
@@ -852,11 +789,6 @@ public class AutoAct : AIAct
             }
 
             if (!chara.IsAliveInCurrentZone || !filter(chara))
-            {
-                return;
-            }
-
-            if (selected.Contains(p))
             {
                 return;
             }
@@ -897,17 +829,11 @@ public class AutoAct : AIAct
             return Pos;
         }
 
-        var selected = GetSelectedPoints();
         var list = new List<(Point, int, int)>();
         foreach (var p in field)
         {
             var cell = p.cell;
             if (!filter(cell))
-            {
-                continue;
-            }
-
-            if (selected.Contains(p))
             {
                 continue;
             }

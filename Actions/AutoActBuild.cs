@@ -9,7 +9,7 @@ public class AutoActBuild : AutoAct
     public int w;
     public int h;
     public bool hasSowRange;
-    public HashSet<Point> field = new();
+    public HashSet<Point> field = [];
     public Card Held => Child.held;
     public TaskBuild Child => child as TaskBuild;
     public override int MaxRestart => 0;
@@ -55,7 +55,7 @@ public class AutoActBuild : AutoAct
             var targetPos = FindNextBuildPosition();
             if (targetPos.IsNull())
             {
-                SayNoTarget();
+                // SayNoTarget();
                 yield break;
             }
 
@@ -115,7 +115,7 @@ public class AutoActBuild : AutoAct
         return f1 << 3 | f2 << 2 | f3 << 1 | f4;
     }
 
-    Point FindNextBuildPosition()
+    public Point FindNextBuildPosition()
     {
         Func<Point, bool> filter;
         var hasRange = true;
@@ -137,7 +137,7 @@ public class AutoActBuild : AutoAct
         }
         else
         {
-            filter = p => !p.HasThing && !p.HasBlock && !p.HasObj;
+            filter = p => !p.HasThing && !p.HasBlock;
             edgeOnly = true;
         }
 
@@ -147,16 +147,10 @@ public class AutoActBuild : AutoAct
             return Pos;
         }
 
-        var selected = GetSelectedPoints();
         var list = new List<(Point, int, int, int)>();
         foreach (var p in field)
         {
             if (!filter(p))
-            {
-                continue;
-            }
-
-            if (selected.Contains(p))
             {
                 continue;
             }

@@ -251,7 +251,7 @@ public class AutoActHarvestMine : AutoAct
         return false;
     }
 
-    bool PlantFilter(Cell cell)
+    public bool PlantFilter(Cell cell)
     {
         if (taskHarvest.wasReapSeed)
         {
