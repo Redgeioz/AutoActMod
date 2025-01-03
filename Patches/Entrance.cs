@@ -29,7 +29,7 @@ static class Entrance
     }
 
     [HarmonyPrefix]
-    [HarmonyPatch(typeof(Act), "Perform", new Type[] { typeof(Chara), typeof(Card), typeof(Point) })]
+    [HarmonyPatch(typeof(Act), "Perform", [typeof(Chara), typeof(Card), typeof(Point)])]
     static bool Act_Perform_Patch(Act __instance, Chara _cc, Card _tc, Point _tp, ref bool __result)
     {
         if (!_cc.IsPC || !AutoActMod.IsSwitchOn) { return true; }

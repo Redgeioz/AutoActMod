@@ -37,7 +37,7 @@ public class AutoAct : AIAct
 
     public static List<Type> GetSubClasses()
     {
-        return Assembly.GetExecutingAssembly()
+        return [.. Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(t => t.IsSubclassOf(typeof(AutoAct)))
             .OrderBy(t =>
@@ -45,8 +45,7 @@ public class AutoAct : AIAct
                 var info = t.GetField("priority");
                 var p = info.IsNull() ? 100 : (int)info.GetValue(null);
                 return p;
-            })
-            .ToList();
+            })];
     }
 
     public AutoAct() { }
@@ -68,9 +67,9 @@ public class AutoAct : AIAct
 
         foreach (var t in SubClasses)
         {
-            var info = t.GetMethod("TryCreate", new Type[] { typeof(AIAct) });
+            var info = t.GetMethod("TryCreate", [typeof(AIAct)]);
             if (info.IsNull()) { continue; }
-            var a = info.Invoke(null, new object[] { source }) as AutoAct;
+            var a = info.Invoke(null, [source]) as AutoAct;
             if (a.HasValue())
             {
                 return a;
@@ -84,9 +83,9 @@ public class AutoAct : AIAct
     {
         foreach (var t in SubClasses)
         {
-            var info = t.GetMethod("TryCreate", new Type[] { typeof(string), typeof(Card), typeof(Point) });
+            var info = t.GetMethod("TryCreate", [typeof(string), typeof(Card), typeof(Point)]);
             if (info.IsNull()) { continue; }
-            var a = info.Invoke(null, new object[] { id, target, p }) as AutoAct;
+            var a = info.Invoke(null, [id, target, p]) as AutoAct;
             if (a.HasValue())
             {
                 return a;
@@ -209,7 +208,14 @@ public class AutoAct : AIAct
 
     public Status Retry()
     {
-        return child.IsNull() ? Fail() : StartNextTask(false);
+        if (child.IsNull())
+        {
+            return Fail();
+        }
+
+        child.Success();
+
+        return KeepRunning();
     }
 
     public Status Fail()

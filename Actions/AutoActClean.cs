@@ -5,18 +5,25 @@ namespace AutoActMod.Actions;
 public class AutoActClean : AutoAct
 {
     public int detRangeSq;
-    public Point pos;
-    public override Point Pos => pos;
+    public SubActClean Child => child as SubActClean;
+    public override Point Pos => Child.pos;
 
-    public AutoActClean()
+    public AutoActClean(Point p)
     {
         detRangeSq = Settings.DetRangeSq;
+        child = new SubActClean { pos = p };
+    }
+
+    public static AutoActClean TryCreate(AIAct source)
+    {
+        if (source is not TaskClean a) { return null; }
+        return new AutoActClean(a.dest);
     }
 
     public static AutoActClean TryCreate(string id, Card target, Point pos)
     {
         if (id != "actClean") { return null; }
-        return new AutoActClean { pos = pos };
+        return new AutoActClean(pos);
     }
 
     public static bool CanClean(Point p)
@@ -36,50 +43,53 @@ public class AutoActClean : AutoAct
 
     public override IEnumerable<Status> Run()
     {
-        IEnumerable<Status> Process()
-        {
-            yield return DoGoto(pos, 1, true);
-
-            var held = owner.held;
-            if (held?.trait is not TraitBroom || !CanClean(pos))
-            {
-                yield return Fail();
-            }
-
-            var dur = pos.cell.HasLiquid ? 5 : 1;
-            for (int i = 0; i < dur; i++)
-            {
-                owner.LookAt(pos);
-                owner.renderer.NextFrame();
-                yield return KeepRunning();
-            }
-
-            _map.SetDecal(pos.x, pos.z, 0, 1, true);
-            _map.SetLiquid(pos.x, pos.z, 0, 0);
-            pos.PlayEffect("vanish");
-            owner.Say("clean", held, null, null);
-            owner.PlaySound("clean_floor", 1f, true);
-            owner.stamina.Mod(-1);
-            owner.ModExp(293, 30);
-            yield return KeepRunning();
-        };
-
         while (CanProgress())
         {
-            foreach (var status in Process())
-            {
-                yield return status;
-            }
-
-            var targetPos = FindPos(cell => CanClean(cell), detRangeSq);
+            var targetPos = FindPos(CanClean, detRangeSq);
             if (targetPos.IsNull())
             {
                 SayNoTarget();
                 yield break;
             }
 
-            pos = targetPos;
+            Child.pos = targetPos;
+            yield return StartNextTask();
         }
         yield return FailOrSuccess();
+    }
+
+    public class SubActClean : AIAct
+    {
+        public Point pos;
+        public override IEnumerable<Status> Run()
+        {
+            var parent = this.parent as AutoActClean;
+            yield return DoGoto(pos, 1, true);
+
+            if (owner.held?.trait is not TraitBroom || !CanClean(pos))
+            {
+                yield return parent.Fail();
+            }
+
+            var dur = pos.cell.HasLiquid ? 5 : 1;
+            int i = 0;
+            while (true)
+            {
+                i++;
+                owner.LookAt(pos);
+                owner.renderer.NextFrame();
+                if (i == dur) { break; }
+                yield return KeepRunning();
+            }
+
+            _map.SetDecal(pos.x, pos.z, 0, 1, true);
+            _map.SetLiquid(pos.x, pos.z, 0, 0);
+            pos.PlayEffect("vanish");
+            owner.Say("clean", owner, null, null);
+            owner.PlaySound("clean_floor", 1f, true);
+            owner.stamina.Mod(-1);
+            owner.ModExp(293, 30);
+            yield return KeepRunning();
+        }
     }
 }

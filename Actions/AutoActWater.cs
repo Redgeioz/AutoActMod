@@ -114,8 +114,7 @@ public class AutoActWater : AutoAct
 
                 if (targetPos2.cell.HasFire)
                 {
-                    // targetPos2.ModFire(-50, true);
-                    _map.ModFire(targetPos2.x, targetPos2.z, -50);
+                    targetPos2.ModFire(-50, true);
                 }
 
                 owner.PlaySound("water_farm");

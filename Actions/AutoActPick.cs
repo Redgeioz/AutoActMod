@@ -6,9 +6,9 @@ namespace AutoActMod.Actions;
 public class AutoActPick : AutoAct
 {
     public int detRangeSq;
-    public TaskPick Child => child as TaskPick;
+    public SubActPick Child => child as SubActPick;
 
-    public AutoActPick(TaskPick source) : base(source)
+    public AutoActPick(SubActPick source) : base(source)
     {
         detRangeSq = Settings.DetRangeSq;
         SetTarget(source.refThing);
@@ -18,11 +18,11 @@ public class AutoActPick : AutoAct
     {
         if (id == "actPickOne")
         {
-            return new AutoActPick(new TaskPick(pos, target as Thing, target.IsInstalled));
+            return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
         }
         else if (id == "actHold")
         {
-            return new AutoActPick(new TaskPick(pos, target as Thing, target.IsInstalled));
+            return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
         }
         return null;
     }
@@ -44,83 +44,83 @@ public class AutoActPick : AutoAct
         }
         yield break;
     }
-}
 
-public class TaskPick : TaskPoint
-{
-    public Thing refThing;
-    public bool installed;
-    public bool IsTarget(Card t) => t == refThing || t.CanStackTo(refThing);
-
-    public TaskPick() { }
-    public TaskPick(Point pos, Thing refThing, bool installed = false)
+    public class SubActPick : TaskPoint
     {
-        this.pos = pos;
-        this.refThing = refThing;
-        this.installed = installed;
-    }
+        public Thing refThing;
+        public bool installed;
+        public bool IsTarget(Card t) => t == refThing || t.CanStackTo(refThing);
 
-    public override IEnumerable<Status> Run()
-    {
-        yield return DoGoto(pos, 1, true, null);
-        bool success = false;
-        if (installed)
+        public SubActPick() { }
+        public SubActPick(Point pos, Thing refThing, bool installed = false)
         {
-            var t = pos.Installed;
-            if ((t.IsNull() || !IsTarget(t)) && pos.HasThing)
+            this.pos = pos;
+            this.refThing = refThing;
+            this.installed = installed;
+        }
+
+        public override IEnumerable<Status> Run()
+        {
+            yield return DoGoto(pos, 1, true, null);
+            bool success = false;
+            if (installed)
             {
-                t = pos.Things.Find(t => t.placeState == PlaceState.installed && IsTarget(t));
+                var t = pos.Installed;
+                if ((t.IsNull() || !IsTarget(t)) && pos.HasThing)
+                {
+                    t = pos.Things.Find(t => t.placeState == PlaceState.installed && IsTarget(t));
+                }
+                if (t.HasValue() && IsTarget(t))
+                {
+                    if (!pc.CanLift(t))
+                    {
+                        pc.Say("tooHeavy", t, null, null);
+                    }
+                    if (t.HasEditorTag(EditorTag.TreasureMelilith))
+                    {
+                        if (player.flags.pickedMelilithTreasure)
+                        {
+                            pc.PlaySound("curse3", 1f, true);
+                            pc.PlayEffect("curse", true, 0f);
+                            pc.SetFeat(1206, 1, true);
+                            player.flags.gotMelilithCurse = true;
+                        }
+                        else
+                        {
+                            Msg.Say("pickedMelilithTreasure");
+                            player.flags.pickedMelilithTreasure = true;
+                            QuestCursedManor questCursedManor = game.quests.Get<QuestCursedManor>();
+                            questCursedManor?.NextPhase();
+                        }
+                        t.c_editorTags = null;
+                    }
+                    pc.HoldCard(t, -1);
+                    if (pc.held.HasValue())
+                    {
+                        t.PlaySoundHold(false);
+                        player.RefreshCurrentHotItem();
+                        ActionMode.Adv.planRight.Update(ActionMode.Adv.mouseTarget);
+                        pc.renderer.Refresh();
+                        success = true;
+                    }
+                }
             }
-            if (t.HasValue() && IsTarget(t))
+            else
             {
-                if (!pc.CanLift(t))
+                pos.Things.Where(t => IsTarget(t)).ToArray().ForeachReverse(t =>
                 {
-                    pc.Say("tooHeavy", t, null, null);
-                }
-                if (t.HasEditorTag(EditorTag.TreasureMelilith))
-                {
-                    if (player.flags.pickedMelilithTreasure)
-                    {
-                        pc.PlaySound("curse3", 1f, true);
-                        pc.PlayEffect("curse", true, 0f);
-                        pc.SetFeat(1206, 1, true);
-                        player.flags.gotMelilithCurse = true;
-                    }
-                    else
-                    {
-                        Msg.Say("pickedMelilithTreasure");
-                        player.flags.pickedMelilithTreasure = true;
-                        QuestCursedManor questCursedManor = game.quests.Get<QuestCursedManor>();
-                        questCursedManor?.NextPhase();
-                    }
-                    t.c_editorTags = null;
-                }
-                pc.HoldCard(t, -1);
-                if (pc.held.HasValue())
-                {
-                    t.PlaySoundHold(false);
-                    player.RefreshCurrentHotItem();
-                    ActionMode.Adv.planRight.Update(ActionMode.Adv.mouseTarget);
-                    pc.renderer.Refresh();
+                    pc.Pick(t, true, true);
                     success = true;
-                }
+                });
             }
-        }
-        else
-        {
-            pos.Things.Where(t => IsTarget(t)).ToArray().ForeachReverse(t =>
+            if (success)
             {
-                pc.Pick(t, true, true);
-                success = true;
-            });
-        }
-        if (success)
-        {
-            yield break;
-        }
-        else
-        {
-            yield return Cancel();
+                yield break;
+            }
+            else
+            {
+                yield return Cancel();
+            }
         }
     }
 }

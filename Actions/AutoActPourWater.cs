@@ -7,10 +7,10 @@ public class AutoActPourWater : AutoAct
 {
     public int w;
     public int h;
-    public TaskPourWaterCustom pourWater;
-    public TaskPourWaterCustom Child => pourWater;
+    public SubActPourWater pourWater;
+    public SubActPourWater Child => pourWater;
 
-    AutoActPourWater(TaskPourWaterCustom source) : base(source)
+    AutoActPourWater(SubActPourWater source) : base(source)
     {
         pourWater = source;
 
@@ -26,7 +26,7 @@ public class AutoActPourWater : AutoAct
     public static AutoActPourWater TryCreate(AIAct source)
     {
         if (source is not TaskPourWater a) { return null; }
-        return new AutoActPourWater(new TaskPourWaterCustom(a, Settings.PourDepth));
+        return new AutoActPourWater(new SubActPourWater(a, Settings.PourDepth));
     }
 
     public override bool CanProgress()
@@ -70,38 +70,38 @@ public class AutoActPourWater : AutoAct
         }
         yield break;
     }
-}
 
-public class TaskPourWaterCustom : TaskPourWater
-{
-    public int count = 0;
-    public int targetCount;
-
-    public TaskPourWaterCustom(TaskPourWater source, int depth) : base()
+    public class SubActPourWater : TaskPourWater
     {
-        pos = source.pos;
-        pot = source.pot;
-        targetCount = depth;
-    }
+        public int count = 0;
+        public int targetCount;
 
-    public override bool CanProgress()
-    {
-        return base.CanProgress() && count < targetCount;
-    }
-
-    public override void OnCreateProgress(Progress_Custom p)
-    {
-        base.OnCreateProgress(p);
-        var action = p.onProgressComplete;
-        p.onProgressComplete = () =>
+        public SubActPourWater(TaskPourWater source, int depth) : base()
         {
-            action();
-            count += 1;
-        };
-    }
+            pos = source.pos;
+            pot = source.pot;
+            targetCount = depth;
+        }
 
-    public override void OnReset()
-    {
-        count = 0;
+        public override bool CanProgress()
+        {
+            return base.CanProgress() && count < targetCount;
+        }
+
+        public override void OnCreateProgress(Progress_Custom p)
+        {
+            base.OnCreateProgress(p);
+            var action = p.onProgressComplete;
+            p.onProgressComplete = () =>
+            {
+                action();
+                count += 1;
+            };
+        }
+
+        public override void OnReset()
+        {
+            count = 0;
+        }
     }
 }

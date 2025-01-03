@@ -39,7 +39,7 @@ public class AutoActBuild : AutoAct
 
     public override bool CanProgress()
     {
-        return base.CanProgress() && !Held.isDestroyed;
+        return base.CanProgress() && !Held.isDestroyed && owner.held == Held && Held.placeState != PlaceState.installed;
     }
 
     public override void OnStart()
