@@ -113,26 +113,22 @@ public class AutoAct : AIAct
         return null;
     }
 
-    public static AutoAct TrySetAutoAct(Chara c, AIAct source)
+    public static AutoAct TrySetAutoAct(Chara chara, AIAct source)
     {
-        IsSetting = true;
-        source.owner = c;
+        source.owner = chara;
 
         if (TryGetAutoAct(source) is not AutoAct a)
         {
             return null;
         }
 
-        a.useOriginalPos = c.IsPC;
+        SetAutoAct(chara, a);
 
-        c.SetAI(a);
-        IsSetting = false;
         return a;
     }
 
-    public static AutoAct TrySetAutoAct(Chara c, Act source, Card target, Point p)
+    public static AutoAct TrySetAutoAct(Chara chara, Act source, Card target, Point p)
     {
-        IsSetting = true;
         var id = source is DynamicAct d ? d.id : source.ToString();
 
 #if DEBUG
@@ -144,11 +140,17 @@ public class AutoAct : AIAct
             return null;
         }
 
-        a.useOriginalPos = c.IsPC;
+        SetAutoAct(chara, a);
 
-        c.SetAI(a);
-        IsSetting = false;
         return a;
+    }
+
+    public static void SetAutoAct(Chara chara, AutoAct a)
+    {
+        IsSetting = true;
+        a.useOriginalPos = chara.IsPC;
+        chara.SetAI(a);
+        IsSetting = false;
     }
 
     public Status StartNextTask(bool resetRestartCount = true)

@@ -85,7 +85,7 @@ public class AutoActWater : AutoAct
             });
             while (list.Count > 0)
             {
-                var targetPos2 = FindPosInField(list, _ => true);
+                var targetPos2 = FindPosInField(list, cell => TaskWater.ShouldWater(cell.GetPoint()));
                 if (targetPos2.IsNull())
                 {
                     SayNoTarget();
