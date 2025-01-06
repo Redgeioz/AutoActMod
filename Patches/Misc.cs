@@ -9,21 +9,10 @@ namespace AutoActMod.Patches;
 static class Misc
 {
     [HarmonyPostfix]
-    [HarmonyPatch(typeof(AM_Adv), "_OnUpdateInput")]
-    static void AM_Adv_OnUpdateInput_Patch()
-    {
-        if (EInput.leftMouse.down || EInput.rightMouse.down || EInput.middleMouse.down)
-        {
-            AutoActMod.lastHitPoint = Scene.HitPoint.Copy();
-        }
-
-    }
-
-    [HarmonyPostfix]
     [HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
     public static void CharaRenderer_OnEnterScreen_Patch()
     {
-        if (AutoActMod.active && Settings.IgnoreEnemySpotted)
+        if (AutoActMod.Active && Settings.IgnoreEnemySpotted)
         {
             EClass.player.enemySpotted = false;
         }

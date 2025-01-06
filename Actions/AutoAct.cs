@@ -34,6 +34,10 @@ public class AutoAct : AIAct
     public override int MaxRestart => 1;
     public static bool IsSetting = false;
     public static List<Type> SubClasses = GetSubClasses();
+    public delegate AutoAct TryCreateDelegate(AIAct source);
+    public delegate AutoAct TryCreateByActDelegate(string id, Card target, Point pos);
+    public static List<TryCreateDelegate> TryCreateMethods = [];
+    public static List<TryCreateByActDelegate> TryCreateByActMethods = [];
 
     public static List<Type> GetSubClasses()
     {
@@ -46,6 +50,24 @@ public class AutoAct : AIAct
                 var p = info.IsNull() ? 100 : (int)info.GetValue(null);
                 return p;
             })];
+    }
+
+    public static void InitTryCreateMethods()
+    {
+        SubClasses.ForEach(t =>
+        {
+            var info1 = t.GetMethod("TryCreate", [typeof(AIAct)]);
+            if (info1.HasValue())
+            {
+                TryCreateMethods.Add((TryCreateDelegate)info1.CreateDelegate(typeof(TryCreateDelegate)));
+            }
+
+            var info2 = t.GetMethod("TryCreate", [typeof(string), typeof(Card), typeof(Point)]);
+            if (info2.HasValue())
+            {
+                TryCreateByActMethods.Add((TryCreateByActDelegate)info2.CreateDelegate(typeof(TryCreateByActDelegate)));
+            }
+        });
     }
 
     public AutoAct() { }
@@ -65,11 +87,9 @@ public class AutoAct : AIAct
             act = act.parent;
         } while (act.HasValue());
 
-        foreach (var t in SubClasses)
+        foreach (var TryCreate in TryCreateMethods)
         {
-            var info = t.GetMethod("TryCreate", [typeof(AIAct)]);
-            if (info.IsNull()) { continue; }
-            var a = info.Invoke(null, [source]) as AutoAct;
+            var a = TryCreate(source);
             if (a.HasValue())
             {
                 return a;
@@ -81,11 +101,9 @@ public class AutoAct : AIAct
 
     public static AutoAct TryGetAutoAct(string id, Card target, Point p)
     {
-        foreach (var t in SubClasses)
+        foreach (var TryCreate in TryCreateByActMethods)
         {
-            var info = t.GetMethod("TryCreate", [typeof(string), typeof(Card), typeof(Point)]);
-            if (info.IsNull()) { continue; }
-            var a = info.Invoke(null, [id, target, p]) as AutoAct;
+            var a = TryCreate(id, target, p);
             if (a.HasValue())
             {
                 return a;
@@ -105,10 +123,7 @@ public class AutoAct : AIAct
             return null;
         }
 
-        if (c.IsPC)
-        {
-            a.useOriginalPos = true;
-        }
+        a.useOriginalPos = c.IsPC;
 
         c.SetAI(a);
         IsSetting = false;
@@ -129,10 +144,7 @@ public class AutoAct : AIAct
             return null;
         }
 
-        if (c.IsPC)
-        {
-            a.useOriginalPos = true;
-        }
+        a.useOriginalPos = c.IsPC;
 
         c.SetAI(a);
         IsSetting = false;
@@ -208,7 +220,7 @@ public class AutoAct : AIAct
 
     public Status Retry()
     {
-        if (child.IsNull())
+        if (child.IsNull() || !CanProgress())
         {
             return Fail();
         }

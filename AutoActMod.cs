@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
+using AutoActMod.Actions;
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
@@ -36,9 +38,14 @@ public class AutoActMod : BaseUnityPlugin
 
         if (Input.GetKeyDown(Settings.KeyCode))
         {
-            switchOn = !switchOn;
-            Say(AALang.GetText(switchOn ? "on" : "off"));
+            SwitchOn = !SwitchOn;
+            Say(AALang.GetText(SwitchOn ? "on" : "off"));
         }
+    }
+
+    void Start()
+    {
+        AutoAct.InitTryCreateMethods();
     }
 
     public static void Say(string text)
@@ -61,10 +68,9 @@ public class AutoActMod : BaseUnityPlugin
         Instance.Logger.LogWarning(payload);
     }
 
-    public static bool active = false;
-    public static bool switchOn = false;
-    public static bool IsSwitchOn => Settings.KeyMode ? switchOn : Input.GetKey(Settings.KeyCode);
-    public static Point lastHitPoint = Point.Zero;
+    public static bool Active = false;
+    public static bool SwitchOn = false;
+    public static bool IsSwitchOn => Settings.KeyMode ? SwitchOn : Input.GetKey(Settings.KeyCode);
     public static AutoActMod Instance { get; private set; }
 }
 
@@ -98,7 +104,9 @@ public static class Utils
         return Math.Max(dx, dz);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int GetBit(this int n, int digit) => (n >> digit) & 1;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasValue(this object obj) => obj != null;
 }

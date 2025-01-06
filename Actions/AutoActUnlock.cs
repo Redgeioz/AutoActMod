@@ -2,18 +2,12 @@ using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
 
-public class AutoActUnlock : AutoAct
+public class AutoActUnlock(AIAct source) : AutoAct(source)
 {
-    public int detRangeSq;
-    public AI_OpenLock openLock;
+    public int detRangeSq = Settings.DetRangeSq;
+    public AI_OpenLock openLock = source as AI_OpenLock;
     public AI_OpenLock Child => openLock;
     public override Point Pos => openLock.target.pos;
-
-    public AutoActUnlock(AIAct source) : base(source)
-    {
-        openLock = source as AI_OpenLock;
-        detRangeSq = Settings.DetRangeSq;
-    }
 
     public static AutoActUnlock TryCreate(AIAct source)
     {

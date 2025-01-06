@@ -4,16 +4,13 @@ namespace AutoActMod.Actions;
 
 public class AutoActWater : AutoAct
 {
-    public int detRangeSq;
+    public int detRangeSq = Settings.DetRangeSq;
     public bool waterFirst;
     public Point pos;
     public TraitToolWaterCan waterCan;
     public override Point Pos => pos;
 
-    public AutoActWater()
-    {
-        detRangeSq = Settings.DetRangeSq;
-    }
+    public AutoActWater() { }
 
     public static AutoActWater TryCreate(AIAct source)
     {
@@ -63,6 +60,7 @@ public class AutoActWater : AutoAct
                 }
 
                 // Avoid using ActDrawAct here because it might create another AutoAct
+                // (No way to check if it is performed by an AutoAct instance)
                 yield return Do(new DynamicAIAct(
                     "ActDrawWater_AutoAct",
                     () =>

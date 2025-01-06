@@ -2,12 +2,10 @@ using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
 
-public class AutoActRead : AutoAct
+public class AutoActRead(AIAct source) : AutoAct(source)
 {
     public AI_Read Child => child as AI_Read;
     public override Point Pos => owner.pos;
-
-    public AutoActRead(AIAct source) : base(source) { }
 
     public static AutoActRead TryCreate(AIAct source)
     {
