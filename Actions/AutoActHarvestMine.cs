@@ -12,7 +12,7 @@ public class AutoActHarvestMine : AutoAct
     public bool targetCanHarvest = false;
     public static int SeedId = -1;
     public static int OriginalSeedCount = 0;
-    public HashSet<Point> field = new();
+    public HashSet<Point> field = [];
     public BaseTaskHarvest initTask;
     public TaskHarvest taskHarvest;
     public TaskMine taskMine;
@@ -217,7 +217,7 @@ public class AutoActHarvestMine : AutoAct
 
     bool IsSeedCountEnough()
     {
-        if (!owner.IsPCParty || (SeedId < 0 && !simpleIdentify) || Settings.SeedReapingCount <= 0)
+        if (!owner.IsPCParty || (!taskHarvest.IsReapSeed && !taskHarvest.wasReapSeed) || Settings.SeedReapingCount <= 0)
         {
             return false;
         }
