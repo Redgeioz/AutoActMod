@@ -7,8 +7,7 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class Entrance
 {
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(Chara), "SetAI")]
+    [HarmonyPrefix, HarmonyPatch(typeof(Chara), "SetAI")]
     static bool Chara_SetAI_Patch(Chara __instance, AIAct g)
     {
 #if DEBUG
@@ -28,8 +27,7 @@ static class Entrance
         return true;
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(Act), "Perform", [typeof(Chara), typeof(Card), typeof(Point)])]
+    [HarmonyPrefix, HarmonyPatch(typeof(Act), "Perform", [typeof(Chara), typeof(Card), typeof(Point)])]
     static bool Act_Perform_Patch(Act __instance, Chara _cc, Card _tc, Point _tp, ref bool __result)
     {
         if (!_cc.IsPC || !AutoActMod.IsSwitchOn) { return true; }
@@ -46,8 +44,7 @@ static class Entrance
         return true;
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(ActPlan), "ShowContextMenu")]
+    [HarmonyPrefix, HarmonyPatch(typeof(ActPlan), "ShowContextMenu")]
     public static void ActPlan_ShowContextMenu_Patch(ActPlan __instance)
     {
         if (!__instance.pos.Equals(EClass.pc.pos))
@@ -58,8 +55,7 @@ static class Entrance
         Settings.SetupSettings(__instance);
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(ActPlan.Item), "Perform")]
+    [HarmonyPrefix, HarmonyPatch(typeof(ActPlan.Item), "Perform")]
     static bool ActPlan_Item_Perform_Patch(ActPlan.Item __instance)
     {
         if (__instance.act is DynamicAct a && a.id == AALang.GetText("settings"))

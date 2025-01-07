@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 using AutoActMod.Actions;
 using HarmonyLib;
 using UnityEngine;
@@ -8,8 +10,7 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class Misc
 {
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
+    [HarmonyPostfix, HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
     public static void CharaRenderer_OnEnterScreen_Patch()
     {
         if (AutoActMod.Active && Settings.IgnoreEnemySpotted)
@@ -18,8 +19,7 @@ static class Misc
         }
     }
 
-    [HarmonyPostfix]
-    [HarmonyPatch(typeof(AIAct), "SetChild")]
+    [HarmonyPostfix, HarmonyPatch(typeof(AIAct), "SetChild")]
     static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
     {
         if (seq is AI_Goto go && __instance is AI_Shear or TaskPoint && __instance is not TaskPlow)
@@ -29,8 +29,7 @@ static class Misc
     }
 
     // To fix AutoAct being unable to be interrupted by attacks
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(AIAct), "Success")]
+    [HarmonyPrefix, HarmonyPatch(typeof(AIAct), "Success")]
     static bool AIAct_Success_Patch(AIAct __instance, ref AIAct.Status __result)
     {
         if (__instance.child.HasValue()
@@ -49,6 +48,33 @@ static class Misc
             return false;
         }
         return true;
+    }
+
+    [HarmonyPatch(typeof(TaskBuild), nameof(TaskBuild.OnProgressComplete))]
+    static class TaskBuild_OnProgressComplete_Patch
+    {
+        internal static bool Success = false;
+        static void Prefix() => Success = false;
+        static void Postfix(TaskBuild __instance)
+        {
+            if (Success || __instance.parent is not AutoActBuild a)
+            {
+                return;
+            }
+
+            a.field.Add(__instance.pos);
+        }
+
+        static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            return new CodeMatcher(instructions)
+                .MatchStartForward(
+                    new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(Recipe), nameof(Recipe.Build), [typeof(TaskBuild)])))
+                .Advance(1)
+                .Insert(
+                    new CodeInstruction(Transpilers.EmitDelegate(() => Success = true)))
+                .InstructionEnumeration();
+        }
     }
 
 #if DEBUG

@@ -29,11 +29,7 @@ public class AutoActBuild : AutoAct
     public static AutoActBuild TryCreate(AIAct source)
     {
         if (source is not TaskBuild a) { return null; }
-        if (source.owner.IsPC)
-        {
-            var held = source.owner.held;
-            if (held.IsNull() || held.Num == 1) { return null; }
-        }
+        if (source.owner.IsPC && source.owner.held.IsNull()) { return null; }
         return new AutoActBuild(a);
     }
 
@@ -65,6 +61,21 @@ public class AutoActBuild : AutoAct
                 field.Add(targetPos);
                 return Status.Fail;
             });
+
+
+            if (!owner.IsPCParty)
+            {
+                continue;
+            }
+
+            if (owner.held.IsNull() || owner.held.isDestroyed || owner.held.GetRootCard() != pc)
+            {
+                TrySwitchHeld();
+            }
+            else if (!CheckHeld())
+            {
+                yield return Fail();
+            }
         }
         yield break;
     }
@@ -117,7 +128,7 @@ public class AutoActBuild : AutoAct
 
     public Point FindNextBuildPosition()
     {
-        Func<Point, bool> filter;
+        Predicate<Point> filter;
         var hasRange = true;
         var edgeOnly = false;
         var startFromCenter = h == 0;
@@ -313,6 +324,80 @@ public class AutoActBuild : AutoAct
         }
 
         return selector.FinalPoint;
+    }
+
+    public bool CheckHeld()
+    {
+        if (owner.held == Held)
+        {
+            return true;
+        }
+
+        var checker = GetHeldChecker();
+        if (checker.HasValue() && checker(owner.held as Thing))
+        {
+            Child.held = owner.held;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public void TrySwitchHeld()
+    {
+        var nextHeld = FindNextHeld();
+        if (nextHeld.HasValue())
+        {
+            pc.HoldCard(nextHeld);
+            Child.held = nextHeld;
+            owner.held = nextHeld;
+        }
+    }
+
+    public Thing FindNextHeld()
+    {
+        var filter = GetHeldChecker();
+        if (filter.IsNull())
+        {
+            return null;
+        }
+
+        foreach (var t in pc.things)
+        {
+            if (filter(t))
+            {
+                return t;
+            }
+            else
+            {
+                var tt = t.things.Find(filter);
+                if (tt.HasValue())
+                {
+                    return tt;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public Predicate<Thing> GetHeldChecker()
+    {
+        if (Held.category.id == "seed")
+        {
+            var seedId = sources.objs.map[Held.refVal].id;
+            return t => t.trait is TraitSeed seed && seed.row.id == seedId;
+        }
+        else if (Held.category.id == "fertilizer")
+        {
+            return t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     public void SetPosition(Point p)
