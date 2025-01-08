@@ -69,7 +69,7 @@ public class AutoActHarvestMine : AutoAct
             Point targetPos;
             if (Child is TaskHarvest && Child.target.HasValue())
             {
-                var thing = FindThing(t => IsTarget(t), detRangeSq);
+                var thing = FindThing(IsTarget, detRangeSq);
                 if (thing.IsNull())
                 {
                     SayNoTarget();
@@ -140,26 +140,7 @@ public class AutoActHarvestMine : AutoAct
             }
 
             SeedId = Pos.sourceObj.id;
-            pc.party.members.ForEach(chara =>
-            {
-                chara.things.ForEach(thing =>
-                {
-                    if (thing.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
-                    {
-                        OriginalSeedCount += thing.Num;
-                    }
-                    else
-                    {
-                        thing.things.ForEach(t =>
-                        {
-                            if (t.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
-                            {
-                                OriginalSeedCount += t.Num;
-                            }
-                        });
-                    }
-                });
-            });
+            OriginalSeedCount = CountSeed();
         }
 
         RestoreChild();
@@ -222,33 +203,40 @@ public class AutoActHarvestMine : AutoAct
             return false;
         }
 
-        var count = 0;
-        pc.party.members.ForEach(chara =>
-        {
-            chara.things.ForEach(t =>
-            {
-                if (t.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
-                {
-                    count += t.Num;
-                }
-                else
-                {
-                    t.things.ForEach(tt =>
-                    {
-                        if (tt.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
-                        {
-                            count += tt.Num;
-                        }
-                    });
-                }
-            });
-        });
+        var count = CountSeed();
 
         if (count >= Settings.SeedReapingCount + OriginalSeedCount)
         {
             return true;
         }
         return false;
+    }
+
+    public int CountSeed()
+    {
+        var count = 0;
+        pc.party.members.ForEach(chara =>
+        {
+            chara.things.ForEach(thing =>
+            {
+                if (thing.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
+                {
+                    count += thing.Num;
+                }
+                else
+                {
+                    thing.things.ForEach(t =>
+                    {
+                        if (t.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
+                        {
+                            count += t.Num;
+                        }
+                    });
+                }
+            });
+        });
+
+        return count;
     }
 
     public bool PlantFilter(Cell cell)

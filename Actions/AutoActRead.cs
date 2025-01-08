@@ -20,10 +20,29 @@ public class AutoActRead(AIAct source) : AutoAct(source)
 
     public override IEnumerable<Status> Run()
     {
-        do
+        while (true)
         {
             yield return StartNextTask();
-        } while (CanProgress());
+
+            if (CanProgress())
+            {
+                continue;
+            }
+
+            if (!Settings.SimpleIdentify)
+            {
+                break;
+            }
+
+            var next = owner.things.Find(t => t.trait is TraitBaseSpellbook && (t.trait is not TraitAncientbook || !t.isOn));
+            if (next.HasValue())
+            {
+                Child.target = next;
+                continue;
+            }
+
+            break;
+        }
         yield break;
     }
 }

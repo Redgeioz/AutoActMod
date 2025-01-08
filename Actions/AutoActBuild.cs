@@ -364,26 +364,10 @@ public class AutoActBuild : AutoAct
             return null;
         }
 
-        foreach (var t in pc.things)
-        {
-            if (filter(t))
-            {
-                return t;
-            }
-            else
-            {
-                var tt = t.things.Find(filter);
-                if (tt.HasValue())
-                {
-                    return tt;
-                }
-            }
-        }
-
-        return null;
+        return pc.things.Find(filter);
     }
 
-    public Predicate<Thing> GetHeldChecker()
+    public Func<Thing, bool> GetHeldChecker()
     {
         if (Held.category.id == "seed")
         {
