@@ -17,6 +17,12 @@ public class AutoActWait : AutoAct
     //     return new AutoActWait();
     // }
 
+    public override void OnStart()
+    {
+        SetStartPos();
+        child?.Reset();
+    }
+
     public override bool CanProgress()
     {
         return canContinue.IsNull() || canContinue();

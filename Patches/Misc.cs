@@ -72,7 +72,7 @@ static class Misc
                     new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(Recipe), nameof(Recipe.Build), [typeof(TaskBuild)])))
                 .Advance(1)
                 .Insert(
-                    new CodeInstruction(Transpilers.EmitDelegate(() => Success = true)))
+                    new CodeInstruction(Transpilers.EmitDelegate(() => { Success = true; })))
                 .InstructionEnumeration();
         }
     }
