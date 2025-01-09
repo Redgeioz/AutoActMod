@@ -63,12 +63,11 @@ public class AutoActClean : AutoAct
         public Point pos;
         public override IEnumerable<Status> Run()
         {
-            var parent = this.parent as AutoActClean;
             yield return DoGoto(pos, 1, true);
 
             if (owner.held?.trait is not TraitBroom || !CanClean(pos))
             {
-                yield return parent.Fail();
+                yield return Cancel();
             }
 
             var dur = pos.cell.HasLiquid ? 5 : 1;

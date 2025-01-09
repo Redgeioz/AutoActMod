@@ -140,16 +140,23 @@ public class AutoAct : AIAct
             return null;
         }
 
-        SetAutoAct(chara, a);
+        SetAutoAct(chara, a, true);
 
         return a;
     }
 
-    public static void SetAutoAct(Chara chara, AutoAct a)
+    public static void SetAutoAct(Chara chara, AutoAct a, bool isAct = false)
     {
         IsSetting = true;
         a.useOriginalPos = chara.IsPC;
-        chara.SetAI(a);
+        if (isAct)
+        {
+            chara.SetAIImmediate(a);
+        }
+        else
+        {
+            chara.SetAI(a);
+        }
         IsSetting = false;
     }
 

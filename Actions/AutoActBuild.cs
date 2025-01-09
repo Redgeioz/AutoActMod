@@ -29,7 +29,12 @@ public class AutoActBuild : AutoAct
     public static AutoActBuild TryCreate(AIAct source)
     {
         if (source is not TaskBuild a) { return null; }
-        if (source.owner.IsPC && source.owner.held.IsNull()) { return null; }
+        if (source.owner.IsPC
+            && (source.owner.held is not Thing t
+            || (t.Num == 1 && t.trait is not TraitSeed && t.trait is not TraitFertilizer)))
+        {
+            return null;
+        }
         return new AutoActBuild(a);
     }
 
@@ -84,7 +89,7 @@ public class AutoActBuild : AutoAct
     {
         field.Clear();
         RestoreChild();
-        if (Held.category.id == "seed" || Held.category.id == "fertilizer")
+        if (Held.trait is TraitSeed || Held.trait is TraitFertilizer)
         {
             InitFarmfield(field, startPos);
         }
@@ -132,12 +137,12 @@ public class AutoActBuild : AutoAct
         var hasRange = true;
         var edgeOnly = false;
         var startFromCenter = h == 0;
-        if (Held.category.id == "seed")
+        if (Held.trait is TraitSeed)
         {
             filter = p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed.IsNull();
             hasRange = hasSowRange;
         }
-        else if (Held.category.id == "fertilizer")
+        else if (Held.trait is TraitFertilizer)
         {
             filter = ShouldFertilize;
             hasRange = false;
@@ -369,14 +374,18 @@ public class AutoActBuild : AutoAct
 
     public Func<Thing, bool> GetHeldChecker()
     {
-        if (Held.category.id == "seed")
+        if (Held.trait is TraitSeed)
         {
             var seedId = sources.objs.map[Held.refVal].id;
             return t => t.trait is TraitSeed seed && seed.row.id == seedId;
         }
-        else if (Held.category.id == "fertilizer")
+        else if (Held.trait is TraitFertilizer)
         {
             return t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
+        }
+        else if (Held.trait is TraitDefertilizer)
+        {
+            return t => t.trait is TraitDefertilizer;
         }
         else
         {

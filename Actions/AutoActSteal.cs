@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
@@ -41,6 +42,8 @@ public class AutoActSteal : AutoAct
         return !_zone.IsUserZone && !(c.isThing & (_zone is Zone_LittleGarden)) && (c.isNPCProperty || !c.isThing) && c.trait.CanBeStolen && c.c_lockLv <= 0 && (c.isThing || !c.IsPCFaction);
     }
 
+    public bool IsTargetChara(Chara chara) => !chara.IsPCFaction && chara.things.FindStealable().HasValue();
+
     public override IEnumerable<Status> Run()
     {
         var lastTarget = Child.target;
@@ -55,7 +58,12 @@ public class AutoActSteal : AutoAct
             }
             else
             {
-                target = FindChara(chara => !chara.IsPCFaction && chara.things.FindStealable().HasValue(), detRangeSq);
+                var keepTarget = useOriginalPos;
+                target = FindChara(IsTargetChara, detRangeSq);
+                if (keepTarget && target.HasValue() && !Child.target.pos.Equals(target.pos))
+                {
+                    owner.Say("steal_chara_nothing", owner, chara);
+                }
             }
 
             if (target.IsNull())
