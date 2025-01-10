@@ -33,27 +33,27 @@ public class AutoAct : AIAct
     public Selector selector = new();
     public override int MaxRestart => 1;
     public static bool IsSetting = false;
-    public static List<Type> SubClasses = GetSubClasses();
+    public static List<Type> SubClasses = [];
     public delegate AutoAct TryCreateDelegate(AIAct source);
     public delegate AutoAct TryCreateByActDelegate(string id, Card target, Point pos);
     public static List<TryCreateDelegate> TryCreateMethods = [];
     public static List<TryCreateByActDelegate> TryCreateByActMethods = [];
 
-    public static List<Type> GetSubClasses()
+    public static void Register(Assembly assembly)
     {
-        return [.. Assembly.GetExecutingAssembly()
-            .GetTypes()
-            .Where(t => t.IsSubclassOf(typeof(AutoAct)))
-            .OrderBy(t =>
-            {
-                var info = t.GetField("priority");
-                var p = info.IsNull() ? 100 : (int)info.GetValue(null);
-                return p;
-            })];
+        SubClasses.AddRange(assembly.GetTypes().Where(t => t.IsSubclassOf(typeof(AutoAct))));
     }
 
     public static void InitTryCreateMethods()
     {
+        static int GetPriority(Type t)
+        {
+            var info = t.GetField("priority");
+            var p = info.IsNull() ? 100 : (int)info.GetValue(null);
+            return p;
+        }
+        SubClasses.Sort((a, b) =>
+            GetPriority(a) - GetPriority(b));
         SubClasses.ForEach(t =>
         {
             var info1 = t.GetMethod("TryCreate", [typeof(AIAct)]);

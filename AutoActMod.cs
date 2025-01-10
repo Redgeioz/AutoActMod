@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using AutoActMod.Actions;
+using AutoActMod.Patches;
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
@@ -26,11 +29,16 @@ public class AutoActMod : BaseUnityPlugin
         Settings.sameFarmfieldOnly = Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
         Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
         Settings.keyCode = Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
+
+        AutoAct.Register(Assembly.GetExecutingAssembly());
+
         new Harmony("AutoActMod").PatchAll();
     }
 
     void Update()
     {
+        Actions.ForEach(f => f());
+
         if (!Settings.KeyMode)
         {
             return;
@@ -46,6 +54,7 @@ public class AutoActMod : BaseUnityPlugin
     void Start()
     {
         AutoAct.InitTryCreateMethods();
+        Actions.Add(Gacha.AutoFeed);
     }
 
     public static void Say(string text)
@@ -68,6 +77,7 @@ public class AutoActMod : BaseUnityPlugin
         Instance.Logger.LogWarning(payload);
     }
 
+    public static List<Action> Actions = [];
     public static bool Active = false;
     public static bool SwitchOn = false;
     public static bool IsSwitchOn => Settings.KeyMode ? SwitchOn : Input.GetKey(Settings.KeyCode);

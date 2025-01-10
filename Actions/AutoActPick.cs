@@ -31,7 +31,7 @@ public class AutoActPick : AutoAct
     {
         while (CanProgress())
         {
-            var targetThing = FindThing(t => IsTarget(t), detRangeSq);
+            var targetThing = FindThing(IsTarget, detRangeSq);
             if (targetThing.IsNull())
             {
                 SayNoTarget();
@@ -107,7 +107,7 @@ public class AutoActPick : AutoAct
             }
             else
             {
-                pos.Things.Where(t => IsTarget(t)).ToArray().ForeachReverse(t =>
+                pos.Things.Where(IsTarget).ToArray().ForeachReverse(t =>
                 {
                     pc.Pick(t, true, true);
                     success = true;
