@@ -10,7 +10,7 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class Misc
 {
-    [HarmonyPostfix, HarmonyPatch(typeof(CharaRenderer), "OnEnterScreen")]
+    [HarmonyPostfix, HarmonyPatch(typeof(CharaRenderer), nameof(CharaRenderer.OnEnterScreen))]
     public static void CharaRenderer_OnEnterScreen_Patch()
     {
         if (AutoActMod.Active && Settings.IgnoreEnemySpotted)
@@ -19,7 +19,7 @@ static class Misc
         }
     }
 
-    [HarmonyPostfix, HarmonyPatch(typeof(AIAct), "SetChild")]
+    [HarmonyPostfix, HarmonyPatch(typeof(AIAct), nameof(AIAct.SetChild))]
     static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
     {
         if (seq is AI_Goto go && __instance is AI_Shear or TaskPoint && __instance is not TaskPlow)
@@ -29,7 +29,7 @@ static class Misc
     }
 
     // To fix AutoAct being unable to be interrupted by attacks
-    [HarmonyPrefix, HarmonyPatch(typeof(AIAct), "Success")]
+    [HarmonyPrefix, HarmonyPatch(typeof(AIAct), nameof(AIAct.Success))]
     static bool AIAct_Success_Patch(AIAct __instance, ref AIAct.Status __result)
     {
         if (__instance.child.HasValue()

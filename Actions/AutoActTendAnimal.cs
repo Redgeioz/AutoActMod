@@ -17,7 +17,7 @@ public class AutoActTendAnimal(AI_TendAnimal source) : AutoAct(source)
 
     public override bool CanProgress()
     {
-        return canContinue && owner.Tool?.trait is TraitToolBrush && owner.Tool.HasElement(237, 1);
+        return base.CanProgress() && owner.Tool?.trait is TraitToolBrush && owner.Tool.HasElement(237, 1);
     }
 
     public override IEnumerable<Status> Run()

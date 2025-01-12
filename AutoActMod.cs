@@ -29,6 +29,7 @@ public class AutoActMod : BaseUnityPlugin
         Settings.sameFarmfieldOnly = Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
         Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
         Settings.keyCode = Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
+        Settings.rangeSelectKeyCode = Config.Bind("Settings", "RangeSelectKeyCode", KeyCode.LeftAlt);
 
         AutoAct.Register(Assembly.GetExecutingAssembly());
 

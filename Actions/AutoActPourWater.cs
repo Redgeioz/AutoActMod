@@ -10,11 +10,10 @@ public class AutoActPourWater : AutoAct
     public SubActPourWater pourWater;
     public SubActPourWater Child => pourWater;
 
-    AutoActPourWater(SubActPourWater source) : base(source)
+    public AutoActPourWater(SubActPourWater source) : base(source)
     {
         pourWater = source;
 
-        SetTarget(Cell.sourceSurface);
         w = Settings.BuildRangeW;
         h = Settings.BuildRangeH;
         if (Settings.StartFromCenter)
@@ -34,6 +33,11 @@ public class AutoActPourWater : AutoAct
         return canContinue && owner.held?.trait is TraitToolWaterPot;
     }
 
+    public static bool CanPourWater(Cell cell)
+    {
+        return !cell.HasBridge && !cell.HasObj && cell.sourceSurface.tag.Contains("soil");
+    }
+
     public override IEnumerable<Status> Run()
     {
         while (CanProgress())
@@ -44,7 +48,7 @@ public class AutoActPourWater : AutoAct
                 yield return Fail();
             }
 
-            var targetPos = FindPosRefToStartPos(cell => !cell.HasBridge && IsTarget(cell.sourceFloor), w, h);
+            var targetPos = FindPosRefToStartPos(CanPourWater, w, h);
             if (targetPos.IsNull())
             {
                 yield break;
@@ -75,6 +79,8 @@ public class AutoActPourWater : AutoAct
     {
         public int count = 0;
         public int targetCount;
+
+        public SubActPourWater() : base() { }
 
         public SubActPourWater(TaskPourWater source, int depth) : base()
         {

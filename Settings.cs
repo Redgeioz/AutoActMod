@@ -21,6 +21,7 @@ public static class Settings
     public static ConfigEntry<bool> keyMode;
 
     public static ConfigEntry<KeyCode> keyCode;
+    public static ConfigEntry<KeyCode> rangeSelectKeyCode;
 
     public static int DetRangeSq
     {
@@ -98,6 +99,12 @@ public static class Settings
     {
         get { return keyCode.Value; }
         set { keyCode.Value = value; }
+    }
+
+    public static KeyCode RangeSelectKeyCode
+    {
+        get { return rangeSelectKeyCode.Value; }
+        set { rangeSelectKeyCode.Value = value; }
     }
 
     public static void SetupSettings(ActPlan actPlan)

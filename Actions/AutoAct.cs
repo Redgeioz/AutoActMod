@@ -15,6 +15,7 @@ public class AutoAct : AIAct
     public PlaceState targetPlaceState;
     public Point startPos;
     public int startDir;
+    public Action<AutoAct> onStart;
     public virtual Point Pos
     {
         get
@@ -48,7 +49,7 @@ public class AutoAct : AIAct
     {
         static int GetPriority(Type t)
         {
-            var info = t.GetField("priority");
+            var info = t.GetField("Priority");
             var p = info.IsNull() ? 100 : (int)info.GetValue(null);
             return p;
         }
@@ -145,7 +146,7 @@ public class AutoAct : AIAct
         return a;
     }
 
-    public static void SetAutoAct(Chara chara, AutoAct a, bool isAct = false)
+    public static AutoAct SetAutoAct(Chara chara, AutoAct a, bool isAct = false)
     {
         IsSetting = true;
         a.useOriginalPos = chara.IsPC;
@@ -158,6 +159,7 @@ public class AutoAct : AIAct
             chara.SetAI(a);
         }
         IsSetting = false;
+        return a;
     }
 
     public Status StartNextTask(bool resetRestartCount = true)
@@ -220,6 +222,7 @@ public class AutoAct : AIAct
         SayStart();
         SetStartPos();
         child?.Reset();
+        onStart?.Invoke(this);
     }
 
     public override void OnSuccess()
@@ -686,7 +689,17 @@ public class AutoAct : AIAct
             }
         });
 
-        foreach (var item in list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
+        IOrderedEnumerable<(Point, int, int, int)> iterator = null;
+        if (startFromCenter)
+        {
+            iterator = list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3);
+        }
+        else
+        {
+            iterator = list.OrderBy(tuple => tuple.Item4);
+        }
+
+        foreach (var item in iterator)
         {
             var (p, max, dist2, dist2ToLastPoint) = item;
             if (selector.curtPoint.HasValue() &&

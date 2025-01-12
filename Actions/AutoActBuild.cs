@@ -31,7 +31,7 @@ public class AutoActBuild : AutoAct
         if (source is not TaskBuild a) { return null; }
         if (source.owner.IsPC
             && (source.owner.held is not Thing t
-            || (t.Num == 1 && t.trait is not TraitSeed && t.trait is not TraitFertilizer)))
+            || (t.Num == 1 && t.trait is not TraitSeed and TraitFertilizer)))
         {
             return null;
         }
