@@ -56,7 +56,6 @@ public class AutoActBuild : AutoAct
             var targetPos = FindNextBuildPosition();
             if (targetPos.IsNull())
             {
-                // SayNoTarget();
                 yield break;
             }
 
@@ -91,11 +90,11 @@ public class AutoActBuild : AutoAct
         RestoreChild();
         if (Held.trait is TraitSeed || Held.trait is TraitFertilizer)
         {
-            InitFarmfield(field, startPos);
+            InitFarmfield(ref field, startPos);
         }
         else
         {
-            InitField(field, startPos, p => !p.HasBlock, useOriginalPos);
+            InitField(ref field, startPos, p => !p.HasBlock);
             var startFromCenter = h == 0;
             if (startFromCenter)
             {

@@ -68,7 +68,7 @@ internal static class RangeSelect
             return;
         }
 
-        if (HotItemHeld.taskBuild.HasValue() && (t.Num > 1 || t.trait is TraitSeed or TraitFertilizer))
+        if (HotItemHeld.taskBuild.HasValue() && (t.Num > 1 || t.trait is TraitSeed) && t.trait is not TraitFertilizer)
         {
             OnSelectComplete = SetAutoActBuild;
         }
@@ -123,6 +123,11 @@ internal static class RangeSelect
         Range.ForEach(p => p.SetHighlight(8));
     }
 
+    static Point FindNearestPoint()
+    {
+        return Range.FindMax(p => -Utils.Dist2(EClass.pc.pos, p));
+    }
+
     static void SetStartPos(AutoAct autoAct)
     {
         autoAct.startPos = StartPos;
@@ -150,7 +155,7 @@ internal static class RangeSelect
     {
         var dig = new TaskDig
         {
-            pos = EClass.pc.pos,
+            pos = FindNearestPoint(),
             mode = TaskDig.Mode.RemoveFloor,
         };
 
@@ -164,7 +169,7 @@ internal static class RangeSelect
 
     static void SetAutoActPlow()
     {
-        var plow = new TaskPlow { pos = EClass.pc.pos };
+        var plow = new TaskPlow { pos = FindNearestPoint() };
 
         SetAutoAct(new AutoActPlow(plow)
         {

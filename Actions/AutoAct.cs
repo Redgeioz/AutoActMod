@@ -150,6 +150,7 @@ public class AutoAct : AIAct
     {
         IsSetting = true;
         a.useOriginalPos = chara.IsPC;
+        chara.ai.status = chara.ai.IsNoGoal ? Status.Success : Status.Fail;
         if (isAct)
         {
             chara.SetAIImmediate(a);
@@ -434,7 +435,7 @@ public class AutoAct : AIAct
         return (d1, d2);
     }
 
-    public void InitFarmfield(HashSet<Point> field, Point p)
+    public void InitFarmfield(ref HashSet<Point> field, Point p)
     {
         Predicate<Point> filter;
 
@@ -447,10 +448,10 @@ public class AutoAct : AIAct
             filter = pt => pt.IsFarmField;
         }
 
-        InitField(field, p, filter, useOriginalPos);
+        InitField(ref field, p, filter);
     }
 
-    public static void InitField(HashSet<Point> field, Point start, Predicate<Point> filter, bool useOriginalPos = true)
+    public void InitField(ref HashSet<Point> field, Point start, Predicate<Point> filter)
     {
         var directions = new (int dx, int dz, int mask, int nextDir)[]
         {
@@ -480,10 +481,7 @@ public class AutoAct : AIAct
             }
         }
 
-        if (!useOriginalPos)
-        {
-            field.Add(start);
-        }
+        field.Add(start);
     }
 
     public void Say(string text)

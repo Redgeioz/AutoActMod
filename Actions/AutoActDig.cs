@@ -10,7 +10,6 @@ public class AutoActDig : AutoAct
 
     public AutoActDig(TaskDig source) : base(source)
     {
-        SetTarget(Cell.sourceSurface);
         w = Settings.BuildRangeW;
         h = Settings.BuildRangeH;
         if (Settings.StartFromCenter)
@@ -44,11 +43,6 @@ public class AutoActDig : AutoAct
             var targetPos = FindPosRefToStartPos(
                 cell =>
                 {
-                    if (!IsTarget(cell.sourceSurface))
-                    {
-                        return false;
-                    }
-
                     Child.pos.Set(cell.x, cell.z);
                     HitResult hitResult = Child.GetHitResult();
                     Child.pos.Set(originalPos.x, originalPos.z);

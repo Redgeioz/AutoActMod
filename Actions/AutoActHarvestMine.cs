@@ -122,6 +122,7 @@ public class AutoActHarvestMine : AutoAct
                 yield return Fail();
             }
         }
+
         yield return FailOrSuccess();
     }
 
@@ -131,7 +132,7 @@ public class AutoActHarvestMine : AutoAct
         {
             if (sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
             {
-                InitFarmfield(field, Pos);
+                InitFarmfield(ref field, Pos);
             }
 
             if (!taskHarvest.IsReapSeed || !owner.IsPC)
@@ -139,6 +140,7 @@ public class AutoActHarvestMine : AutoAct
                 return;
             }
 
+            taskHarvest.wasReapSeed = true;
             SeedId = Pos.sourceObj.id;
             OriginalSeedCount = CountSeed();
         }
@@ -198,7 +200,7 @@ public class AutoActHarvestMine : AutoAct
 
     bool IsSeedCountEnough()
     {
-        if (!owner.IsPCParty || (!taskHarvest.IsReapSeed && !taskHarvest.wasReapSeed) || Settings.SeedReapingCount <= 0)
+        if (!owner.IsPCParty || !taskHarvest.wasReapSeed || Settings.SeedReapingCount <= 0)
         {
             return false;
         }
