@@ -486,7 +486,7 @@ public class AutoAct : AIAct
 
     public void Say(string text)
     {
-        if (owner.IsNull())
+        if (owner.IsNull() || IsSetting)
         {
             return;
         }

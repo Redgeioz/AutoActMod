@@ -6,43 +6,39 @@ public class AutoActWater : AutoAct
 {
     public int detRangeSq = Settings.DetRangeSq;
     public bool waterFirst;
-    public Point pos;
     public TraitToolWaterCan waterCan;
-    public override Point Pos => pos;
+    public SubActWater subActWater = new();
+    public override Point Pos => subActWater.dest;
 
-    public AutoActWater() { }
+    public AutoActWater(Point pos)
+    {
+        subActWater.dest = pos;
+    }
 
     public static AutoActWater TryCreate(AIAct source)
     {
         if (source is not TaskWater a) { return null; }
-        return new AutoActWater { waterFirst = true };
+        return new AutoActWater(a.dest) { waterFirst = true };
     }
 
     public static AutoActWater TryCreate(string id, Card target, Point pos)
     {
         if (id != "ActDrawWater") { return null; }
-        return new AutoActWater();
+        return new AutoActWater(pos);
     }
 
     public bool IsWaterCanValid(bool msg = true)
     {
-        bool num = waterCan.HasValue() && owner.held?.trait == waterCan && waterCan.owner.c_charges > 0;
-        if (!num && msg)
-        {
-            Msg.Say("water_deplete");
-        }
-
-        return num;
+        return waterCan.HasValue() && owner.held?.trait == waterCan && waterCan.owner.c_charges > 0;
     }
 
     public override bool CanProgress()
     {
-        return base.CanProgress() && waterCan.HasValue() && owner.held?.trait == waterCan && waterCan.owner.c_charges < waterCan.MaxCharge;
+        return base.CanProgress() && waterCan.HasValue() && owner.held?.trait == waterCan;
     }
 
     public override IEnumerable<Status> Run()
     {
-        pos = owner.pos;
         waterCan = owner.held?.trait as TraitToolWaterCan;
         if (waterCan.IsNull())
         {
@@ -56,13 +52,17 @@ public class AutoActWater : AutoAct
                 var targetPos = FindPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), detRangeSq);
                 if (targetPos.IsNull())
                 {
+                    if (owner.IsPC && waterCan.owner.c_charges == 0)
+                    {
+                        Msg.Say("water_deplete");
+                    }
                     yield return Fail();
                 }
 
                 // Avoid using ActDrawAct here because it might create another AutoAct
                 // (No way to check if it is performed by an AutoAct instance)
                 yield return Do(new DynamicAIAct(
-                    "ActDrawWater_AutoAct",
+                    "SubActDrawWater_AutoAct",
                     () =>
                     {
                         owner.PlaySound("water_draw", 1f, true);
@@ -75,6 +75,7 @@ public class AutoActWater : AutoAct
             }
 
             waterFirst = false;
+
             var list = new List<Point>();
             _map.ForeachPoint(p =>
             {
@@ -83,49 +84,56 @@ public class AutoActWater : AutoAct
                     list.Add(p.Copy());
                 }
             });
-            while (list.Count > 0)
+
+            while (list.Count > 0 && IsWaterCanValid())
             {
-                var targetPos2 = FindPosInField(list, cell => TaskWater.ShouldWater(cell.GetPoint()));
-                if (targetPos2.IsNull())
+                var targetPos = FindPosInField(list, cell => TaskWater.ShouldWater(cell.GetPoint()));
+                if (targetPos.IsNull())
                 {
                     SayNoTarget();
                     yield break;
                 }
 
-                list.Remove(targetPos2);
-                yield return DoGoto(targetPos2, 1, true, () =>
-                {
-                    return Status.Running;
-                });
-
-                if (!IsWaterCanValid())
-                {
-                    yield return KeepRunning();
-                    break;
-                }
-
-                targetPos2.cell.isWatered = true;
-                if (!targetPos2.cell.blocked && rnd(5) == 0)
-                {
-                    _map.SetLiquid(targetPos2.x, targetPos2.z, 1);
-                }
-
-                if (targetPos2.cell.HasFire)
-                {
-                    targetPos2.ModFire(-50, true);
-                }
-
-                owner.PlaySound("water_farm");
-                owner.Say("water_farm", owner, targetPos2.cell.GetFloorName());
-                waterCan.owner.ModCharge(-1);
-                owner.ModExp(286, 15);
-                yield return KeepRunning();
-                if (!IsWaterCanValid())
-                {
-                    break;
-                }
+                list.Remove(targetPos);
+                subActWater.dest = targetPos;
+                yield return SetNextTask(subActWater, KeepRunning);
             }
         } while (CanProgress());
         yield return FailOrSuccess();
+    }
+
+    public class SubActWater : AIAct
+    {
+        public Point dest;
+
+        public override IEnumerable<Status> Run()
+        {
+            yield return DoGoto(dest, 1, true, () =>
+            {
+                return Status.Running;
+            });
+
+            var parent = this.parent as AutoActWater;
+            if (!parent.IsWaterCanValid())
+            {
+                yield return Cancel();
+            }
+
+            dest.cell.isWatered = true;
+            if (!dest.cell.blocked && rnd(5) == 0)
+            {
+                _map.SetLiquid(dest.x, dest.z, 1);
+            }
+
+            if (dest.cell.HasFire)
+            {
+                dest.ModFire(-50, true);
+            }
+
+            owner.PlaySound("water_farm");
+            owner.Say("water_farm", owner, dest.cell.GetFloorName());
+            parent.waterCan.owner.ModCharge(-1);
+            owner.ModExp(286, 15);
+        }
     }
 }
