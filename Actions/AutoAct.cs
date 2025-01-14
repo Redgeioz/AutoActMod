@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -100,11 +101,11 @@ public class AutoAct : AIAct
         return null;
     }
 
-    public static AutoAct TryGetAutoAct(string id, Card target, Point p)
+    public static AutoAct TryGetAutoAct(string lang, Card target, Point p)
     {
         foreach (var TryCreate in TryCreateByActMethods)
         {
-            var a = TryCreate(id, target, p);
+            var a = TryCreate(lang, target, p);
             if (a.HasValue())
             {
                 return a;
@@ -116,6 +117,11 @@ public class AutoAct : AIAct
 
     public static AutoAct TrySetAutoAct(Chara chara, AIAct source)
     {
+        if (source is DynamicAIAct dynAIAct)
+        {
+            return TrySetAutoAct(chara, dynAIAct, TC, TP.Copy());
+        }
+
         source.owner = chara;
 
         if (TryGetAutoAct(source) is not AutoAct a)
@@ -130,13 +136,24 @@ public class AutoAct : AIAct
 
     public static AutoAct TrySetAutoAct(Chara chara, Act source, Card target, Point p)
     {
-        var id = source is DynamicAct d ? d.id : source.ToString();
+        var lang = source switch
+        {
+            DynamicAct d => d.GetText(""),
+            DynamicAIAct d => d.lang,
+            _ => source.GetText(""),
+        };
 
 #if DEBUG
-        AutoActMod.Log("TrySetAutoAct: " + id);
+        var id = source switch
+        {
+            DynamicAct d => d.id,
+            DynamicAIAct d => d.ToString(),
+            _ => source.ToString(),
+        };
+        AutoActMod.Log($"TrySetAutoAct: {id} | {lang}");
 #endif
 
-        if (TryGetAutoAct(id, target, p) is not AutoAct a)
+        if (TryGetAutoAct(lang, target, p) is not AutoAct a)
         {
             return null;
         }
@@ -148,18 +165,19 @@ public class AutoAct : AIAct
 
     public static AutoAct SetAutoAct(Chara chara, AutoAct a, bool isAct = false)
     {
+        var hasNoGoal = chara.HasNoGoal;
         IsSetting = true;
         a.useOriginalPos = chara.IsPC;
-        chara.ai.status = chara.ai.IsNoGoal ? Status.Success : Status.Fail;
-        if (isAct)
-        {
-            chara.SetAIImmediate(a);
-        }
-        else
-        {
-            chara.SetAI(a);
-        }
+        chara.ai.status = hasNoGoal ? Status.Success : Status.Fail;
+        chara.SetAI(a);
         IsSetting = false;
+        if (isAct
+            && (scene.actionMode != ActionMode.Sim || !scene.paused)
+            && hasNoGoal
+            && !(chara.renderer as CharaRenderer).IsMoving)
+        {
+            a.Tick();
+        }
         return a;
     }
 

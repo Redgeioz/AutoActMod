@@ -7,6 +7,7 @@ public class AutoActPick : AutoAct
 {
     public int detRangeSq;
     public SubActPick Child => child as SubActPick;
+    public override Point Pos => Child.pos;
 
     public AutoActPick(SubActPick source) : base(source)
     {
@@ -14,13 +15,13 @@ public class AutoActPick : AutoAct
         SetTarget(source.refThing);
     }
 
-    public static AutoActPick TryCreate(string id, Card target, Point pos)
+    public static AutoActPick TryCreate(string lang, Card target, Point pos)
     {
-        if (id == "actPickOne")
+        if (lang == "actPickOne".lang())
         {
             return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
         }
-        else if (id == "actHold")
+        else if (lang == "actHold".lang())
         {
             return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
         }
@@ -45,9 +46,10 @@ public class AutoActPick : AutoAct
         yield break;
     }
 
-    public class SubActPick : TaskPoint
+    public class SubActPick : AIAct
     {
         public Thing refThing;
+        public Point pos;
         public bool installed;
         public bool IsTarget(Card t) => t == refThing || t.CanStackTo(refThing);
 
@@ -61,7 +63,11 @@ public class AutoActPick : AutoAct
 
         public override IEnumerable<Status> Run()
         {
-            yield return DoGoto(pos, 1, true, null);
+            if (Utils.Dist2(owner.pos, pos) > 2)
+            {
+                yield return DoGoto(pos, 1, true);
+            }
+
             bool success = false;
             if (installed)
             {

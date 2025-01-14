@@ -20,12 +20,6 @@ public class AutoActClean : AutoAct
         return new AutoActClean(a.dest);
     }
 
-    public static AutoActClean TryCreate(string id, Card target, Point pos)
-    {
-        if (id != "actClean") { return null; }
-        return new AutoActClean(pos);
-    }
-
     public static bool CanClean(Point p)
     {
         return TaskClean.CanClean(p);

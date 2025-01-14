@@ -21,9 +21,9 @@ public class AutoActWater : AutoAct
         return new AutoActWater(a.dest) { waterFirst = true };
     }
 
-    public static AutoActWater TryCreate(string id, Card target, Point pos)
+    public static AutoActWater TryCreate(string lang, Card target, Point pos)
     {
-        if (id != "ActDrawWater") { return null; }
+        if (lang != "ActDrawWater".lang()) { return null; }
         return new AutoActWater(pos);
     }
 
@@ -84,6 +84,12 @@ public class AutoActWater : AutoAct
                     list.Add(p.Copy());
                 }
             });
+
+            if (list.Count == 0)
+            {
+                SayNoTarget();
+                yield break;
+            }
 
             while (list.Count > 0 && IsWaterCanValid())
             {
