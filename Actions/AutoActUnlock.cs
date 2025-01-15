@@ -11,7 +11,7 @@ public class AutoActUnlock(AIAct source) : AutoAct(source)
 
     public static AutoActUnlock TryCreate(AIAct source)
     {
-        if (source is not AI_OpenLock a) { return null; }
+        if (source is not AI_OpenLock a || a.target.trait is TraitDoor) { return null; }
         return new AutoActUnlock(a);
     }
 

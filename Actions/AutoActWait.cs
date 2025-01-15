@@ -11,12 +11,6 @@ public class AutoActWait : AutoAct
 
     public AutoActWait() { }
 
-    // public static AutoActWait TryCreate(AIAct source)
-    // {
-    //     if (source is not GoalEndTurn) { return null; }
-    //     return new AutoActWait();
-    // }
-
     public override void OnStart()
     {
         SetStartPos();
