@@ -139,9 +139,22 @@ public class AutoActBuild : AutoAct
 
     public Point FindNextBuildPosition()
     {
-        var hasRange = !((Held.trait is TraitSeed && !hasSowRange) || Held.trait is TraitFertilizer);
-        var edgeOnly = Child.recipe.IsBlock;
+        var hasRange = true;
+        var edgeOnly = false;
         var startFromCenter = h == 0;
+        if (Held.trait is TraitSeed)
+        {
+            hasRange = hasSowRange;
+        }
+        else if (Held.trait is TraitFertilizer)
+        {
+            hasRange = false;
+        }
+        else if (Held.category.id != "floor" && Held.category.id != "foundation")
+        {
+            edgeOnly = true;
+        }
+
         if (useOriginalPos)
         {
             useOriginalPos = false;
@@ -366,13 +379,13 @@ public class AutoActBuild : AutoAct
                 var seedId = sources.objs.map[Held.refVal].id;
                 heldChecker = t => t.trait is TraitSeed seed && seed.row.id == seedId;
             }
-            else if (Held.trait is TraitFertilizer)
-            {
-                heldChecker = t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
-            }
             else if (Held.trait is TraitDefertilizer)
             {
                 heldChecker = t => t.trait is TraitDefertilizer;
+            }
+            else if (Held.trait is TraitFertilizer)
+            {
+                heldChecker = t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
             }
 
             return heldChecker;
