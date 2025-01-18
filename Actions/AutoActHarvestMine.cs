@@ -216,7 +216,7 @@ public class AutoActHarvestMine : AutoAct
 
     public override void OnChildSuccess()
     {
-        if (simpleIdentify == 2 && (CanHarvest(owner, Pos) || TaskMine.CanMine(Pos, owner.held)))
+        if (Settings.SimpleIdentify == 2 && (CanHarvest(owner, Pos) || TaskMine.CanMine(Pos, owner.held)))
         {
             return;
         }
