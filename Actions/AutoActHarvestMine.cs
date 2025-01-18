@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
 
 public class AutoActHarvestMine : AutoAct
 {
-    public bool simpleIdentify;
+    public int simpleIdentify;
     public int detRangeSq = 0;
     public bool hasRange = false;
     public bool targetIsWithered = false;
@@ -18,9 +19,8 @@ public class AutoActHarvestMine : AutoAct
     public TaskHarvest taskHarvest;
     public TaskMine taskMine;
     public bool isHarvest;
-    public bool IsTaskMine => !isHarvest;
-    public bool IsTaskHarvest => isHarvest;
     public BaseTaskHarvest Child => child as BaseTaskHarvest;
+    public bool SimpleIdentify => simpleIdentify > 0;
 
     public AutoActHarvestMine(BaseTaskHarvest source) : base(source)
     {
@@ -95,7 +95,7 @@ public class AutoActHarvestMine : AutoAct
                 {
                     tryBetterPath = 2;
                 }
-                else if (!simpleIdentify && owner.held.HasValue() && owner.held.HasElement(220, 1))
+                else if (!SimpleIdentify && owner.held.HasValue() && owner.held.HasElement(220, 1))
                 {
                     tryBetterPath = 1;
                 }
@@ -121,6 +121,8 @@ public class AutoActHarvestMine : AutoAct
             {
                 yield return Fail();
             }
+
+            RestoreChild();
         }
 
         yield return FailOrSuccess();
@@ -130,9 +132,11 @@ public class AutoActHarvestMine : AutoAct
     {
         this.range = range;
         hasRange = true;
-        simpleIdentify = true;
+        simpleIdentify = 2;
         targetSeedCount = 0;
     }
+
+    public bool IsWoodTree(GrowSystem growth) => growth.IsTree && !growth.CanHarvest();
 
     public void Init()
     {
@@ -146,9 +150,9 @@ public class AutoActHarvestMine : AutoAct
         {
             SetTarget(Child.target);
         }
-        else if ((!Pos.HasObj || simpleIdentify) && Pos.HasBlock)
+        else if ((!Pos.HasObj || SimpleIdentify) && Pos.HasBlock)
         {
-            if (simpleIdentify)
+            if (SimpleIdentify)
             {
                 targetId = -1;
                 return;
@@ -157,9 +161,9 @@ public class AutoActHarvestMine : AutoAct
         }
         else if (Pos.HasObj)
         {
-            if (simpleIdentify && Pos.sourceObj.HasGrowth)
+            if (SimpleIdentify && Pos.sourceObj.HasGrowth)
             {
-                targetId = Pos.sourceObj.growth.IsTree ? -2 : -3;
+                targetId = IsWoodTree(Pos.growth) ? -2 : -3;
                 if (Child is TaskHarvest)
                 {
                     PrepareForHarvest();
@@ -174,24 +178,22 @@ public class AutoActHarvestMine : AutoAct
             return;
         }
 
-        if (Pos.growth.IsNull())
-        {
-            return;
-        }
-
-        var growth = Pos.sourceObj.growth;
-        targetIsWithered = growth.IsWithered();
-        targetIsWoodTree = growth.IsTree && !growth.CanHarvest();
-        targetCanHarvest = targetIsWoodTree ? growth.IsMature : growth.CanHarvest();
-
         PrepareForHarvest();
     }
 
     void PrepareForHarvest()
     {
+        if (Pos.growth.HasValue())
+        {
+            var growth = Pos.sourceObj.growth;
+            targetIsWithered = growth.IsWithered();
+            targetIsWoodTree = IsWoodTree(Pos.growth);
+            targetCanHarvest = targetIsWoodTree ? growth.IsMature : growth.CanHarvest();
+        }
+
         if (Settings.SameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
         {
-            SetRange(InitFarmField(Pos));
+            range = InitFarmField(Pos);
         }
 
         if (taskHarvest.IsReapSeed)
@@ -214,7 +216,7 @@ public class AutoActHarvestMine : AutoAct
 
     public override void OnChildSuccess()
     {
-        if (Settings.SimpleIdentify && (TaskHarvest.TryGetAct(pc, Pos).HasValue() || TaskMine.CanMine(Pos, pc.held)))
+        if (simpleIdentify == 2 && (CanHarvest(owner, Pos) || TaskMine.CanMine(Pos, owner.held)))
         {
             return;
         }
@@ -245,14 +247,14 @@ public class AutoActHarvestMine : AutoAct
         {
             chara.things.ForEach(thing =>
             {
-                if (thing.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
+                if (thing.trait is TraitSeed seed && (seed.row.id == SeedId || SimpleIdentify))
                 {
                     count += thing.Num;
                     return;
                 }
                 thing.things.ForEach(t =>
                 {
-                    if (t.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
+                    if (t.trait is TraitSeed seed && (seed.row.id == SeedId || SimpleIdentify))
                     {
                         count += t.Num;
                     }
@@ -270,7 +272,7 @@ public class AutoActHarvestMine : AutoAct
             return cell.CanReapSeed();
         }
 
-        if (simpleIdentify)
+        if (simpleIdentify == 2)
         {
             return true;
         }
@@ -306,15 +308,21 @@ public class AutoActHarvestMine : AutoAct
         var originalX = Child.pos.x;
         var originalZ = Child.pos.z;
         Child.pos.Set(cell.x, cell.z);
-        Child.SetTarget(owner);
-        Child.pos.Set(originalX, originalZ);
-
-        return !Child.IsTooHard;
+        if (taskHarvest.CanProgress() || TaskMine.CanMine(Pos, owner.held))
+        {
+            Child.SetTarget(owner);
+            Child.pos.Set(originalX, originalZ);
+            return !Child.IsTooHard;
+        }
+        else
+        {
+            Child.pos.Set(originalX, originalZ);
+            return false;
+        }
     }
 
     public void SetPosition(Point p)
     {
-        RestoreChild();
         Child.pos.Set(p.x, p.z);
     }
 
@@ -323,6 +331,81 @@ public class AutoActHarvestMine : AutoAct
         taskHarvest.SetOwner(owner);
         taskMine.SetOwner(owner);
         taskHarvest.isDestroyed = false;
+        taskHarvest.harvestingCrop = false;
         taskMine.isDestroyed = false;
+    }
+
+    public static bool CanHarvest(Chara c, Point p)
+    {
+        Thing t = c.Tool;
+        bool hasTool = t != null && (t.HasElement(225) || t.HasElement(220));
+        bool hasDiggingTool = t != null && t.HasElement(230);
+        if (t != null)
+        {
+            if (t.trait is TraitToolShears)
+            {
+                return false;
+            }
+
+            if (t.trait is TraitToolWaterCan)
+            {
+                return false;
+            }
+
+            if (t.trait is TraitToolMusic)
+            {
+                return false;
+            }
+
+            if (t.trait is TraitToolSickle && !p.cell.CanReapSeed())
+            {
+                return false;
+            }
+        }
+
+        if (p.HasObj && IsValidTarget(p.sourceObj.reqHarvest))
+        {
+            return true;
+        }
+
+        if (p.HasThing)
+        {
+            for (int num = p.Things.Count - 1; num >= 0; num--)
+            {
+                t = p.Things[num];
+                if (t.trait.ReqHarvest != null && IsValidTarget(t.trait.ReqHarvest.Split(',')))
+                {
+                    return true;
+                }
+            }
+
+            for (int num2 = p.Things.Count - 1; num2 >= 0; num2--)
+            {
+                t = p.Things[num2];
+                if (!t.isHidden && !t.isMasked && t.trait.CanBeDisassembled && c.Tool?.trait is TraitToolHammer)
+                {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+        bool IsValidTarget(string[] raw)
+        {
+            if (raw[0] == "digging")
+            {
+                return hasDiggingTool;
+            }
+
+            bool num3 = p.cell.CanHarvest();
+            int num4 = num3 ? 250 : sources.elements.alias[raw[0]].id;
+            bool flag = !num3 && num4 != 250;
+            if (!flag && t != null && !t.trait.CanHarvest)
+            {
+                return false;
+            }
+
+            return !flag || hasTool;
+        }
     }
 }

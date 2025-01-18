@@ -213,7 +213,7 @@ internal static class RangeSelect
     static void SetAutoActHarvestMine()
     {
         var taskHarvest = new TaskHarvest { pos = StartPos };
-        var c = Range.RemoveAll(p => TaskHarvest.TryGetAct(EClass.pc, p).IsNull() && !TaskMine.CanMine(p, EClass.pc.held));
+        var c = Range.RemoveAll(p => !AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held));
         if (Range.Count == 0)
         {
             return;

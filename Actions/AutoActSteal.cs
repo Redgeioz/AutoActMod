@@ -17,7 +17,7 @@ public class AutoActSteal : AutoAct
         steal.target ??= TC;
         pos = Child.target.pos;
         detRangeSq = Settings.DetRangeSq;
-        if (Settings.SimpleIdentify && Child.target is not Chara)
+        if (Settings.SimpleIdentify > 0 && Child.target is not Chara)
         {
             targetId = -1;
         }

@@ -16,7 +16,7 @@ public static class Settings
     public static ConfigEntry<bool> staminaCheck;
     public static ConfigEntry<bool> sameFarmfieldOnly;
     public static ConfigEntry<bool> ignoreEnemySpotted;
-    public static ConfigEntry<bool> simpleIdentify;
+    public static ConfigEntry<int> simpleIdentify;
     public static ConfigEntry<bool> startFromCenter;
     public static ConfigEntry<bool> keyMode;
 
@@ -77,7 +77,7 @@ public static class Settings
         set { ignoreEnemySpotted.Value = value; }
     }
 
-    public static bool SimpleIdentify
+    public static int SimpleIdentify
     {
         get { return simpleIdentify.Value; }
         set { simpleIdentify.Value = value; }
@@ -152,7 +152,6 @@ public static class Settings
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
             menu.AddToggle(AALang.GetText("ignoreEnemySpotted"), IgnoreEnemySpotted, v => IgnoreEnemySpotted = v);
-            menu.AddToggle(AALang.GetText("simpleIdentify"), SimpleIdentify, v => SimpleIdentify = v);
             menu.AddToggle(AALang.GetText("startFromCenter"), StartFromCenter, v =>
             {
                 StartFromCenter = v;
@@ -281,6 +280,27 @@ public static class Settings
                 true,
                 false
             );
+            menu.AddSlider(
+                AALang.GetText("simpleIdentify"),
+                v =>
+                {
+                    SimpleIdentify = (int)v;
+                    if (SimpleIdentify == 0)
+                    {
+                        return AALang.GetText("off");
+                    }
+                    else
+                    {
+                        return v.ToString();
+                    }
+                },
+                SimpleIdentify,
+                v => { },
+                0,
+                2,
+                true,
+                false
+            );
             var seedReapingCountMax = 101;
             menu.AddSlider(
                 AALang.GetText("seedReapingCount"),
@@ -339,12 +359,13 @@ public static class AALang
                 { "start", "自动行动，启动！"},
                 { "fail", "自动行动已中断。"},
                 { "noTarget", "自动行动没有找到下一个目标。"},
-                { "on", "自动行动，启动！"},
-                { "off", "自动行动，关闭。"},
+                { "aaon", "自动行动，启动！"},
+                { "aaoff", "自动行动，关闭。"},
                 { "staminaCheck", "精力为零时停止　　　　　　　　" },
                 { "entireFarmfield", "所选的整个田地" },
                 { "followBuildRange", "同建造范围" },
-                { "simpleIdentify", "简单识别　　　　　　　　　　　" },
+                { "simpleIdentify", "简单识别" },
+                { "off", "关闭"},
                 { "ignoreEnemySpotted", "忽视发现的敌人　　　　　　　　" },
                 { "startFromCenter", "从中心开始（限制为正方形）　　" },
                 { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
@@ -366,12 +387,13 @@ public static class AALang
                 { "start", "自動行動，啟動！"},
                 { "fail", "自動行動已中斷。"},
                 { "noTarget", "自動行動沒有找到下一個目標。"},
-                { "on", "自動行動，啟動！"},
-                { "off", "自動行動，關閉。"},
+                { "aaon", "自動行動，啟動！"},
+                { "aaoff", "自動行動，關閉。"},
                 { "staminaCheck", "精力為零時停止　　　　　　　　" },
                 { "entireFarmfield", "所選的整個田地" },
                 { "followBuildRange", "同建造範圍" },
-                { "simpleIdentify", "簡單識別　　　　　　　　　　　" },
+                { "simpleIdentify", "簡單識別" },
+                { "off", "關閉"},
                 { "ignoreEnemySpotted", "忽視發現的敵人　　　　　　　　" },
                 { "startFromCenter", "从中心開始（限製為正方形）　　" },
                 { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
@@ -393,12 +415,13 @@ public static class AALang
                 { "start", "自動行動開始済み。"},
                 { "fail", "自動行動中断済み。"},
                 { "noTarget", "自動行動は次目標を発見できず。"},
-                { "on", "自動行動：オン。"},
-                { "off", "自動行動：オフ。"},
+                { "aaon", "自動行動：オン。"},
+                { "aaoff", "自動行動：オフ。"},
                 { "staminaCheck", "スタミナゼロで停止　　　　　　" },
                 { "entireFarmfield", "選択された農地全体" },
                 { "followBuildRange", "建設範囲と同じ" },
-                { "simpleIdentify", "簡単な識別　　　　　　　　　　" },
+                { "simpleIdentify", "簡単識別" },
+                { "off", "オフ"},
                 { "ignoreEnemySpotted", "発見した敵を無視する　　　　　" },
                 { "startFromCenter", "中心から開始（正方形に制限）　" },
                 { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
@@ -420,12 +443,13 @@ public static class AALang
                 { "start", "Auto Act started."},
                 { "fail", "Auto Act was interrupted."},
                 { "noTarget", "Auto Act could not find the next target."},
-                { "on", "Auto Act: On."},
-                { "off", "Auto Act: Off."},
+                { "aaon", "Auto Act: On."},
+                { "aaoff", "Auto Act: Off."},
                 { "staminaCheck", "Stop When Zero Stamina　　　　　　　　　　　　　　　　　" },
                 { "entireFarmfield", "The Entire Selected Farmfield" },
                 { "followBuildRange", "Follow The Building Range" },
-                { "simpleIdentify", "Simple Identification　　　　　　　　　　　　　　　　　 　 　" },
+                { "simpleIdentify", "Simple Identification" },
+                { "off", "Off"},
                 { "ignoreEnemySpotted", "Ignore Enemy Spotted　　　　　　　　　　　　　　　　　　　" },
                 { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
                 { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },

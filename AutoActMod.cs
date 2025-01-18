@@ -25,7 +25,7 @@ public class AutoActMod : BaseUnityPlugin
         Settings.seedReapingCount = Config.Bind("Settings", "SeedReapingCount", 25);
         Settings.staminaCheck = Config.Bind("Settings", "StaminaCheck", true);
         Settings.ignoreEnemySpotted = Config.Bind("Settings", "IgnoreEnemySpotted", true);
-        Settings.simpleIdentify = Config.Bind("Settings", "SimpleIdentify", false);
+        Settings.simpleIdentify = Config.Bind("Settings", "SimpleIdentify", 0);
         Settings.sameFarmfieldOnly = Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
         Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
         Settings.keyCode = Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
@@ -48,7 +48,7 @@ public class AutoActMod : BaseUnityPlugin
         if (Input.GetKeyDown(Settings.KeyCode))
         {
             SwitchOn = !SwitchOn;
-            Say(AALang.GetText(SwitchOn ? "on" : "off"));
+            Say(AALang.GetText(SwitchOn ? "aaon" : "aaoff"));
         }
     }
 

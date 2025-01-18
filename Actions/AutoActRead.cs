@@ -29,7 +29,7 @@ public class AutoActRead(AIAct source) : AutoAct(source)
                 continue;
             }
 
-            if (!Settings.SimpleIdentify)
+            if (Settings.SimpleIdentify == 0)
             {
                 break;
             }
