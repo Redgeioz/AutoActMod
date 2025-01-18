@@ -84,6 +84,10 @@ internal static class RangeSelect
         {
             OnSelectComplete = SetAutoActPourWater;
         }
+        else if (t.trait is not (TraitToolShears or TraitToolWaterCan or TraitToolMusic or TraitFertilizer))
+        {
+            OnSelectComplete = SetAutoActHarvestMine;
+        }
         else
         {
             Reset();
@@ -134,21 +138,23 @@ internal static class RangeSelect
         autoAct.startDir = 2;
     }
 
-    static void SetAutoAct(AutoAct a)
+    static AutoAct SetAutoAct(AutoAct a)
     {
         var autoAct = AutoAct.SetAutoAct(EClass.pc, a);
         autoAct.useOriginalPos = false;
+        return autoAct;
     }
 
     static void SetAutoActBuild()
     {
-        SetAutoAct(new AutoActBuild(HotItemHeld.taskBuild)
+        var autoAct = SetAutoAct(new AutoActBuild(HotItemHeld.taskBuild)
         {
             w = Width,
             h = Height,
             hasSowRange = true,
             onStart = SetStartPos,
-        });
+        }) as AutoActBuild;
+        autoAct.range = Range;
     }
 
     static void SetAutoActDig()
@@ -159,24 +165,28 @@ internal static class RangeSelect
             mode = TaskDig.Mode.RemoveFloor,
         };
 
-        SetAutoAct(new AutoActDig(dig)
+        var autoAct = SetAutoAct(new AutoActDig(dig)
         {
             w = Width,
             h = Height,
             onStart = SetStartPos,
-        });
+        }) as AutoActDig;
+
+        autoAct.range = Range;
     }
 
     static void SetAutoActPlow()
     {
         var plow = new TaskPlow { pos = FindNearestPoint() };
 
-        SetAutoAct(new AutoActPlow(plow)
+        var autoAct = SetAutoAct(new AutoActPlow(plow)
         {
             w = Width,
             h = Height,
             onStart = SetStartPos,
-        });
+        }) as AutoActPlow;
+
+        autoAct.range = Range;
     }
 
     static void SetAutoActPourWater()
@@ -194,5 +204,17 @@ internal static class RangeSelect
             h = Height,
             onStart = SetStartPos
         });
+    }
+
+    static void SetAutoActHarvestMine()
+    {
+        var taskHarvest = new TaskHarvest { pos = StartPos };
+        var c = Range.RemoveAll(p => TaskHarvest.TryGetAct(EClass.pc, p).IsNull() && !TaskMine.CanMine(p, EClass.pc.held));
+        if (Range.Count == 0)
+        {
+            return;
+        }
+        var autoAct = SetAutoAct(new AutoActHarvestMine(taskHarvest)) as AutoActHarvestMine;
+        autoAct.SetRange(Range);
     }
 }

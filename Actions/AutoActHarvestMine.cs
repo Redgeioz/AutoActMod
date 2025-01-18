@@ -5,14 +5,15 @@ namespace AutoActMod.Actions;
 public class AutoActHarvestMine : AutoAct
 {
     public bool simpleIdentify;
-    public bool sameFarmfieldOnly;
     public int detRangeSq = 0;
+    public bool hasRange = false;
     public bool targetIsWithered = false;
     public bool targetIsWoodTree = false;
     public bool targetCanHarvest = false;
     public static int SeedId = -1;
     public static int OriginalSeedCount = 0;
-    public HashSet<Point> field = [];
+    public int targetSeedCount = 0;
+    public List<Point> range = [];
     public BaseTaskHarvest initTask;
     public TaskHarvest taskHarvest;
     public TaskMine taskMine;
@@ -44,8 +45,8 @@ public class AutoActHarvestMine : AutoAct
         }
 
         simpleIdentify = Settings.SimpleIdentify;
-        sameFarmfieldOnly = Settings.SameFarmfieldOnly;
         detRangeSq = Settings.DetRangeSq;
+        targetSeedCount = Settings.SeedReapingCount;
     }
 
     public static AutoActHarvestMine TryCreate(AIAct source)
@@ -83,10 +84,9 @@ public class AutoActHarvestMine : AutoAct
                 continue;
             }
 
-            if (Child is TaskHarvest && sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
+            if (hasRange)
             {
-                targetPos = FindPosInField(field, c => c.growth.HasValue() && IsTarget(c.sourceObj) && PlantFilter(c));
-                field.Remove(targetPos);
+                targetPos = FindPosInField(range, CommonFilter);
             }
             else
             {
@@ -126,27 +126,23 @@ public class AutoActHarvestMine : AutoAct
         yield return FailOrSuccess();
     }
 
+    public void SetRange(List<Point> range)
+    {
+        this.range = range;
+        hasRange = true;
+        simpleIdentify = true;
+        targetSeedCount = 0;
+    }
+
     public void Init()
     {
-        void PrepareForHarvest()
-        {
-            if (sameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
-            {
-                InitFarmfield(ref field, Pos);
-            }
-
-            if (!taskHarvest.IsReapSeed || !owner.IsPC)
-            {
-                return;
-            }
-
-            taskHarvest.wasReapSeed = true;
-            SeedId = Pos.sourceObj.id;
-            OriginalSeedCount = CountSeed();
-        }
-
         RestoreChild();
-        if (Child.target.HasValue())
+        if (hasRange)
+        {
+            targetId = -4;
+            return;
+        }
+        else if (Child.target.HasValue())
         {
             SetTarget(Child.target);
         }
@@ -164,7 +160,7 @@ public class AutoActHarvestMine : AutoAct
             if (simpleIdentify && Pos.sourceObj.HasGrowth)
             {
                 targetId = Pos.sourceObj.growth.IsTree ? -2 : -3;
-                if (Child is TaskHarvest th)
+                if (Child is TaskHarvest)
                 {
                     PrepareForHarvest();
                 }
@@ -173,7 +169,7 @@ public class AutoActHarvestMine : AutoAct
             SetTarget(Pos.sourceObj);
         }
 
-        if (Child is not TaskHarvest t)
+        if (Child is not TaskHarvest)
         {
             return;
         }
@@ -187,9 +183,27 @@ public class AutoActHarvestMine : AutoAct
         targetIsWithered = growth.IsWithered();
         targetIsWoodTree = growth.IsTree && !growth.CanHarvest();
         targetCanHarvest = targetIsWoodTree ? growth.IsMature : growth.CanHarvest();
-        field.Clear();
 
         PrepareForHarvest();
+    }
+
+    void PrepareForHarvest()
+    {
+        if (Settings.SameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
+        {
+            SetRange(InitFarmfield(Pos));
+        }
+
+        if (taskHarvest.IsReapSeed)
+        {
+            taskHarvest.wasReapSeed = true;
+        }
+
+        if (owner.IsPC)
+        {
+            SeedId = Pos.sourceObj.id;
+            OriginalSeedCount = CountSeed();
+        }
     }
 
     public override void OnStart()
@@ -198,16 +212,21 @@ public class AutoActHarvestMine : AutoAct
         Init();
     }
 
+    public override void OnChildSuccess()
+    {
+        range.Remove(Pos);
+    }
+
     bool IsSeedCountEnough()
     {
-        if (!owner.IsPCParty || !taskHarvest.wasReapSeed || Settings.SeedReapingCount <= 0)
+        if (!owner.IsPCParty || !taskHarvest.wasReapSeed || targetSeedCount <= 0)
         {
             return false;
         }
 
         var count = CountSeed();
 
-        if (count >= Settings.SeedReapingCount + OriginalSeedCount)
+        if (count >= targetSeedCount + OriginalSeedCount)
         {
             return true;
         }
@@ -224,17 +243,15 @@ public class AutoActHarvestMine : AutoAct
                 if (thing.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
                 {
                     count += thing.Num;
+                    return;
                 }
-                else
+                thing.things.ForEach(t =>
                 {
-                    thing.things.ForEach(t =>
+                    if (t.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
                     {
-                        if (t.trait is TraitSeed seed && (seed.row.id == SeedId || simpleIdentify))
-                        {
-                            count += t.Num;
-                        }
-                    });
-                }
+                        count += t.Num;
+                    }
+                });
             });
         });
 
@@ -246,6 +263,11 @@ public class AutoActHarvestMine : AutoAct
         if (taskHarvest.wasReapSeed)
         {
             return cell.CanReapSeed();
+        }
+
+        if (simpleIdentify)
+        {
+            return true;
         }
 
         var isWoodTree = targetIsWoodTree && !cell.CanHarvest();
@@ -266,17 +288,23 @@ public class AutoActHarvestMine : AutoAct
 
     public bool CommonFilter(Cell cell)
     {
-        if (!((cell.HasObj && IsTarget(cell.sourceObj)) || (cell.HasBlock && !cell.HasObj && IsTarget(cell.sourceBlock))))
+        if (!(cell.HasObj && IsTarget(cell.sourceObj)) && !(cell.HasBlock && !cell.HasObj && IsTarget(cell.sourceBlock)))
         {
             return false;
         }
 
-        if (cell.growth.HasValue())
+        if (cell.sourceObj.HasGrowth && !PlantFilter(cell))
         {
-            return PlantFilter(cell);
+            return false;
         }
 
-        return true;
+        var originalX = Child.pos.x;
+        var originalZ = Child.pos.z;
+        Child.pos.Set(cell.x, cell.z);
+        Child.SetTarget(owner);
+        Child.pos.Set(originalX, originalZ);
+
+        return !Child.IsTooHard;
     }
 
     public void SetPosition(Point p)

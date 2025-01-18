@@ -7,6 +7,7 @@ public class AutoActPlow : AutoAct
     public int w;
     public int h;
     public TaskPlow Child => child as TaskPlow;
+    public List<Point> range;
 
     public AutoActPlow(TaskPlow source) : base(source)
     {
@@ -48,5 +49,13 @@ public class AutoActPlow : AutoAct
             yield return StartNextTask();
         } while (CanProgress());
         yield return FailOrSuccess();
+    }
+
+    public override void OnChildSuccess()
+    {
+        if (range.HasValue())
+        {
+            range.Remove(Pos);
+        }
     }
 }

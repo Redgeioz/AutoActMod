@@ -249,6 +249,8 @@ public class AutoAct : AIAct
         CancelRetry();
     }
 
+    public virtual void OnChildSuccess() { }
+
     public Status Retry()
     {
         if (child.IsNull() || !CanProgress())
@@ -327,6 +329,10 @@ public class AutoAct : AIAct
         else if (targetId == -3)
         {
             return r is SourceObj.Row obj && obj.HasGrowth && !obj.growth.IsTree;
+        }
+        else if (targetId == -4)
+        {
+            return true;
         }
 
         var id = r.id;
@@ -453,7 +459,7 @@ public class AutoAct : AIAct
         return (d1, d2);
     }
 
-    public void InitFarmfield(ref HashSet<Point> field, Point p)
+    public List<Point> InitFarmfield(Point p)
     {
         Predicate<Point> filter;
 
@@ -466,11 +472,12 @@ public class AutoAct : AIAct
             filter = pt => pt.IsFarmField;
         }
 
-        InitField(ref field, p, filter);
+        return InitRange(p, filter);
     }
 
-    public void InitField(ref HashSet<Point> field, Point start, Predicate<Point> filter)
+    public List<Point> InitRange(Point start, Predicate<Point> filter)
     {
+        var range = new HashSet<Point>();
         var directions = new (int dx, int dz, int mask, int nextDir)[]
         {
                 (-1, 0, 0b0001, 0b1101),
@@ -492,14 +499,15 @@ public class AutoAct : AIAct
 
                 var neighbor = new Point(current.x + dx, current.z + dz);
 
-                if (neighbor.IsInBounds && filter(neighbor) && field.Add(neighbor))
+                if (neighbor.IsInBounds && filter(neighbor) && range.Add(neighbor))
                 {
                     stack.Push((neighbor, nextDir));
                 }
             }
         }
 
-        field.Add(start);
+        range.Add(start);
+        return [.. range];
     }
 
     public void Say(string text)

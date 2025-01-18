@@ -9,7 +9,9 @@ public class AutoActBuild : AutoAct
     public int w;
     public int h;
     public bool hasSowRange;
-    public HashSet<Point> field = [];
+    public Func<Point, bool> pointChecker;
+    public Func<Thing, bool> heldChecker;
+    public List<Point> range = [];
     public Card Held => Child.held;
     public TaskBuild Child => child as TaskBuild;
     public override int MaxRestart => 0;
@@ -31,7 +33,7 @@ public class AutoActBuild : AutoAct
         if (source is not TaskBuild a) { return null; }
         if (source.owner.IsPC
             && (source.owner.held is not Thing t
-            || (t.Num == 1 && t.trait is not TraitSeed and TraitFertilizer)))
+            || (t.Num == 1 && t.trait is not (TraitSeed or TraitFertilizer))))
         {
             return null;
         }
@@ -49,6 +51,11 @@ public class AutoActBuild : AutoAct
         Init();
     }
 
+    public override void OnChildSuccess()
+    {
+        var c = range.Remove(Pos);
+    }
+
     public override IEnumerable<Status> Run()
     {
         while (CanProgress())
@@ -60,12 +67,7 @@ public class AutoActBuild : AutoAct
             }
 
             SetPosition(targetPos);
-            yield return StartNextTask(() =>
-            {
-                field.Add(targetPos);
-                return Status.Fail;
-            });
-
+            yield return StartNextTask();
 
             if (!owner.IsPCParty)
             {
@@ -86,36 +88,41 @@ public class AutoActBuild : AutoAct
 
     public void Init()
     {
-        field.Clear();
         RestoreChild();
         if (Held.trait is TraitSeed || Held.trait is TraitFertilizer)
         {
-            InitFarmfield(ref field, startPos);
-        }
-        else
-        {
-            InitField(ref field, startPos, p => !p.HasBlock);
-            var startFromCenter = h == 0;
-            if (startFromCenter)
+            if (range.Count == 0)
             {
-                if (Child.recipe.IsWallOrFence || Child.recipe.IsBlock)
-                {
-                    // skip
-                    useOriginalPos = false;
-                }
+                range = InitFarmfield(startPos);
             }
-            else if (Child.recipe.IsWallOrFence)
+            return;
+        }
+
+        if (range.Count == 0)
+        {
+            range = InitRange(startPos, p => !p.HasBlock);
+        }
+
+        var startFromCenter = h == 0;
+        if (startFromCenter)
+        {
+            if (Child.recipe.IsWallOrFence || Child.recipe.IsBlock)
             {
-                var dir = CalcBuildDirection(0b1001);
-                if (dir == 3)
-                {
-                    // skip
-                    useOriginalPos = false;
-                }
-                else
-                {
-                    Child.recipe._dir = dir;
-                }
+                // skip
+                useOriginalPos = false;
+            }
+        }
+        else if (Child.recipe.IsWallOrFence)
+        {
+            var dir = CalcBuildDirection(0b1001);
+            if (dir == 3)
+            {
+                // skip
+                useOriginalPos = false;
+            }
+            else
+            {
+                Child.recipe._dir = dir;
             }
         }
     }
@@ -132,40 +139,20 @@ public class AutoActBuild : AutoAct
 
     public Point FindNextBuildPosition()
     {
-        Predicate<Point> filter;
-        var hasRange = true;
-        var edgeOnly = false;
+        var hasRange = !((Held.trait is TraitSeed && !hasSowRange) || Held.trait is TraitFertilizer);
+        var edgeOnly = Child.recipe.IsBlock;
         var startFromCenter = h == 0;
-        if (Held.trait is TraitSeed)
-        {
-            filter = p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed.IsNull();
-            hasRange = hasSowRange;
-        }
-        else if (Held.trait is TraitFertilizer)
-        {
-            filter = ShouldFertilize;
-            hasRange = false;
-        }
-        else if (Held.category.id == "floor" || Held.category.id == "foundation")
-        {
-            filter = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != startPos.cell.sourceSurface;
-        }
-        else
-        {
-            filter = p => !p.HasThing && !p.HasBlock;
-            edgeOnly = true;
-        }
-
         if (useOriginalPos)
         {
+            range.RemoveAll(p => !PointChecker(p));
             useOriginalPos = false;
             return Pos;
         }
 
         var list = new List<(Point, int, int, int)>();
-        foreach (var p in field)
+        foreach (var p in range)
         {
-            if (!filter(p))
+            if (!PointChecker(p))
             {
                 continue;
             }
@@ -175,34 +162,30 @@ public class AutoActBuild : AutoAct
             if (startFromCenter)
             {
                 var max = CalcMaxDeltaToStartPos(p);
-                if (hasRange && max > w / 2)
+                if ((hasRange && max > w / 2) || (edgeOnly && max != w / 2))
                 {
                     continue;
                 }
 
-                if (edgeOnly && max != w / 2)
+                if (max > 1)
                 {
+                    list.Add((p, max, dist2, dist2ToLastPoint));
                     continue;
                 }
 
-                if (max <= 1)
+                if (!Child.recipe.IsWallOrFence)
                 {
-                    if (Child.recipe.IsWallOrFence)
-                    {
-                        var refPos = new Point(startPos.x + w / 2, startPos.z + w / 2);
-                        var (d1, d2) = CalcDelta(p, refPos, 0);
-                        var dir = CalcBuildDirection(CalcPositionInfo(d1, d2), 0);
-                        if (dir != 3 && selector.TrySet(p, max, max - 1, dist2ToLastPoint))
-                        {
-                            Child.recipe._dir = dir;
-                        }
-                        continue;
-                    }
                     selector.TrySet(p, max, max - 1, dist2ToLastPoint);
                     continue;
                 }
 
-                list.Add((p, max, dist2, dist2ToLastPoint));
+                var refPos = new Point(startPos.x + w / 2, startPos.z + w / 2);
+                var (d1, d2) = CalcDelta(p, refPos, 0);
+                var dir = CalcBuildDirection(CalcPositionInfo(d1, d2), 0);
+                if (dir != 3 && selector.TrySet(p, max, max - 1, dist2ToLastPoint))
+                {
+                    Child.recipe._dir = dir;
+                }
             }
             else
             {
@@ -274,6 +257,7 @@ public class AutoActBuild : AutoAct
                     }
                     else
                     {
+                        range.Remove(p);
                         continue;
                     }
 
@@ -337,8 +321,7 @@ public class AutoActBuild : AutoAct
             return true;
         }
 
-        var checker = GetHeldChecker();
-        if (checker.HasValue() && checker(owner.held as Thing))
+        if (HeldChecker.HasValue() && HeldChecker(owner.held as Thing))
         {
             Child.held = owner.held;
             return true;
@@ -362,40 +345,74 @@ public class AutoActBuild : AutoAct
 
     public Thing FindNextHeld()
     {
-        var filter = GetHeldChecker();
-        if (filter.IsNull())
+        if (HeldChecker.IsNull())
         {
             return null;
         }
 
-        return pc.things.Find(filter);
+        return pc.things.Find(HeldChecker);
     }
 
-    public Func<Thing, bool> GetHeldChecker()
+    public Func<Thing, bool> HeldChecker
     {
-        if (Held.trait is TraitSeed)
+        get
         {
-            var seedId = sources.objs.map[Held.refVal].id;
-            return t => t.trait is TraitSeed seed && seed.row.id == seedId;
+            if (heldChecker.HasValue())
+            {
+                return heldChecker;
+            }
+
+            if (Held.trait is TraitSeed)
+            {
+                var seedId = sources.objs.map[Held.refVal].id;
+                heldChecker = t => t.trait is TraitSeed seed && seed.row.id == seedId;
+            }
+            else if (Held.trait is TraitFertilizer)
+            {
+                heldChecker = t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
+            }
+            else if (Held.trait is TraitDefertilizer)
+            {
+                heldChecker = t => t.trait is TraitDefertilizer;
+            }
+
+            return heldChecker;
         }
-        else if (Held.trait is TraitFertilizer)
+    }
+
+    public Func<Point, bool> PointChecker
+    {
+        get
         {
-            return t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
-        }
-        else if (Held.trait is TraitDefertilizer)
-        {
-            return t => t.trait is TraitDefertilizer;
-        }
-        else
-        {
-            return null;
+            if (pointChecker.HasValue())
+            {
+                return pointChecker;
+            }
+
+            if (Held.trait is TraitSeed)
+            {
+                pointChecker = p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed.IsNull();
+            }
+            else if (Held.trait is TraitFertilizer)
+            {
+                pointChecker = ShouldFertilize;
+            }
+            else if (Held.category.id == "floor" || Held.category.id == "foundation")
+            {
+                pointChecker = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != startPos.cell.sourceSurface;
+            }
+            else
+            {
+                pointChecker = p => !p.HasThing && !p.HasBlock;
+            }
+
+            return pointChecker;
         }
     }
 
     public void SetPosition(Point p)
     {
         Child.pos = p;
-        field.Remove(p);
         RestoreChild();
     }
 

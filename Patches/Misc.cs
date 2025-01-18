@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using AutoActMod.Actions;
 using HarmonyLib;
-using UnityEngine;
 
 namespace AutoActMod.Patches;
 
@@ -50,6 +48,24 @@ static class Misc
         return true;
     }
 
+    [HarmonyPostfix, HarmonyPatch(typeof(AIAct), nameof(AIAct.OnSuccess))]
+    static void AIAct_OnSuccess_Patch(AIAct __instance)
+    {
+        if (__instance.parent is AutoAct autoAct)
+        {
+            autoAct.OnChildSuccess();
+        }
+    }
+
+    [HarmonyPostfix, HarmonyPatch(typeof(Task), nameof(Task.OnSuccess))]
+    static void Task_OnSuccess_Patch(Task __instance)
+    {
+        if (__instance is not TaskBuild && __instance.parent is AutoAct autoAct)
+        {
+            autoAct.OnChildSuccess();
+        }
+    }
+
     [HarmonyPatch(typeof(TaskBuild), nameof(TaskBuild.OnProgressComplete))]
     static class TaskBuild_OnProgressComplete_Patch
     {
@@ -57,12 +73,10 @@ static class Misc
         static void Prefix() => Success = false;
         static void Postfix(TaskBuild __instance)
         {
-            if (Success || __instance.parent is not AutoActBuild a)
+            if (Success && __instance.parent is AutoActBuild autoAct)
             {
-                return;
+                autoAct.OnChildSuccess();
             }
-
-            a.field.Add(__instance.pos);
         }
 
         static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
@@ -76,7 +90,6 @@ static class Misc
                 .InstructionEnumeration();
         }
     }
-
 #if DEBUG
     // [HarmonyPrefix]
     // [HarmonyPatch(typeof(Task), nameof(Task.Destroy))]

@@ -7,6 +7,7 @@ public class AutoActDig : AutoAct
     public int w;
     public int h;
     public TaskDig Child => child as TaskDig;
+    public List<Point> range;
 
     public AutoActDig(TaskDig source) : base(source)
     {
@@ -61,5 +62,21 @@ public class AutoActDig : AutoAct
             yield return StartNextTask();
         } while (CanProgress());
         yield return FailOrSuccess();
+    }
+
+    public override void OnChildSuccess()
+    {
+        if (range.IsNull())
+        {
+            return;
+        }
+
+        var hitResult = Child.GetHitResult();
+        if (hitResult == HitResult.Valid || hitResult == HitResult.Warning)
+        {
+            return;
+        }
+
+        range.Remove(Pos);
     }
 }
