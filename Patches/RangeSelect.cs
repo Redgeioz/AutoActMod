@@ -154,7 +154,9 @@ internal static class RangeSelect
             hasSowRange = true,
             onStart = SetStartPos,
         }) as AutoActBuild;
+
         autoAct.range = Range;
+        Range.RemoveAll(p => !autoAct.PointChecker(p));
     }
 
     static void SetAutoActDig()
@@ -173,6 +175,7 @@ internal static class RangeSelect
         }) as AutoActDig;
 
         autoAct.range = Range;
+        Range.RemoveAll(p => !autoAct.Filter(p.cell));
     }
 
     static void SetAutoActPlow()
@@ -187,6 +190,7 @@ internal static class RangeSelect
         }) as AutoActPlow;
 
         autoAct.range = Range;
+        Range.RemoveAll(p => !autoAct.Filter(p.cell));
     }
 
     static void SetAutoActPourWater()
@@ -214,6 +218,7 @@ internal static class RangeSelect
         {
             return;
         }
+
         var autoAct = SetAutoAct(new AutoActHarvestMine(taskHarvest)) as AutoActHarvestMine;
         autoAct.SetRange(Range);
     }

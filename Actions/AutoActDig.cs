@@ -40,17 +40,11 @@ public class AutoActDig : AutoAct
                 continue;
             }
 
-            var originalPos = Pos.Copy();
             var targetPos = FindPosRefToStartPos(
-                cell =>
-                {
-                    Child.pos.Set(cell.x, cell.z);
-                    HitResult hitResult = Child.GetHitResult();
-                    Child.pos.Set(originalPos.x, originalPos.z);
-                    return hitResult == HitResult.Valid || hitResult == HitResult.Warning;
-                },
+                Filter,
                 w,
-                h
+                h,
+                range
             );
 
             if (targetPos.IsNull())
@@ -78,5 +72,15 @@ public class AutoActDig : AutoAct
         }
 
         range.Remove(Pos);
+    }
+
+    public bool Filter(Cell cell)
+    {
+        var originalX = Child.pos.x;
+        var originalZ = Child.pos.z;
+        Child.pos.Set(cell.x, cell.z);
+        HitResult hitResult = Child.GetHitResult();
+        Child.pos.Set(originalX, originalZ);
+        return hitResult == HitResult.Valid || hitResult == HitResult.Warning;
     }
 }

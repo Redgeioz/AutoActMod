@@ -76,31 +76,31 @@ public class AutoActWater : AutoAct
 
             waterFirst = false;
 
-            var list = new List<Point>();
+            var range = new List<Point>();
             _map.ForeachPoint(p =>
             {
                 if (CalcDist2(p) <= detRangeSq && TaskWater.ShouldWater(p))
                 {
-                    list.Add(p.Copy());
+                    range.Add(p.Copy());
                 }
             });
 
-            if (list.Count == 0)
+            if (range.Count == 0)
             {
                 SayNoTarget();
                 yield break;
             }
 
-            while (list.Count > 0 && IsWaterCanValid())
+            while (range.Count > 0 && IsWaterCanValid())
             {
-                var targetPos = FindPosInField(list, cell => TaskWater.ShouldWater(cell.GetPoint()));
+                var targetPos = FindPos(cell => TaskWater.ShouldWater(cell.GetPoint()), range: range);
                 if (targetPos.IsNull())
                 {
                     SayNoTarget();
                     yield break;
                 }
 
-                list.Remove(targetPos);
+                range.Remove(targetPos);
                 subActWater.dest = targetPos;
                 yield return SetNextTask(subActWater, KeepRunning);
             }

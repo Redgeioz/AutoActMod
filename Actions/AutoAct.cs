@@ -459,7 +459,7 @@ public class AutoAct : AIAct
         return (d1, d2);
     }
 
-    public List<Point> InitFarmfield(Point p)
+    public List<Point> InitFarmField(Point p)
     {
         Predicate<Point> filter;
 
@@ -567,7 +567,7 @@ public class AutoAct : AIAct
         return Utils.MaxDelta(p, startPos);
     }
 
-    public Point FindPos(Predicate<Cell> filter, int detRangeSq, int tryBetterPath = 0)
+    public Point FindPos(Predicate<Cell> filter, int detRangeSq = 2, int tryBetterPath = 0, List<Point> range = null)
     {
         if (useOriginalPos)
         {
@@ -575,16 +575,21 @@ public class AutoAct : AIAct
             return Pos;
         }
 
-        var list = new List<(Point, int, int)>();
-        _map.bounds.ForeachCell(cell =>
+        if (range.HasValue())
         {
-            var p = cell.GetPoint();
+            detRangeSq = 80000;
+        }
+
+        var list = new List<(Point, int, int)>();
+        void ForEach(Point p)
+        {
             var dist2 = CalcDist2(p);
             if (dist2 > detRangeSq)
             {
                 return;
             }
 
+            var cell = p.cell;
             if (!filter(cell))
             {
                 return;
@@ -598,7 +603,16 @@ public class AutoAct : AIAct
             }
 
             list.Add((p, dist2, dist2ToLastPoint));
-        });
+        }
+
+        if (range.HasValue())
+        {
+            range.ForEach(ForEach);
+        }
+        else
+        {
+            _map.bounds.ForeachPoint(p => ForEach(p.Copy()));
+        }
 
         foreach (var (p, dist2, dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
         {
@@ -671,7 +685,7 @@ public class AutoAct : AIAct
         return selector.FinalPoint;
     }
 
-    public Point FindPosRefToStartPos(Predicate<Cell> filter, int w, int h = 0)
+    public Point FindPosRefToStartPos(Predicate<Cell> filter, int w, int h = 0, List<Point> range = null)
     {
         if (useOriginalPos)
         {
@@ -681,9 +695,9 @@ public class AutoAct : AIAct
 
         var startFromCenter = h == 0;
         var list = new List<(Point, int, int, int)>();
-        _map.bounds.ForeachCell(cell =>
+        void ForEach(Point p)
         {
-            var p = cell.GetPoint();
+            var cell = p.cell;
             if (!filter(cell))
             {
                 return;
@@ -711,7 +725,16 @@ public class AutoAct : AIAct
             {
                 list.Add((p, 0, dist2, dist2ToLastPoint));
             }
-        });
+        }
+
+        if (range.HasValue())
+        {
+            range.ForEach(ForEach);
+        }
+        else
+        {
+            _map.bounds.ForeachPoint(p => ForEach(p.Copy()));
+        }
 
         IOrderedEnumerable<(Point, int, int, int)> iterator = null;
         if (startFromCenter)
@@ -883,54 +906,6 @@ public class AutoAct : AIAct
         }
 
         return selector.FinalTarget as Chara;
-    }
-
-    public Point FindPosInField(IEnumerable<Point> field, Predicate<Cell> filter)
-    {
-        if (useOriginalPos)
-        {
-            useOriginalPos = false;
-            return Pos;
-        }
-
-        var list = new List<(Point, int, int)>();
-        foreach (var p in field)
-        {
-            var cell = p.cell;
-            if (!filter(cell))
-            {
-                continue;
-            }
-
-            var dist2 = CalcDist2(p);
-            var dist2ToLastPoint = CalcDist2ToLastPoint(p);
-            var max = CalcMaxDelta(p);
-            if (max <= 1)
-            {
-                selector.TrySet(p, max - 1, dist2ToLastPoint);
-                continue;
-            }
-
-            list.Add((p, dist2, dist2ToLastPoint));
-        }
-
-        foreach (var (p, dist2, dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
-        {
-            if (selector.curtPoint.HasValue() && dist2 > selector.MaxDist2)
-            {
-                break;
-            }
-
-            Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
-            if (Path.state == PathProgress.State.Fail)
-            {
-                continue;
-            }
-
-            selector.TrySet(p, Path.nodes.Count, dist2ToLastPoint);
-        }
-
-        return selector.FinalPoint;
     }
 
     public class Selector

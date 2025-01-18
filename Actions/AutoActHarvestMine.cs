@@ -86,7 +86,7 @@ public class AutoActHarvestMine : AutoAct
 
             if (hasRange)
             {
-                targetPos = FindPosInField(range, CommonFilter);
+                targetPos = FindPos(CommonFilter, range: range);
             }
             else
             {
@@ -191,7 +191,7 @@ public class AutoActHarvestMine : AutoAct
     {
         if (Settings.SameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
         {
-            SetRange(InitFarmfield(Pos));
+            SetRange(InitFarmField(Pos));
         }
 
         if (taskHarvest.IsReapSeed)
@@ -214,6 +214,11 @@ public class AutoActHarvestMine : AutoAct
 
     public override void OnChildSuccess()
     {
+        if (Settings.SimpleIdentify && (TaskHarvest.TryGetAct(pc, Pos).HasValue() || TaskMine.CanMine(Pos, pc.held)))
+        {
+            return;
+        }
+
         range.Remove(Pos);
     }
 

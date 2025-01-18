@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
@@ -30,14 +31,10 @@ public class AutoActPlow : AutoAct
         do
         {
             var targetPos = FindPosRefToStartPos(
-                cell => !cell.HasBlock
-                    && !cell.HasObj
-                    && cell.Installed.IsNull()
-                    && !cell.IsTopWater
-                    && !cell.IsFarmField
-                    && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil"),
+                Filter,
                 w,
-                h
+                h,
+                range
             );
 
             if (targetPos.IsNull())
@@ -58,4 +55,11 @@ public class AutoActPlow : AutoAct
             range.Remove(Pos);
         }
     }
+
+    public bool Filter(Cell cell) => !cell.HasBlock
+        && !cell.HasObj
+        && cell.Installed.IsNull()
+        && !cell.IsTopWater
+        && !cell.IsFarmField
+        && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil");
 }

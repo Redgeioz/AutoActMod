@@ -53,7 +53,7 @@ public class AutoActBuild : AutoAct
 
     public override void OnChildSuccess()
     {
-        var c = range.Remove(Pos);
+        range.Remove(Pos);
     }
 
     public override IEnumerable<Status> Run()
@@ -93,7 +93,7 @@ public class AutoActBuild : AutoAct
         {
             if (range.Count == 0)
             {
-                range = InitFarmfield(startPos);
+                range = InitFarmField(startPos);
             }
             return;
         }
@@ -144,7 +144,6 @@ public class AutoActBuild : AutoAct
         var startFromCenter = h == 0;
         if (useOriginalPos)
         {
-            range.RemoveAll(p => !PointChecker(p));
             useOriginalPos = false;
             return Pos;
         }
