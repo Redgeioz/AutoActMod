@@ -122,6 +122,10 @@ public class AutoAct : AIAct
             return TrySetAutoAct(chara, dynAIAct, TC, TP.Copy());
         }
 
+#if DEBUG
+        AutoActMod.Log($"TrySetAutoAct: {source}");
+#endif
+
         source.owner = chara;
 
         if (TryGetAutoAct(source) is not AutoAct a)
@@ -853,7 +857,7 @@ public class AutoAct : AIAct
         return selector.FinalTarget as Thing;
     }
 
-    public Chara FindChara(Predicate<Chara> filter, int detRangeSq)
+    public Chara FindChara(Predicate<Chara> filter, int detRangeSq = 80000, List<Chara> range = null)
     {
         if (useOriginalPos)
         {
@@ -866,7 +870,7 @@ public class AutoAct : AIAct
         }
 
         var list = new List<(Chara, int)>();
-        _map.charas.ForEach(chara =>
+        void ForEach(Chara chara)
         {
             var p = chara.pos;
             var dist2 = CalcDist2(chara.pos);
@@ -887,7 +891,16 @@ public class AutoAct : AIAct
             }
 
             list.Add((chara, dist2));
-        });
+        }
+
+        if (range.HasValue())
+        {
+            range.ForEach(ForEach);
+        }
+        else
+        {
+            _map.charas.ForEach(ForEach);
+        }
 
         foreach (var (chara, dist2) in list.OrderBy(Tuple => Tuple.Item2))
         {

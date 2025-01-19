@@ -12,12 +12,13 @@ internal static class RangeSelect
     internal static Point FirstPoint;
     internal static Point StartPos = new();
     internal static List<Point> Range = [];
+    internal static List<Chara> CharaRange = [];
     internal static Thing LastHeld;
     internal static Action OnSelectComplete;
     internal static int Width;
     internal static int Height;
 
-    internal static bool Active => Input.GetKey(Settings.RangeSelectKeyCode) || Range.Count > 0;
+    internal static bool Active => Input.GetKey(Settings.RangeSelectKeyCode) || Range.Count > 0 || CharaRange.Count > 0;
 
     static void SetRange(Point p1, Point p2)
     {
@@ -48,6 +49,7 @@ internal static class RangeSelect
         }
 
         Range.Clear();
+        CharaRange.Clear();
         FirstPoint = null;
         LastHeld = null;
         OnSelectComplete = null;
@@ -83,6 +85,10 @@ internal static class RangeSelect
         else if (t.trait is TraitToolWaterPot)
         {
             OnSelectComplete = SetAutoActPourWater;
+        }
+        else if (t.trait is TraitToolButcher)
+        {
+            OnSelectComplete = SetAutoActSlaughter;
         }
         else if (t.trait is not (TraitToolShears or TraitToolWaterCan or TraitToolMusic or TraitFertilizer))
         {
@@ -124,7 +130,14 @@ internal static class RangeSelect
     [HarmonyPostfix, HarmonyPatch(typeof(Player), nameof(Player.MarkMapHighlights))]
     static void MarkMapHighlights_Patch()
     {
-        Range.ForEach(p => p.SetHighlight(8));
+        if (CharaRange.Count > 0)
+        {
+            CharaRange.ForEach(c => c.pos.SetHighlight(4));
+        }
+        else
+        {
+            Range.ForEach(p => p.SetHighlight(8));
+        }
     }
 
     static Point FindNearestPoint()
@@ -167,30 +180,38 @@ internal static class RangeSelect
             mode = TaskDig.Mode.RemoveFloor,
         };
 
-        var autoAct = SetAutoAct(new AutoActDig(dig)
+        var autoAct = new AutoActDig(dig)
         {
             w = Width,
             h = Height,
             onStart = SetStartPos,
-        }) as AutoActDig;
+            range = Range
+        };
 
-        autoAct.range = Range;
         Range.RemoveAll(p => !autoAct.Filter(p.cell));
+        if (Range.Count > 0)
+        {
+            SetAutoAct(autoAct);
+        }
     }
 
     static void SetAutoActPlow()
     {
         var plow = new TaskPlow { pos = FindNearestPoint() };
 
-        var autoAct = SetAutoAct(new AutoActPlow(plow)
+        var autoAct = new AutoActPlow(plow)
         {
             w = Width,
             h = Height,
             onStart = SetStartPos,
-        }) as AutoActPlow;
+            range = Range
+        };
 
-        autoAct.range = Range;
         Range.RemoveAll(p => !autoAct.Filter(p.cell));
+        if (Range.Count > 0)
+        {
+            SetAutoAct(autoAct);
+        }
     }
 
     static void SetAutoActPourWater()
@@ -206,14 +227,15 @@ internal static class RangeSelect
         {
             w = Width,
             h = Height,
-            onStart = SetStartPos
+            onStart = SetStartPos,
+            range = Range,
         });
     }
 
     static void SetAutoActHarvestMine()
     {
         var taskHarvest = new TaskHarvest { pos = StartPos };
-        var c = Range.RemoveAll(p => !AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held));
+        Range.RemoveAll(p => !AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held));
         if (Range.Count == 0)
         {
             return;
@@ -221,5 +243,22 @@ internal static class RangeSelect
 
         var autoAct = SetAutoAct(new AutoActHarvestMine(taskHarvest)) as AutoActHarvestMine;
         autoAct.SetRange(Range);
+    }
+
+    static void SetAutoActSlaughter()
+    {
+        var autoAct = SetAutoAct(new AutoActSlaughter(new AI_Slaughter())) as AutoActSlaughter;
+        Range.ForEach(p =>
+        {
+            p.Charas.ForEach(chara =>
+            {
+                if (AutoActSlaughter.CanBeSlaughtered(chara))
+                {
+                    CharaRange.Add(chara);
+                }
+            });
+        });
+        Range.Clear();
+        autoAct.range = CharaRange;
     }
 }

@@ -7,6 +7,7 @@ public class AutoActPourWater : AutoAct
 {
     public int w;
     public int h;
+    public List<Point> range;
     public SubActPourWater pourWater;
     public SubActPourWater Child => pourWater;
 
@@ -48,7 +49,7 @@ public class AutoActPourWater : AutoAct
                 yield return Fail();
             }
 
-            var targetPos = FindPosRefToStartPos(CanPourWater, w, h);
+            var targetPos = FindPosRefToStartPos(CanPourWater, w, h, range);
             if (targetPos.IsNull())
             {
                 yield break;
@@ -73,6 +74,14 @@ public class AutoActPourWater : AutoAct
             yield return StartNextTask();
         }
         yield break;
+    }
+
+    public override void OnChildSuccess()
+    {
+        if (range.HasValue())
+        {
+            range.Remove(Pos);
+        }
     }
 
     public class SubActPourWater : TaskPourWater
