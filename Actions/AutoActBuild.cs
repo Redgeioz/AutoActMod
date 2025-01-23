@@ -209,8 +209,8 @@ public class AutoActBuild : AutoAct
         {
             var (p, max, dist2, dist2ToLastPoint) = item;
             if (selector.curtPoint.HasValue() &&
-                ((startFromCenter && max > selector.Factor) ||
-                (!startFromCenter && !edgeOnly && dist2ToLastPoint > selector.Factor)))
+                ((startFromCenter && max > selector.factor1) ||
+                (!startFromCenter && !edgeOnly && dist2ToLastPoint > selector.factor1)))
             {
                 break;
             }
@@ -333,7 +333,7 @@ public class AutoActBuild : AutoAct
             return true;
         }
 
-        if (HeldChecker.HasValue() && HeldChecker(owner.held as Thing))
+        if (HeldChecker?.Invoke(owner.held as Thing) is true)
         {
             Child.held = owner.held;
             return true;

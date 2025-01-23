@@ -76,6 +76,8 @@ public class AutoActWater : AutoAct
 
             waterFirst = false;
 
+            // Why not use TaskWater?
+            // Because TaskWater sorts targets by distance, while AutoAct usually sorts targets by path length
             var range = new List<Point>();
             _map.ForeachPoint(p =>
             {
@@ -114,10 +116,7 @@ public class AutoActWater : AutoAct
 
         public override IEnumerable<Status> Run()
         {
-            yield return DoGoto(dest, 1, true, () =>
-            {
-                return Status.Running;
-            });
+            yield return DoGoto(dest, 1, true);
 
             var parent = this.parent as AutoActWater;
             if (!parent.IsWaterCanValid())

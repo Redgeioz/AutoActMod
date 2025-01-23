@@ -221,7 +221,7 @@ public class AutoAct : AIAct
             return false;
         }
 
-        if (owner.HasValue() && owner.IsPC && Settings.StaminaCheck)
+        if (owner?.IsPC is true && Settings.StaminaCheck)
         {
             return owner.stamina.value >= 0;
         }
@@ -659,7 +659,7 @@ public class AutoAct : AIAct
                 return false;
             }
 
-            Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
+            Path.RequestPathImmediate(owner.pos, p, 1, true);
             if (Path.state == PathProgress.State.Fail)
             {
                 TryDestroyObstacle();
@@ -754,15 +754,16 @@ public class AutoAct : AIAct
         {
             var (p, max, dist2, dist2ToLastPoint) = item;
             if (selector.curtPoint.HasValue() &&
-                ((startFromCenter && max > selector.Factor) ||
-                (!startFromCenter && dist2ToLastPoint > selector.Factor)))
+                ((startFromCenter && max > selector.factor1) ||
+                (!startFromCenter && dist2ToLastPoint > selector.factor1)))
             {
                 break;
             }
 
             if (startFromCenter)
             {
-                Path.RequestPathImmediate(owner.pos, p, 1, false, -1);
+                var ignoreConnection = this is not AutoActPlow;
+                Path.RequestPathImmediate(owner.pos, p, 1, ignoreConnection);
                 if (Path.state == PathProgress.State.Fail)
                 {
                     continue;
@@ -780,7 +781,7 @@ public class AutoAct : AIAct
 
                 if (dist2 > 2)
                 {
-                    Path.RequestPathImmediate(owner.pos, p, 1, false, -1);
+                    Path.RequestPathImmediate(owner.pos, p, 1, false);
                     if (Path.state == PathProgress.State.Fail)
                     {
                         continue;
@@ -844,7 +845,7 @@ public class AutoAct : AIAct
                 break;
             }
 
-            Path.RequestPathImmediate(owner.pos, thing.pos, 1, true, -1);
+            Path.RequestPathImmediate(owner.pos, thing.pos, 1, true);
             if (Path.state == PathProgress.State.Fail)
             {
                 continue;
@@ -909,7 +910,7 @@ public class AutoAct : AIAct
                 break;
             }
 
-            Path.RequestPathImmediate(owner.pos, chara.pos, 1, true, -1);
+            Path.RequestPathImmediate(owner.pos, chara.pos, 1, true);
             if (Path.state == PathProgress.State.Fail)
             {
                 continue;
@@ -947,7 +948,7 @@ public class AutoAct : AIAct
                 return target;
             }
         }
-        public int Factor => factor1;
+
         public int MaxDist2 => (int)Math.Pow(factor1 + 1.5f, 2);
 
         public void Reset()

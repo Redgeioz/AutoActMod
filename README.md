@@ -1,5 +1,5 @@
-# ElinAutoAct
-Automatically perform the same type of action, hold down Shift and take the action you want to trigger.
+# Auto Act
+Automatically perform the same type of action, triggered by holding down the Shift key and taking the action.
 
 | Supported Actions |
 |:------------------:|

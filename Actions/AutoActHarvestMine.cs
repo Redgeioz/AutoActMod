@@ -194,6 +194,7 @@ public class AutoActHarvestMine : AutoAct
         if (Settings.SameFarmfieldOnly && (Pos.IsFarmField || (Pos.sourceObj.id == 88 && Pos.IsWater)))
         {
             range = InitFarmField(Pos);
+            hasRange = true;
         }
 
         if (taskHarvest.IsReapSeed)
@@ -284,7 +285,6 @@ public class AutoActHarvestMine : AutoAct
             return false;
         }
 
-        // Check if is withered
         if (targetIsWithered && !cell.growth.IsWithered())
         {
             return false;

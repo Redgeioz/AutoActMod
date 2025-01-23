@@ -27,7 +27,7 @@ public class AutoActDig : AutoAct
 
     public override bool CanProgress()
     {
-        return base.CanProgress() && owner.held.HasValue() && owner.held.HasElement(230, 1) && owner.held == Child.tool;
+        return base.CanProgress() && owner.held?.HasElement(230, 1) is true && owner.held == Child.tool;
     }
 
     public override IEnumerable<Status> Run()
