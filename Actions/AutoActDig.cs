@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoActMod.Actions;
 
@@ -8,11 +9,17 @@ public class AutoActDig : AutoAct
     public int h;
     public TaskDig Child => child as TaskDig;
     public List<Point> range;
+    public bool useBuildRange;
+    public int detRangeSq;
 
     public AutoActDig(TaskDig source) : base(source)
     {
+        var surface = source.pos.cell.sourceSurface;
+        useBuildRange = surface.tag.Contains("grass") || source.pos.HasBridge;
+        SetTarget(surface);
         w = Settings.BuildRangeW;
         h = Settings.BuildRangeH;
+        detRangeSq = Settings.DetRangeSq;
         if (Settings.StartFromCenter)
         {
             h = 0;
@@ -40,15 +47,30 @@ public class AutoActDig : AutoAct
                 continue;
             }
 
-            var targetPos = FindPosRefToStartPos(
-                Filter,
-                w,
-                h,
-                range
-            );
+            Point targetPos;
+            if (useBuildRange || range.HasValue())
+            {
+                targetPos = FindPosRefToStartPos(
+                      Filter,
+                      w,
+                      h,
+                      range
+                  );
+            }
+            else
+            {
+                targetPos = FindPos(
+                    cell => IsTarget(cell.sourceSurface) && Filter(cell),
+                    detRangeSq
+                );
+            }
 
             if (targetPos.IsNull())
             {
+                if (!useBuildRange && range.IsNull())
+                {
+                    SayNoTarget();
+                }
                 yield break;
             }
 
