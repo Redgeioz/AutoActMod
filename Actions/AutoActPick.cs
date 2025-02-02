@@ -17,12 +17,8 @@ public class AutoActPick : AutoAct
 
     public static AutoActPick TryCreate(string lang, Card target, Point pos)
     {
-        if (Settings.SimpleIdentify < 2 && target.SelfWeight > 160_000) { return null; }
-        if (lang == "actPickOne".lang())
-        {
-            return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
-        }
-        else if (lang == "actHold".lang())
+        if ((lang == "actPickOne".lang() || lang == "actHold".lang())
+            && (Settings.SimpleIdentify == 2 || target.SelfWeight < 160_000))
         {
             return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
         }
