@@ -21,7 +21,7 @@ static class Misc
     static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
     {
         if (seq is AI_Goto go
-            && __instance is AI_Shear or AI_Slaughter or (TaskPoint and not TaskPlow))
+            && __instance is AI_Shear or AI_Fuck or AI_Slaughter or (TaskPoint and not TaskPlow))
         {
             go.ignoreConnection = true;
         }

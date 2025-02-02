@@ -87,10 +87,13 @@ public class AutoActDig : AutoAct
             return;
         }
 
-        var hitResult = Child.GetHitResult();
-        if (hitResult == HitResult.Valid || hitResult == HitResult.Warning)
+        if (Settings.SimpleIdentify == 2)
         {
-            return;
+            var hitResult = Child.GetHitResult();
+            if (hitResult == HitResult.Valid || hitResult == HitResult.Warning)
+            {
+                return;
+            }
         }
 
         range.Remove(Pos);

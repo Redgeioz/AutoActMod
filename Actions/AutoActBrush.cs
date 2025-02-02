@@ -2,17 +2,17 @@ using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
 
-public class AutoActTendAnimal(AI_TendAnimal source) : AutoAct(source)
+public class AutoActBrush(AI_TendAnimal source) : AutoAct(source)
 {
     public int detRangeSq = Settings.DetRangeSq;
     public AI_TendAnimal Child => child as AI_TendAnimal;
     public override Point Pos => Child.target?.pos;
     public bool isTargetPCFaction = source.target.IsPCFaction;
 
-    public static AutoActTendAnimal TryCreate(AIAct source)
+    public static AutoActBrush TryCreate(AIAct source)
     {
         if (source is not AI_TendAnimal a) { return null; }
-        return new AutoActTendAnimal(a);
+        return new AutoActBrush(a);
     }
 
     public override bool CanProgress()
