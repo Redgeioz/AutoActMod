@@ -33,7 +33,8 @@ public class AutoActBuild : AutoAct
         if (source is not TaskBuild a) { return null; }
         if (source.owner.IsPC
             && (source.owner.held is not Thing t
-            || (t.Num == 1 && t.trait is not (TraitSeed or TraitFertilizer))))
+            || (t.Num == 1 && t.trait is not (TraitSeed or TraitFertilizer))
+            || !(t.trait is TraitSeed or TraitFertilizer or TraitFloor or TraitPlatform or TraitBlock)))
         {
             return null;
         }
@@ -150,7 +151,7 @@ public class AutoActBuild : AutoAct
         {
             hasRange = false;
         }
-        else if (Held.category.id != "floor" && Held.category.id != "foundation")
+        else if (Held.trait is not (TraitFloor or TraitPlatform))
         {
             edgeOnly = true;
         }
@@ -403,13 +404,13 @@ public class AutoActBuild : AutoAct
 
             if (Held.trait is TraitSeed)
             {
-                pointChecker = p => !p.HasThing && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed.IsNull();
+                pointChecker = p => (!p.HasThing || p.Things[0].IsInstalled) && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && (p.Installed.IsNull() || p.Installed.trait is TraitLight);
             }
             else if (Held.trait is TraitFertilizer)
             {
                 pointChecker = ShouldFertilize;
             }
-            else if (Held.category.id == "floor" || Held.category.id == "foundation")
+            else if (Held.trait is TraitFloor or TraitPlatform)
             {
                 pointChecker = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != startPos.cell.sourceSurface;
             }

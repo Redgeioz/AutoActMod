@@ -25,6 +25,18 @@ public class AutoActPick : AutoAct
         return null;
     }
 
+    public new bool IsTarget(Card t)
+    {
+        if (!base.IsTarget(t))
+        {
+            return false;
+        }
+
+        return Settings.SimpleIdentify != 0
+            || Child.refThing.trait is not TraitSeed refSeed
+            || (t.trait is TraitSeed seed && seed.row.id == refSeed.row.id);
+    }
+
     public override IEnumerable<Status> Run()
     {
         while (CanProgress())

@@ -17,6 +17,15 @@ static class Misc
         }
     }
 
+    [HarmonyPrefix, HarmonyPatch(typeof(Card), nameof(Card.MoveImmediate))]
+    static void Card_MoveImmediate_Patch(Card __instance, ref bool cancelAI)
+    {
+        if (__instance is Chara chara && chara.ai is AutoAct)
+        {
+            cancelAI = false;
+        }
+    }
+
     [HarmonyPostfix, HarmonyPatch(typeof(AIAct), nameof(AIAct.SetChild))]
     static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
     {
