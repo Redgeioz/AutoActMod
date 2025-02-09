@@ -34,7 +34,7 @@ public class AutoActBuild : AutoAct
         if (source.owner.IsPC
             && (source.owner.held is not Thing t
             || (t.Num == 1 && t.trait is not (TraitSeed or TraitFertilizer))
-            || !(t.trait is TraitSeed or TraitFertilizer or TraitFloor or TraitPlatform or TraitBlock)))
+            || (t.trait is not (TraitSeed or TraitFertilizer or TraitFloor or TraitPlatform or TraitBlock))))
         {
             return null;
         }
@@ -404,7 +404,7 @@ public class AutoActBuild : AutoAct
 
             if (Held.trait is TraitSeed)
             {
-                pointChecker = p => (!p.HasThing || p.Things[0].IsInstalled) && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && (p.Installed.IsNull() || p.Installed.trait is TraitLight);
+                pointChecker = p => (!p.HasThing || p.Things[0].IsInstalled) && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed?.trait is null or TraitLight;
             }
             else if (Held.trait is TraitFertilizer)
             {

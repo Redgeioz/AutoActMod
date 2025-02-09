@@ -70,7 +70,7 @@ internal static class RangeSelect
             return;
         }
 
-        if (HotItemHeld.taskBuild.HasValue() && (t.Num > 1 || t.trait is TraitSeed) && t.trait is not TraitFertilizer)
+        if (HotItemHeld.taskBuild.HasValue() && (t.Num > 1 || t.trait is TraitSeed) && t.trait is TraitSeed or TraitFloor or TraitPlatform or TraitBlock)
         {
             OnSelectComplete = SetAutoActBuild;
         }
