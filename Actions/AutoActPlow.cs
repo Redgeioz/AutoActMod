@@ -58,7 +58,7 @@ public class AutoActPlow : AutoAct
 
     public bool Filter(Cell cell) => !cell.HasBlock
         && !cell.HasObj
-        && cell.Installed.IsNull()
+        && cell.Installed?.trait is null or TraitLight
         && !cell.IsTopWater
         && !cell.IsFarmField
         && (cell.HasBridge ? cell.sourceBridge : cell.sourceFloor).tag.Contains("soil");
