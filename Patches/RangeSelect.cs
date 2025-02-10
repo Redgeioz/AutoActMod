@@ -235,7 +235,39 @@ internal static class RangeSelect
     static void SetAutoActHarvestMine()
     {
         var taskHarvest = new TaskHarvest { pos = StartPos };
-        Range.RemoveAll(p => !AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held));
+        Range.RemoveAll(p =>
+        {
+            TileRow row;
+            if (p.HasObj)
+            {
+                row = p.sourceObj;
+            }
+            else if (p.HasBlock)
+            {
+                row = p.sourceBlock;
+            }
+            else
+            {
+                return true;
+            }
+
+            if (AutoAct.RowCache.Contains(row))
+            {
+                return true;
+            }
+
+            if (!AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held))
+            {
+                AutoAct.RowCache.Add(row);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        });
+        AutoAct.RowCache.Clear();
+
         if (Range.Count == 0)
         {
             return;

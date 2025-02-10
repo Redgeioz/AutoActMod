@@ -295,7 +295,24 @@ public class AutoActHarvestMine : AutoAct
 
     public bool CommonFilter(Cell cell)
     {
-        if (!(cell.HasObj && IsTarget(cell.sourceObj)) && !(cell.HasBlock && !cell.HasObj && IsTarget(cell.sourceBlock)))
+        TileRow row;
+        if (cell.HasObj)
+        {
+            if (!IsTarget(cell.sourceObj))
+            {
+                return false;
+            }
+            row = cell.sourceObj;
+        }
+        else if (cell.HasBlock)
+        {
+            if (!IsTarget(cell.sourceBlock))
+            {
+                return false;
+            }
+            row = cell.sourceBlock;
+        }
+        else
         {
             return false;
         }
@@ -305,20 +322,27 @@ public class AutoActHarvestMine : AutoAct
             return false;
         }
 
+        if (RowCache.Contains(row))
+        {
+            return true;
+        }
+
+        var result = false;
         var originalX = Child.pos.x;
         var originalZ = Child.pos.z;
         Child.pos.Set(cell.x, cell.z);
         if (taskHarvest.CanProgress() || TaskMine.CanMine(Pos, owner.held))
         {
             Child.SetTarget(owner);
-            Child.pos.Set(originalX, originalZ);
-            return !Child.IsTooHard;
+            if (!Child.IsTooHard)
+            {
+                RowCache.Add(row);
+                result = true;
+            }
         }
-        else
-        {
-            Child.pos.Set(originalX, originalZ);
-            return false;
-        }
+
+        Child.pos.Set(originalX, originalZ);
+        return result;
     }
 
     public void SetPosition(Point p)
