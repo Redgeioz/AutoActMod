@@ -251,22 +251,16 @@ internal static class RangeSelect
                 return true;
             }
 
-            if (AutoAct.RowCache.Contains(row))
+            if (AutoAct.RowCheckCache.TryGetValue(row, out var result))
             {
-                return true;
+                return result;
             }
 
-            if (!AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held))
-            {
-                AutoAct.RowCache.Add(row);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            result = !AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held);
+            AutoAct.RowCheckCache.Add(row, result);
+            return result;
         });
-        AutoAct.RowCache.Clear();
+        AutoAct.RowCheckCache.Clear();
 
         if (Range.Count == 0)
         {

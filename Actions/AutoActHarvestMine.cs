@@ -322,26 +322,22 @@ public class AutoActHarvestMine : AutoAct
             return false;
         }
 
-        if (RowCache.Contains(row))
+        if (RowCheckCache.TryGetValue(row, out var result))
         {
-            return true;
+            return result;
         }
 
-        var result = false;
+        result = false;
         var originalX = Child.pos.x;
         var originalZ = Child.pos.z;
         Child.pos.Set(cell.x, cell.z);
         if (taskHarvest.CanProgress() || TaskMine.CanMine(Pos, owner.held))
         {
             Child.SetTarget(owner);
-            if (!Child.IsTooHard)
-            {
-                RowCache.Add(row);
-                result = true;
-            }
+            result = !Child.IsTooHard;
         }
-
         Child.pos.Set(originalX, originalZ);
+        RowCheckCache.Add(row, result);
         return result;
     }
 
