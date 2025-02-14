@@ -35,7 +35,7 @@ public class AutoAct : AIAct
     public Selector selector = new();
     public override int MaxRestart => 1;
     public static bool IsSetting = false;
-    public static Dictionary<TileRow, bool> RowCheckCache = [];
+    public static Dictionary<SourceData.BaseRow, bool> RowCheckCache = [];
     public static List<Type> SubClasses = [];
     public delegate AutoAct TryCreateDelegate(AIAct source);
     public delegate AutoAct TryCreateByActDelegate(string id, Card target, Point pos);
@@ -959,6 +959,7 @@ public class AutoAct : AIAct
             factor1 = 0;
             factor2 = 0;
             factor3 = 0;
+            RowCheckCache.Clear();
         }
 
         public void Set(Point p, int v1, int v2, int v3 = 0)
@@ -967,7 +968,6 @@ public class AutoAct : AIAct
             factor1 = v1;
             factor2 = v2;
             factor3 = v3;
-            RowCheckCache.Clear();
         }
 
         public void Set(Card c, int v1, int v2, int v3 = 0)

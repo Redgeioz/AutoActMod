@@ -237,7 +237,7 @@ internal static class RangeSelect
         var taskHarvest = new TaskHarvest { pos = StartPos };
         Range.RemoveAll(p =>
         {
-            TileRow row;
+            SourceData.BaseRow row;
             if (p.HasObj)
             {
                 row = p.sourceObj;
@@ -251,12 +251,17 @@ internal static class RangeSelect
                 return true;
             }
 
+            if (TaskMine.CanMine(p, EClass.pc.held))
+            {
+                return false;
+            }
+
             if (AutoAct.RowCheckCache.TryGetValue(row, out var result))
             {
                 return result;
             }
 
-            result = !AutoActHarvestMine.CanHarvest(EClass.pc, p) && !TaskMine.CanMine(p, EClass.pc.held);
+            result = !AutoActHarvestMine.CanHarvest(EClass.pc, p);
             AutoAct.RowCheckCache.Add(row, result);
             return result;
         });

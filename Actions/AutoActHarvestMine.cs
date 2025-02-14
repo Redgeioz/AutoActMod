@@ -295,14 +295,14 @@ public class AutoActHarvestMine : AutoAct
 
     public bool CommonFilter(Cell cell)
     {
-        TileRow row;
+        SourceData.BaseRow row;
         if (cell.HasObj)
         {
             if (!IsTarget(cell.sourceObj))
             {
                 return false;
             }
-            row = cell.sourceObj;
+            row = cell.matObj;
         }
         else if (cell.HasBlock)
         {
@@ -310,7 +310,7 @@ public class AutoActHarvestMine : AutoAct
             {
                 return false;
             }
-            row = cell.sourceBlock;
+            row = cell.matBlock;
         }
         else
         {
@@ -331,10 +331,18 @@ public class AutoActHarvestMine : AutoAct
         var originalX = Child.pos.x;
         var originalZ = Child.pos.z;
         Child.pos.Set(cell.x, cell.z);
-        if (taskHarvest.CanProgress() || TaskMine.CanMine(Pos, owner.held))
+        if (taskHarvest.CanProgress())
         {
-            Child.SetTarget(owner);
-            result = !Child.IsTooHard;
+            if (!taskHarvest.IsObj)
+            {
+                taskHarvest.SetTarget(owner);
+            }
+            result = taskHarvest.difficulty != 3;
+        }
+        else if (TaskMine.CanMine(Pos, owner.held))
+        {
+            taskMine.SetTarget(owner);
+            result = taskMine.difficulty != 3;
         }
         Child.pos.Set(originalX, originalZ);
         RowCheckCache.Add(row, result);
