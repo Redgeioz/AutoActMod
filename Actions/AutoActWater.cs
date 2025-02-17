@@ -4,7 +4,6 @@ namespace AutoActMod.Actions;
 
 public class AutoActWater : AutoAct
 {
-    public int detRangeSq = Settings.DetRangeSq;
     public bool waterFirst;
     public TraitToolWaterCan waterCan;
     public SubActWater subActWater = new();
@@ -49,13 +48,14 @@ public class AutoActWater : AutoAct
         {
             if (waterCan.owner.c_charges < waterCan.MaxCharge && !waterFirst)
             {
-                var targetPos = FindPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), detRangeSq);
+                var targetPos = FindPos(c => ActDrawWater.HasWaterSource(c.GetPoint()), 80000);
                 if (targetPos.IsNull())
                 {
                     if (owner.IsPC && waterCan.owner.c_charges == 0)
                     {
                         Msg.Say("water_deplete");
                     }
+                    AutoActMod.Log("");
                     yield return Fail();
                 }
 
@@ -81,7 +81,7 @@ public class AutoActWater : AutoAct
             var range = new List<Point>();
             _map.ForeachPoint(p =>
             {
-                if (CalcDist2(p) <= detRangeSq && TaskWater.ShouldWater(p))
+                if (TaskWater.ShouldWater(p))
                 {
                     range.Add(p.Copy());
                 }
