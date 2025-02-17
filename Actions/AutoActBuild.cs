@@ -12,8 +12,8 @@ public class AutoActBuild : AutoAct
     public Func<Point, bool> pointChecker;
     public Func<Thing, bool> heldChecker;
     public List<Point> range = [];
-    public Card Held => Child.held;
     public TaskBuild Child => child as TaskBuild;
+    public Card Held => Child.held;
     public override int MaxRestart => 0;
 
     public AutoActBuild(TaskBuild source) : base(source)
@@ -75,13 +75,9 @@ public class AutoActBuild : AutoAct
                 continue;
             }
 
-            if (owner.held.IsNull() || owner.held.isDestroyed || owner.held.GetRootCard() != pc)
+            if (!CheckHeld())
             {
-                TrySwitchHeld();
-            }
-            else if (!CheckHeld())
-            {
-                yield return Fail();
+                yield break;
             }
         }
         yield break;
@@ -90,6 +86,7 @@ public class AutoActBuild : AutoAct
     public void Init()
     {
         RestoreChild();
+        _ = HeldChecker;
         if (Held.trait is TraitSeed || Held.trait is TraitFertilizer)
         {
             if (range.Count == 0)
@@ -329,6 +326,11 @@ public class AutoActBuild : AutoAct
 
     public bool CheckHeld()
     {
+        if (owner.held.IsNull() || owner.held.isDestroyed || owner.held.GetRootCard() != pc)
+        {
+            return TrySwitchHeld();
+        }
+
         if (owner.held == Held)
         {
             return true;
@@ -341,19 +343,27 @@ public class AutoActBuild : AutoAct
         }
         else
         {
-            return false;
+            return TrySwitchHeld();
         }
     }
 
-    public void TrySwitchHeld()
+    public bool TrySwitchHeld()
     {
         var nextHeld = FindNextHeld();
         if (nextHeld.HasValue())
         {
             pc.HoldCard(nextHeld);
-            Child.held = nextHeld;
-            owner.held = nextHeld;
+            pc.party.members.ForEach(chara =>
+            {
+                if (chara.ai is AutoActBuild autoAct && autoAct.IsRunning)
+                {
+                    chara.held = nextHeld;
+                    autoAct.Child.held = nextHeld;
+                }
+            });
+            return true;
         }
+        return false;
     }
 
     public Thing FindNextHeld()
