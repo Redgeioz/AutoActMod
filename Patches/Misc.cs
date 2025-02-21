@@ -8,15 +8,6 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class Misc
 {
-    [HarmonyPostfix, HarmonyPatch(typeof(CharaRenderer), nameof(CharaRenderer.OnEnterScreen))]
-    public static void CharaRenderer_OnEnterScreen_Patch()
-    {
-        if (AutoActMod.Active && Settings.IgnoreEnemySpotted)
-        {
-            EClass.player.enemySpotted = false;
-        }
-    }
-
     [HarmonyPrefix, HarmonyPatch(typeof(Card), nameof(Card.MoveImmediate))]
     static void Card_MoveImmediate_Patch(Card __instance, ref bool cancelAI)
     {

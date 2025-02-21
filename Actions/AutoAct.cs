@@ -222,7 +222,7 @@ public class AutoAct : AIAct
             return false;
         }
 
-        if (owner?.IsPC is true && Settings.StaminaCheck)
+        if (owner?.IsPCParty is true && Settings.StaminaCheck)
         {
             return owner.stamina.value >= 0;
         }
@@ -263,7 +263,7 @@ public class AutoAct : AIAct
             return Fail();
         }
 
-        child.Success();
+        child.status = Status.Success;
 
         return KeepRunning();
     }

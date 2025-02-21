@@ -24,7 +24,7 @@ public class AutoActMod : BaseUnityPlugin
         Settings.pourDepth = Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
         Settings.seedReapingCount = Config.Bind("Settings", "SeedReapingCount", 25);
         Settings.staminaCheck = Config.Bind("Settings", "StaminaCheck", true);
-        Settings.ignoreEnemySpotted = Config.Bind("Settings", "IgnoreEnemySpotted", true);
+        Settings.enemyEncounterResponse = Config.Bind("Settings", "enemyEncounterResponse", 2);
         Settings.simpleIdentify = Config.Bind("Settings", "SimpleIdentify", 0);
         Settings.sameFarmfieldOnly = Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
         Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
@@ -79,7 +79,7 @@ public class AutoActMod : BaseUnityPlugin
     }
 
     public static List<Action> Actions = [];
-    public static bool Active = false;
+    public static bool Active => EClass.pc.ai is AutoAct;
     public static bool SwitchOn = false;
     public static bool IsSwitchOn => Settings.KeyMode ? SwitchOn : Input.GetKey(Settings.KeyCode);
     public static AutoActMod Instance { get; private set; }

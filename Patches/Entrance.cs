@@ -10,7 +10,7 @@ static class Entrance
     static bool Chara_SetAI_Patch(Chara __instance, AIAct g)
     {
 #if DEBUG
-        if (!__instance.IsPC) { return true; }
+        // if (!__instance.IsPC) { return true; }
         if (!__instance.IsPCParty) { return true; }
         AIAct prev = __instance.ai;
         AutoActMod.Log($"===   Chara_SetAI_Prefix   ===");

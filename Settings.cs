@@ -15,7 +15,7 @@ public static class Settings
     public static ConfigEntry<int> pourDepth;
     public static ConfigEntry<bool> staminaCheck;
     public static ConfigEntry<bool> sameFarmfieldOnly;
-    public static ConfigEntry<bool> ignoreEnemySpotted;
+    public static ConfigEntry<int> enemyEncounterResponse;
     public static ConfigEntry<int> simpleIdentify;
     public static ConfigEntry<bool> startFromCenter;
     public static ConfigEntry<bool> keyMode;
@@ -71,10 +71,10 @@ public static class Settings
         set { sameFarmfieldOnly.Value = value; }
     }
 
-    public static bool IgnoreEnemySpotted
+    public static int EnemyEncounterResponse
     {
-        get { return ignoreEnemySpotted.Value; }
-        set { ignoreEnemySpotted.Value = value; }
+        get { return enemyEncounterResponse.Value; }
+        set { enemyEncounterResponse.Value = value; }
     }
 
     public static int SimpleIdentify
@@ -151,7 +151,6 @@ public static class Settings
             var menu = EClass.ui.CreateContextMenu();
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
-            menu.AddToggle(AALang.GetText("ignoreEnemySpotted"), IgnoreEnemySpotted, v => IgnoreEnemySpotted = v);
             menu.AddToggle(AALang.GetText("startFromCenter"), StartFromCenter, v =>
             {
                 StartFromCenter = v;
@@ -178,11 +177,26 @@ public static class Settings
                         KeyMode = false;
                         return AALang.GetText("press");
                     }
-                }
-                , KeyMode ? 1 : 0,
+                },
+                KeyMode ? 1 : 0,
                 v => { },
                 0,
                 1,
+                true,
+                false
+            );
+            menu.AddSlider(
+                AALang.GetText("enemyEncounterResponse"),
+                v =>
+                {
+                    EnemyEncounterResponse = (int)v;
+                    string s = "eer" + v;
+                    return AALang.GetText(s);
+                },
+                EnemyEncounterResponse,
+                v => { },
+                0,
+                2,
                 true,
                 false
             );
@@ -347,6 +361,10 @@ public static class AALang
             "CN", new Dictionary<string, string> {
                 { "autoact", "自动行动" },
                 { "settings", "自动行动设置" },
+                { "enemyEncounterResponse", "遇敌对策" },
+                { "eer0", "停止" },
+                { "eer1", "无视" },
+                { "eer2", "攻击" },
                 { "detDist", "探测距离" },
                 { "buildRangeW", "建造范围宽"},
                 { "buildRangeH", "建造范围高"},
@@ -366,7 +384,6 @@ public static class AALang
                 { "followBuildRange", "同建造范围" },
                 { "simpleIdentify", "简单识别" },
                 { "off", "关闭"},
-                { "ignoreEnemySpotted", "忽视发现的敌人　　　　　　　　" },
                 { "startFromCenter", "从中心开始（限制为正方形）　　" },
                 { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
             }
@@ -375,6 +392,10 @@ public static class AALang
             "ZHTW", new Dictionary<string, string> {
                 { "autoact", "自動行動" },
                 { "settings", "自動行動設定" },
+                { "enemyEncounterResponse", "遇敵對策" },
+                { "eer0", "停止" },
+                { "eer1", "無視" },
+                { "eer2", "攻擊" },
                 { "detDist", "探測距離" },
                 { "buildRangeW", "建造範圍寬" },
                 { "buildRangeH", "建造範圍高" },
@@ -394,7 +415,6 @@ public static class AALang
                 { "followBuildRange", "同建造範圍" },
                 { "simpleIdentify", "簡單識別" },
                 { "off", "關閉"},
-                { "ignoreEnemySpotted", "忽視發現的敵人　　　　　　　　" },
                 { "startFromCenter", "从中心開始（限製為正方形）　　" },
                 { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
             }
@@ -403,6 +423,10 @@ public static class AALang
             "JP", new Dictionary<string, string> {
                 { "autoact", "自動行動" },
                 { "settings", "自動行動設定" },
+                { "enemyEncounterResponse", "敵遭遇時の対応" },
+                { "eer0", "停止" },
+                { "eer1", "無視" },
+                { "eer2", "攻擊" },
                 { "detDist", "検出距離" },
                 { "buildRangeW", "建設範囲の幅" },
                 { "buildRangeH", "建設範囲の高さ" },
@@ -422,7 +446,6 @@ public static class AALang
                 { "followBuildRange", "建設範囲と同じ" },
                 { "simpleIdentify", "簡単識別" },
                 { "off", "オフ"},
-                { "ignoreEnemySpotted", "発見した敵を無視する　　　　　" },
                 { "startFromCenter", "中心から開始（正方形に制限）　" },
                 { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
             }
@@ -431,6 +454,10 @@ public static class AALang
             "EN", new Dictionary<string, string> {
                 { "autoact", "Auto Act" },
                 { "settings", "Auto Act Settings" },
+                { "enemyEncounterResponse", "Enemy Encounter Response" },
+                { "eer0", "Stop" },
+                { "eer1", "Ignore" },
+                { "eer2", "Attack" },
                 { "detDist", "Detection Distance" },
                 { "buildRangeW", "Building Range Width" },
                 { "buildRangeH", "Building Range Height" },
@@ -450,7 +477,6 @@ public static class AALang
                 { "followBuildRange", "Follow The Building Range" },
                 { "simpleIdentify", "Simple Identification" },
                 { "off", "Off"},
-                { "ignoreEnemySpotted", "Ignore Enemy Spotted　　　　　　　　　　　　　　　　　　　" },
                 { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
                 { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
             }
