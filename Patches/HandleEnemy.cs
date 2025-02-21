@@ -14,27 +14,46 @@ static class HandleEnemy
     [HarmonyTranspiler, HarmonyPatch(typeof(CharaRenderer), nameof(CharaRenderer.OnEnterScreen))]
     static IEnumerable<CodeInstruction> CharaRenderer_OnEnterScreen_Patch(IEnumerable<CodeInstruction> instructions)
     {
-        return new CodeMatcher(instructions)
-            .MatchStartForward(
-                new CodeMatch(OpCodes.Ldc_I4_1),
-                new CodeMatch(OpCodes.Stfld),
-                new CodeMatch(OpCodes.Ret))
-            .SetInstruction(
-                Transpilers.EmitDelegate(() =>
+        static void OnSpotEnemy()
+        {
+            if (EClass.pc.ai is GoalCombat)
+            {
+                return;
+            }
+
+            if (!AutoActMod.Active || Settings.EnemyEncounterResponse == 0)
+            {
+                if (EClass.core.config.game.haltOnSpotEnemy)
                 {
-                    if ((!AutoActMod.Active || Settings.EnemyEncounterResponse == 0) && EClass.pc.ai is not GoalCombat)
-                    {
-                        return true;
-                    }
+                    EClass.player.enemySpotted = true;
+                }
 
-                    if (Settings.EnemyEncounterResponse == 2)
-                    {
-                        EClass.pc.FindNewEnemy();
-                        EClass.pc.SetAIAggro();
-                    }
+                return;
+            }
 
-                    return false;
-                }))
+            if (Settings.EnemyEncounterResponse == 2)
+            {
+                EClass.pc.FindNewEnemy();
+                EClass.pc.SetAIAggro();
+            }
+        }
+
+        return new CodeMatcher(instructions)
+            .MatchEndForward(
+                new CodeMatch(OpCodes.Ldarg_0),
+                new CodeMatch(OpCodes.Ldc_R4),
+                new CodeMatch(OpCodes.Stfld))
+            .Advance(1)
+            .InsertAndAdvance(
+                new CodeMatch(OpCodes.Ldarg_0),
+                Transpilers.EmitDelegate((CharaRenderer thiz) =>
+                {
+                    if (thiz.owner.ExistsOnMap && !EClass._zone.IsRegion && thiz.owner.IsHostile() && EClass.pc.CanSeeLos(thiz.owner, -1))
+                    {
+                        OnSpotEnemy();
+                    }
+                }),
+                new CodeInstruction(OpCodes.Ret))
             .InstructionEnumeration();
     }
 
