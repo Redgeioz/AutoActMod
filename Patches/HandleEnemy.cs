@@ -11,30 +11,6 @@ static class HandleEnemy
     [HarmonyTranspiler, HarmonyPatch(typeof(CharaRenderer), nameof(CharaRenderer.OnEnterScreen))]
     static IEnumerable<CodeInstruction> CharaRenderer_OnEnterScreen_Patch(IEnumerable<CodeInstruction> instructions)
     {
-        static void OnSpotEnemy()
-        {
-            if (EClass.pc.ai is GoalCombat)
-            {
-                return;
-            }
-
-            if (!AutoActMod.Active || Settings.EnemyEncounterResponse == 0)
-            {
-                if (EClass.core.config.game.haltOnSpotEnemy)
-                {
-                    EClass.player.enemySpotted = true;
-                }
-
-                return;
-            }
-
-            if (Settings.EnemyEncounterResponse == 2)
-            {
-                EClass.pc.FindNewEnemy();
-                EClass.pc.SetAIAggro();
-            }
-        }
-
         return new CodeMatcher(instructions)
             .MatchEndForward(
                 new CodeMatch(OpCodes.Ldarg_0),
@@ -54,6 +30,7 @@ static class HandleEnemy
             .InstructionEnumeration();
     }
 
+    // Make AutoAct able to stop when spotting an enemy
     [HarmonyTranspiler, HarmonyPatch(typeof(AI_Goto), nameof(AI_Goto.Run), MethodType.Enumerator)]
     static IEnumerable<CodeInstruction> AI_Goto_Run_Patch(IEnumerable<CodeInstruction> instructions)
     {
@@ -75,56 +52,48 @@ static class HandleEnemy
             .InstructionEnumeration();
     }
 
+    static void OnSpotEnemy()
+    {
+        if (EClass.pc.ai is GoalCombat)
+        {
+            return;
+        }
+
+        if (!AutoActMod.Active || Settings.EnemyEncounterResponse == 0)
+        {
+            if (EClass.core.config.game.haltOnSpotEnemy)
+            {
+                EClass.player.enemySpotted = true;
+            }
+
+            return;
+        }
+
+        if (Settings.EnemyEncounterResponse == 2)
+        {
+            EClass.pc.FindNewEnemy();
+            EClass.pc.SetAIAggro();
+        }
+    }
+
     [HarmonyPrefix, HarmonyPatch(typeof(Chara), nameof(Chara.SetAIAggro))]
     static bool Chara_SetAIAggro_Patch(Chara __instance)
     {
+        if (__instance.ai.Current is GoalCombat)
+        {
+            return false;
+        }
+
         var goal = __instance.IsPC ? new GoalAutoCombat(__instance.enemy) : new GoalCombat();
 
-        if (__instance.ai is AutoAct autoAct)
+        if (__instance.ai is AutoAct autoAct && autoAct.IsRunning)
         {
-            AutoAct.Paused.Remove(__instance);
-            AutoAct.Paused.Add(__instance, (autoAct, __instance.held as Thing));
-#if DEBUG
-            AutoActMod.Log($"Pause Auto Act: {__instance.Name} | {__instance.ai}");
-#endif
-            __instance.ai = Chara._NoGoalPC;
+            autoAct.InsertAction(goal);
+            return false;
         }
 
         __instance.SetAI(goal);
 
         return false;
-    }
-
-    [HarmonyPostfix, HarmonyPatch(typeof(AIAct), nameof(AIAct.OnReset))]
-    static void AIAct_OnReset_Patch(AIAct __instance)
-    {
-        if (__instance is not GoalCombat g)
-        {
-            return;
-        }
-
-        var chara = g.owner;
-        if (AutoAct.Paused.TryGetValue(chara, out var pair))
-        {
-            var (autoAct, thing) = pair;
-
-            if (chara.IsPC || autoAct is not AutoActBuild)
-            {
-                chara.HoldCard(thing);
-            }
-            else
-            {
-                chara.held = thing;
-            }
-
-            chara.ai = autoAct;
-
-            autoAct.Retry();
-            AutoAct.Paused.Remove(chara);
-            g.Reset();
-#if DEBUG
-            AutoActMod.Log($"Restore Auto Act: {chara.Name} | {chara.ai}");
-#endif
-        }
     }
 }

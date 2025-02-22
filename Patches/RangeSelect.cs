@@ -43,7 +43,7 @@ internal static class RangeSelect
 
     static void Reset()
     {
-        if (EClass.pc.ai is AutoAct || AutoAct.Paused.TryGetValue(EClass.pc, out _))
+        if (EClass.pc.ai is AutoAct)
         {
             return;
         }

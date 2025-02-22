@@ -41,7 +41,6 @@ public class AutoAct : AIAct
     public delegate AutoAct TryCreateByActDelegate(string id, Card target, Point pos);
     public static readonly List<TryCreateDelegate> TryCreateMethods = [];
     public static readonly List<TryCreateByActDelegate> TryCreateByActMethods = [];
-    public static readonly Dictionary<Chara, (AutoAct, Thing)> Paused = [];
 
     public static void Register(Assembly assembly)
     {
@@ -303,6 +302,38 @@ public class AutoAct : AIAct
     }
 
     public override void OnCancelOrSuccess() { }
+
+    // Pause the current action and execute the given action
+    public void InsertAction(AIAct action)
+    {
+        if (Enumerator.IsNull())
+        {
+            Start();
+        }
+
+        var last = this as AIAct;
+        while (last.child?.IsRunning is true)
+        {
+            last = last.child;
+            last.Enumerator = Enumerable.Repeat(Status.Success, 1).GetEnumerator();
+        }
+
+        if (last == this)
+        {
+            last = child;
+            last.status = Status.Running;
+        }
+
+        IEnumerable<Status> OnEnd()
+        {
+            last.child.Reset();
+            last.child = null;
+            yield return Status.Success;
+        }
+
+        last.Enumerator = OnEnd().GetEnumerator();
+        last.SetChild(action, KeepRunning);
+    }
 
     public void SetTarget(TileRow r)
     {
