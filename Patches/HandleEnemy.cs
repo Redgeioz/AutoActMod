@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Reflection.Emit;
-using System.Runtime.InteropServices;
 using AutoActMod.Actions;
 using HarmonyLib;
 
@@ -9,8 +8,6 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class HandleEnemy
 {
-    static readonly Dictionary<Chara, (AutoAct, Thing)> Paused = [];
-
     [HarmonyTranspiler, HarmonyPatch(typeof(CharaRenderer), nameof(CharaRenderer.OnEnterScreen))]
     static IEnumerable<CodeInstruction> CharaRenderer_OnEnterScreen_Patch(IEnumerable<CodeInstruction> instructions)
     {
@@ -85,8 +82,8 @@ static class HandleEnemy
 
         if (__instance.ai is AutoAct autoAct)
         {
-            Paused.Remove(__instance);
-            Paused.Add(__instance, (autoAct, __instance.held as Thing));
+            AutoAct.Paused.Remove(__instance);
+            AutoAct.Paused.Add(__instance, (autoAct, __instance.held as Thing));
 #if DEBUG
             AutoActMod.Log($"Pause Auto Act: {__instance.Name} | {__instance.ai}");
 #endif
@@ -107,7 +104,7 @@ static class HandleEnemy
         }
 
         var chara = g.owner;
-        if (Paused.TryGetValue(chara, out var pair))
+        if (AutoAct.Paused.TryGetValue(chara, out var pair))
         {
             var (autoAct, thing) = pair;
 
@@ -123,7 +120,7 @@ static class HandleEnemy
             chara.ai = autoAct;
 
             autoAct.Retry();
-            Paused.Remove(chara);
+            AutoAct.Paused.Remove(chara);
             g.Reset();
 #if DEBUG
             AutoActMod.Log($"Restore Auto Act: {chara.Name} | {chara.ai}");

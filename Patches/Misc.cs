@@ -107,7 +107,7 @@ static class Misc
     //     // return true;
     //     if (__instance is AutoAct a && a is not AutoActWait)
     //     {
-    //         if (__instance.owner.IsPC)
+    //         if (!__instance.owner.IsPC)
     //         {
     //             return true;
     //         }

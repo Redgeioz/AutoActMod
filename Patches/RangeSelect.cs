@@ -43,7 +43,7 @@ internal static class RangeSelect
 
     static void Reset()
     {
-        if (EClass.pc.ai is AutoAct)
+        if (EClass.pc.ai is AutoAct || AutoAct.Paused.TryGetValue(EClass.pc, out _))
         {
             return;
         }
@@ -70,7 +70,9 @@ internal static class RangeSelect
             return;
         }
 
-        if (HotItemHeld.taskBuild.HasValue() && (t.Num > 1 || t.trait is TraitSeed) && t.trait is TraitSeed or TraitFloor or TraitPlatform or TraitBlock)
+        if (HotItemHeld.taskBuild.HasValue()
+            && (t.Num > 1 || t.trait is TraitSeed)
+            && t.trait is TraitSeed or TraitFloor or TraitPlatform or TraitBlock or TraitFertilizer)
         {
             OnSelectComplete = SetAutoActBuild;
         }

@@ -35,12 +35,13 @@ public class AutoAct : AIAct
     public Selector selector = new();
     public override int MaxRestart => 1;
     public static bool IsSetting = false;
-    public static Dictionary<SourceData.BaseRow, bool> RowCheckCache = [];
-    public static List<Type> SubClasses = [];
+    public static readonly Dictionary<SourceData.BaseRow, bool> RowCheckCache = [];
+    public static readonly List<Type> SubClasses = [];
     public delegate AutoAct TryCreateDelegate(AIAct source);
     public delegate AutoAct TryCreateByActDelegate(string id, Card target, Point pos);
-    public static List<TryCreateDelegate> TryCreateMethods = [];
-    public static List<TryCreateByActDelegate> TryCreateByActMethods = [];
+    public static readonly List<TryCreateDelegate> TryCreateMethods = [];
+    public static readonly List<TryCreateByActDelegate> TryCreateByActMethods = [];
+    public static readonly Dictionary<Chara, (AutoAct, Thing)> Paused = [];
 
     public static void Register(Assembly assembly)
     {
