@@ -348,7 +348,7 @@ public static class AALang
 {
     static public string GetText(string text)
     {
-        string lang = EClass.core.config.lang;
+        var lang = EClass.core.config.lang;
         if (!langData.ContainsKey(lang))
         {
             lang = "EN";
@@ -356,13 +356,14 @@ public static class AALang
         return langData[lang][text];
     }
 
-    public static Dictionary<string, Dictionary<string, string>> langData = new Dictionary<string, Dictionary<string, string>> {
+    public static Dictionary<string, Dictionary<string, string>> langData = new()
+    {
         {
             "CN", new Dictionary<string, string> {
                 { "autoact", "自动行动" },
                 { "settings", "自动行动设置" },
-                { "enemyEncounterResponse", "遇敌对策" },
-                { "eer0", "停止" },
+                { "enemyEncounterResponse", "遇敌时反应" },
+                { "eer0", "停下" },
                 { "eer1", "无视" },
                 { "eer2", "攻击" },
                 { "detDist", "探测距离" },
@@ -379,7 +380,8 @@ public static class AALang
                 { "noTarget", "自动行动没有找到下一个目标。"},
                 { "aaon", "自动行动，启动！"},
                 { "aaoff", "自动行动，关闭。"},
-                { "staminaCheck", "精力为零时停止　　　　　　　　" },
+                { "staminaCheck", "精力耗尽时停止　　　　　　　　" },
+                { "weightCheck", "超重时停止　　　　　　　　　　" },
                 { "entireFarmfield", "所选的整个田地" },
                 { "followBuildRange", "同建造范围" },
                 { "simpleIdentify", "简单识别" },
@@ -392,8 +394,8 @@ public static class AALang
             "ZHTW", new Dictionary<string, string> {
                 { "autoact", "自動行動" },
                 { "settings", "自動行動設定" },
-                { "enemyEncounterResponse", "遇敵對策" },
-                { "eer0", "停止" },
+                { "enemyEncounterResponse", "遇敵時反應" },
+                { "eer0", "停下" },
                 { "eer1", "無視" },
                 { "eer2", "攻擊" },
                 { "detDist", "探測距離" },
@@ -410,7 +412,7 @@ public static class AALang
                 { "noTarget", "自動行動沒有找到下一個目標。"},
                 { "aaon", "自動行動，啟動！"},
                 { "aaoff", "自動行動，關閉。"},
-                { "staminaCheck", "精力為零時停止　　　　　　　　" },
+                { "staminaCheck", "精力耗盡時停止　　　　　　　　" },
                 { "entireFarmfield", "所選的整個田地" },
                 { "followBuildRange", "同建造範圍" },
                 { "simpleIdentify", "簡單識別" },
@@ -441,7 +443,7 @@ public static class AALang
                 { "noTarget", "自動行動は次目標を発見できず。"},
                 { "aaon", "自動行動：オン。"},
                 { "aaoff", "自動行動：オフ。"},
-                { "staminaCheck", "スタミナゼロで停止　　　　　　" },
+                { "staminaCheck", "精力が尽きた時に停止する　　　" },
                 { "entireFarmfield", "選択された農地全体" },
                 { "followBuildRange", "建設範囲と同じ" },
                 { "simpleIdentify", "簡単識別" },
@@ -472,7 +474,7 @@ public static class AALang
                 { "noTarget", "Auto Act could not find the next target."},
                 { "aaon", "Auto Act: On."},
                 { "aaoff", "Auto Act: Off."},
-                { "staminaCheck", "Stop When Zero Stamina　　　　　　　　　　　　　　　　　" },
+                { "staminaCheck", "Stop When Stamina Runs Out　 　　　　　　　　　　　　" },
                 { "entireFarmfield", "The Entire Selected Farmfield" },
                 { "followBuildRange", "Follow The Building Range" },
                 { "simpleIdentify", "Simple Identification" },

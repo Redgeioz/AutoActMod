@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>library</OutputType>
     <TargetFramework>net472</TargetFramework>
-    <LangVersion>12</LangVersion>
+    <LangVersion>preview</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

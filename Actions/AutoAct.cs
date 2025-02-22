@@ -222,12 +222,12 @@ public class AutoAct : AIAct
             return false;
         }
 
-        if (owner?.IsPCParty is true && Settings.StaminaCheck)
+        if (owner?.IsPCParty is false)
         {
-            return owner.stamina.value >= 0;
+            return true;
         }
 
-        return true;
+        return !Settings.StaminaCheck || owner.stamina.value >= 0;
     }
 
     public override bool CanManualCancel()

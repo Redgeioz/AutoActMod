@@ -9,8 +9,6 @@ public class AutoActBuild : AutoAct
     public int w;
     public int h;
     public bool hasSowRange;
-    public Func<Point, bool> pointChecker;
-    public Func<Thing, bool> heldChecker;
     public List<Point> range = [];
     public TaskBuild Child => child as TaskBuild;
     public Card Held => Child.held;
@@ -380,26 +378,26 @@ public class AutoActBuild : AutoAct
     {
         get
         {
-            if (heldChecker.HasValue())
+            if (field.HasValue())
             {
-                return heldChecker;
+                return field;
             }
 
             if (Held.trait is TraitSeed)
             {
                 var seedId = sources.objs.map[Held.refVal].id;
-                heldChecker = t => t.trait is TraitSeed seed && seed.row.id == seedId;
+                field = t => t.trait is TraitSeed seed && seed.row.id == seedId;
             }
             else if (Held.trait is TraitDefertilizer)
             {
-                heldChecker = t => t.trait is TraitDefertilizer;
+                field = t => t.trait is TraitDefertilizer;
             }
             else if (Held.trait is TraitFertilizer)
             {
-                heldChecker = t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
+                field = t => t.trait is TraitFertilizer && t.trait is not TraitDefertilizer;
             }
 
-            return heldChecker;
+            return field;
         }
     }
 
@@ -407,29 +405,29 @@ public class AutoActBuild : AutoAct
     {
         get
         {
-            if (pointChecker.HasValue())
+            if (field.HasValue())
             {
-                return pointChecker;
+                return field;
             }
 
             if (Held.trait is TraitSeed)
             {
-                pointChecker = p => (!p.HasThing || p.Things[0].IsInstalled) && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed?.trait is null or TraitLight;
+                field = p => (!p.HasThing || p.Things[0].IsInstalled) && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed?.trait is null or TraitLight;
             }
             else if (Held.trait is TraitFertilizer)
             {
-                pointChecker = ShouldFertilize;
+                field = ShouldFertilize;
             }
             else if (Held.trait is TraitFloor or TraitPlatform)
             {
-                pointChecker = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != startPos.cell.sourceSurface;
+                field = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != startPos.cell.sourceSurface;
             }
             else
             {
-                pointChecker = p => !p.HasThing && !p.HasBlock;
+                field = p => !p.HasThing && !p.HasBlock;
             }
 
-            return pointChecker;
+            return field;
         }
     }
 
