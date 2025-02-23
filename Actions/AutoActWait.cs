@@ -19,7 +19,7 @@ public class AutoActWait : AutoAct
 
     public override bool CanProgress()
     {
-        return canContinue.IsNull() || canContinue();
+        return canContinue?.Invoke() is true;
     }
 
     public override IEnumerable<Status> Run()

@@ -50,10 +50,7 @@ public class AutoActPlow : AutoAct
 
     public override void OnChildSuccess()
     {
-        if (range.HasValue())
-        {
-            range.Remove(Pos);
-        }
+        range?.Remove(Pos);
     }
 
     public bool Filter(Cell cell) => !cell.HasBlock

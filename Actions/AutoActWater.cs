@@ -26,14 +26,15 @@ public class AutoActWater : AutoAct
         return new AutoActWater(pos);
     }
 
-    public bool IsWaterCanValid(bool msg = true)
+    public bool IsWaterCanValid()
     {
-        return waterCan.HasValue() && owner.held?.trait == waterCan && waterCan.owner.c_charges > 0;
+        return waterCan?.Equals(owner.held?.trait) is true && waterCan.owner.c_charges > 0;
     }
+
 
     public override bool CanProgress()
     {
-        return base.CanProgress() && waterCan.HasValue() && owner.held?.trait == waterCan;
+        return base.CanProgress() && waterCan?.Equals(owner.held?.trait) is true;
     }
 
     public override IEnumerable<Status> Run()
@@ -55,7 +56,6 @@ public class AutoActWater : AutoAct
                     {
                         Msg.Say("water_deplete");
                     }
-                    AutoActMod.Log("");
                     yield return Fail();
                 }
 

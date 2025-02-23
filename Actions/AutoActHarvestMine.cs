@@ -95,7 +95,7 @@ public class AutoActHarvestMine : AutoAct
                 {
                     tryBetterPath = 2;
                 }
-                else if (!SimpleIdentify && owner.held.HasValue() && owner.held.HasElement(220, 1))
+                else if (!SimpleIdentify && owner.held?.HasElement(220, 1) is true)
                 {
                     tryBetterPath = 1;
                 }

@@ -48,10 +48,7 @@ public class AutoActSlaughter(AIAct source) : AutoAct(source)
 
     public override void OnChildSuccess()
     {
-        if (range.HasValue())
-        {
-            range.Remove(Child.target as Chara);
-        }
+        range?.Remove(Child.target as Chara);
     }
 
     public override void OnCancelOrSuccess()

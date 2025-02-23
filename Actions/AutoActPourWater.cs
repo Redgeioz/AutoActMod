@@ -78,10 +78,7 @@ public class AutoActPourWater : AutoAct
 
     public override void OnChildSuccess()
     {
-        if (range.HasValue())
-        {
-            range.Remove(Pos);
-        }
+        range?.Remove(Pos);
     }
 
     public class SubActPourWater : TaskPourWater

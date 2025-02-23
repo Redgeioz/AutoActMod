@@ -23,14 +23,14 @@ public class AutoActDisarm(TraitTrap target) : AutoAct
     {
         while (CanProgress())
         {
-            if (target.TryDisarmTrap(pc))
+            if (target.TryDisarmTrap(owner))
             {
                 yield return Success();
             }
 
-            if (pc.Evalue(1656) < 3 && rnd(2) == 0)
+            if (owner.Evalue(1656) < 3 && rnd(2) == 0)
             {
-                target.ActivateTrap(pc);
+                target.ActivateTrap(owner);
             }
 
             yield return KeepRunning();

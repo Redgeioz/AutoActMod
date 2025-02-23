@@ -60,7 +60,7 @@ public class AutoActSteal : AutoAct
             {
                 var keepTarget = useOriginalPos;
                 target = FindChara(IsTargetChara, detRangeSq);
-                if (keepTarget && target.HasValue() && !Child.target.pos.Equals(target.pos))
+                if (keepTarget && Child.target != target)
                 {
                     owner.Say("steal_chara_nothing", owner, chara);
                 }
