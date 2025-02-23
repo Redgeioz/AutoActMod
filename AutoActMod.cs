@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using AutoActMod.Actions;
-using AutoActMod.Patches;
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
@@ -13,7 +11,7 @@ namespace AutoActMod;
 [BepInPlugin("redgeioz.plugin.AutoAct", "AutoAct", "1.0.0")]
 public class AutoActMod : BaseUnityPlugin
 {
-    void Awake()
+    internal void Awake()
     {
         Instance = this;
         Settings.startFromCenter = Config.Bind("Settings", "StartFromCenter", true);
@@ -36,10 +34,8 @@ public class AutoActMod : BaseUnityPlugin
         new Harmony("AutoActMod").PatchAll();
     }
 
-    void Update()
+    internal void Update()
     {
-        Actions.ForEach(f => f());
-
         if (!Settings.KeyMode)
         {
             return;
@@ -52,10 +48,9 @@ public class AutoActMod : BaseUnityPlugin
         }
     }
 
-    void Start()
+    internal void Start()
     {
         AutoAct.InitTryCreateMethods();
-        Actions.Add(Gacha.AutoFeed);
     }
 
     public static void Say(string text)
@@ -78,7 +73,6 @@ public class AutoActMod : BaseUnityPlugin
         Instance.Logger.LogWarning(payload);
     }
 
-    public static List<Action> Actions = [];
     public static bool Active => EClass.pc.ai is AutoAct;
     public static bool SwitchOn = false;
     public static bool IsSwitchOn => Settings.KeyMode ? SwitchOn : Input.GetKey(Settings.KeyCode);

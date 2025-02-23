@@ -25,6 +25,7 @@ public static class Gacha
         Coin = button;
     }
 
+    [HarmonyPrefix, HarmonyPatch(typeof(AutoActMod), nameof(AutoActMod.Update))]
     internal static void AutoFeed()
     {
         if (InvOwner.IsNull())
