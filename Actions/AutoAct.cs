@@ -222,7 +222,7 @@ public class AutoAct : AIAct
             return false;
         }
 
-        if (owner?.IsPCParty is false)
+        if (owner?.IsPCFaction is false)
         {
             return true;
         }
@@ -308,8 +308,16 @@ public class AutoAct : AIAct
     {
         if (Enumerator.IsNull())
         {
-            Start();
+            Tick();
         }
+
+        if (child.IsNull())
+        {
+            SetChild(action, KeepRunning);
+            return;
+        }
+
+        child.SetOwner(owner);
 
         var last = this as AIAct;
         while (last.child?.IsRunning is true)
@@ -318,14 +326,14 @@ public class AutoAct : AIAct
             last.Enumerator = Enumerable.Repeat(Status.Success, 1).GetEnumerator();
         }
 
-        if (last == this)
-        {
-            last = child;
-            last.status = Status.Running;
-        }
-
         IEnumerable<Status> OnEnd()
         {
+#if DEBUG
+            AutoActMod.Log($"===   InsertAction OnEnd  ===");
+            AutoActMod.Log($"Chara: {owner.Name} | {this}");
+            AutoActMod.Log($"Inserted action finished: {action}");
+            AutoActMod.Log($"====  InsertAction OnEnd ====");
+#endif
             last.child.Reset();
             last.child = null;
             yield return Status.Success;
@@ -564,7 +572,7 @@ public class AutoAct : AIAct
         else
         {
 #if DEBUG
-            AutoActMod.Log(owner.Name + " | " + text);
+            AutoActMod.Log($"{owner.Name} | {owner.ai} | {text}");
 #endif
         }
     }
@@ -586,22 +594,22 @@ public class AutoAct : AIAct
 
     public int CalcDist2(Point p)
     {
-        return Utils.Dist2(p, owner.pos);
+        return owner.pos.Dist2(p);
     }
 
     public int CalcDist2ToLastPoint(Point p)
     {
-        return Utils.Dist2(p, Pos);
+        return Pos.Dist2(p);
     }
 
     public int CalcMaxDelta(Point p)
     {
-        return Utils.MaxDelta(p, owner.pos);
+        return owner.pos.MaxDelta(p);
     }
 
     public int CalcMaxDeltaToStartPos(Point p)
     {
-        return Utils.MaxDelta(p, startPos);
+        return startPos.MaxDelta(p);
     }
 
     public Point FindPos(Predicate<Cell> filter, int detRangeSq = 2, int tryBetterPath = 0, List<Point> range = null)

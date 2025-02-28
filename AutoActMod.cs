@@ -95,14 +95,14 @@ public static class Utils
         }
     }
 
-    public static int Dist2(Point p1, Point p2)
+    public static int Dist2(this Point p1, Point p2)
     {
         var dx = p1.x - p2.x;
         var dz = p1.z - p2.z;
         return dx * dx + dz * dz;
     }
 
-    public static int MaxDelta(Point p1, Point p2)
+    public static int MaxDelta(this Point p1, Point p2)
     {
         var dx = Math.Abs(p1.x - p2.x);
         var dz = Math.Abs(p1.z - p2.z);

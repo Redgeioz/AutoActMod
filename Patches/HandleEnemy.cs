@@ -45,7 +45,7 @@ static class HandleEnemy
                 {
                     if (thiz.parent is AutoAct autoAct)
                     {
-                        autoAct.restartCount = (byte)autoAct.MaxRestart;
+                        autoAct.CancelRetry();
                     }
                 })
             )
@@ -54,7 +54,7 @@ static class HandleEnemy
 
     static void OnSpotEnemy()
     {
-        if (EClass.pc.ai is GoalCombat)
+        if (EClass.pc.ai.Current is GoalCombat)
         {
             return;
         }
@@ -88,12 +88,17 @@ static class HandleEnemy
 
         if (__instance.ai is AutoAct autoAct && autoAct.IsRunning)
         {
+#if DEBUG
+            AutoActMod.Log($"===   Chara_SetAIAggro_Patch   ===");
+            AutoActMod.Log($"Chara: {__instance.Name} | {__instance.ai}");
+            AutoActMod.Log($"Insert: {goal}");
+            AutoActMod.Log($"=== Chara_SetAIAggro_Patch End ===");
+#endif
             autoAct.InsertAction(goal);
             return false;
         }
 
         __instance.SetAI(goal);
-
         return false;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using AutoActMod.Actions;
 using HarmonyLib;
 using UnityEngine;
@@ -86,7 +87,7 @@ internal static class RangeSelect
         }
         else if (t.trait is TraitToolWaterPot)
         {
-            OnSelectComplete = SetAutoActPourWater;
+            OnSelectComplete = SetAutoActPourWaterOrDrawWater;
         }
         else if (t.trait is TraitToolButcher)
         {
@@ -144,7 +145,7 @@ internal static class RangeSelect
 
     static Point FindNearestPoint()
     {
-        return Range.FindMax(p => -Utils.Dist2(EClass.pc.pos, p));
+        return Range.FindMax(p => -EClass.pc.pos.Dist2(p));
     }
 
     static void SetStartPos(AutoAct autoAct)
@@ -216,12 +217,53 @@ internal static class RangeSelect
         }
     }
 
-    static void SetAutoActPourWater()
+    static void SetAutoActPourWaterOrDrawWater()
     {
+        var pot = EClass.pc.held.trait as TraitToolWaterPot;
+        if (pot.owner.c_charges == 0 || Range.Count(p => AutoActDrawWater.CanDrawWaterSimple(p.cell)) > Range.Count / 2)
+        {
+            SetAutoActDrawWater(pot);
+        }
+        else
+        {
+            SetAutoActPourWater(pot);
+        }
+    }
+
+    static void SetAutoActDrawWater(TraitToolWaterPot pot)
+    {
+        Range.RemoveAll(p => !AutoActDrawWater.CanDrawWaterSimple(p.cell));
+        if (Range.Count == 0)
+        {
+            return;
+        }
+
+        var source = new TaskDrawWater
+        {
+            pos = StartPos,
+            pot = pot,
+        };
+
+        SetAutoAct(new AutoActDrawWater(source)
+        {
+            onStart = SetStartPos,
+            simpleIdentify = 1,
+            range = Range,
+        });
+    }
+
+    static void SetAutoActPourWater(TraitToolWaterPot pot)
+    {
+        Range.RemoveAll(p => !AutoActPourWater.CanPourWater(p.cell));
+        if (Range.Count == 0)
+        {
+            return;
+        }
+
         var subAct = new AutoActPourWater.SubActPourWater
         {
             pos = StartPos,
-            pot = EClass.pc.held.trait as TraitToolWaterPot,
+            pot = pot,
             targetCount = Settings.PourDepth,
         };
 

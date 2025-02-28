@@ -6,12 +6,15 @@ public class AutoActDrawWater : AutoAct
 {
     public static int priority = 120;
     public int detRangeSq = 0;
+    public int simpleIdentify = 0;
+    public List<Point> range;
     public TaskDrawWater Child => child as TaskDrawWater;
 
-    AutoActDrawWater(TaskDrawWater source) : base(source)
+    public AutoActDrawWater(TaskDrawWater source) : base(source)
     {
         targetName = (Pos.HasBridge ? Pos.matBridge : Pos.matFloor).alias;
         detRangeSq = Settings.DetRangeSq;
+        simpleIdentify = Settings.SimpleIdentify;
     }
 
     public static AutoActDrawWater TryCreate(AIAct source)
@@ -31,11 +34,9 @@ public class AutoActDrawWater : AutoAct
         do
         {
             var targetPos = FindPos(
-                cell => cell.IsTopWaterAndNoSnow
-                    && (cell.HasBridge ? cell.matBridge : cell.matFloor).alias == targetName
-                    && !cell.HasObj
-                    && !cell.HasBlock,
-                detRangeSq
+               Settings.SimpleIdentify > 0 ? CanDrawWaterSimple : CanDrawWater,
+                detRangeSq,
+                range: range
             );
 
             if (targetPos.IsNull())
@@ -49,4 +50,13 @@ public class AutoActDrawWater : AutoAct
         } while (CanProgress());
         yield return FailOrSuccess();
     }
+
+    public bool CanDrawWater(Cell cell) => cell.IsTopWaterAndNoSnow
+        && (cell.HasBridge ? cell.matBridge : cell.matFloor).alias == targetName
+        && !cell.HasObj
+        && !cell.HasBlock;
+
+    public static bool CanDrawWaterSimple(Cell cell) => cell.IsTopWaterAndNoSnow
+        && !cell.HasObj
+        && !cell.HasBlock;
 }

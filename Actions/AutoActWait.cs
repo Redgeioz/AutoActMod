@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoActMod.Actions;
 
@@ -16,6 +17,8 @@ public class AutoActWait : AutoAct
         SetStartPos();
         child?.Reset();
     }
+
+    public override bool CancelWhenDamaged => !pc.party.members.Any(chara => chara.ai.Current is GoalCombat && chara.ai is AutoAct);
 
     public override bool CanProgress()
     {

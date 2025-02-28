@@ -72,7 +72,7 @@ public class AutoActPick : AutoAct
 
         public override IEnumerable<Status> Run()
         {
-            if (Utils.Dist2(owner.pos, pos) > 2)
+            if (owner.pos.Dist2(pos) > 2)
             {
                 yield return DoGoto(pos, 1, true);
             }
@@ -128,14 +128,8 @@ public class AutoActPick : AutoAct
                     success = true;
                 });
             }
-            if (success)
-            {
-                yield break;
-            }
-            else
-            {
-                yield return Cancel();
-            }
+
+            yield return success ? Success() : Cancel();
         }
     }
 }
