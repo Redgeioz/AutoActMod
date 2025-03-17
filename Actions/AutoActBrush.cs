@@ -8,6 +8,9 @@ public class AutoActBrush(AI_TendAnimal source) : AutoAct(source)
     public AI_TendAnimal Child => child as AI_TendAnimal;
     public override Point Pos => Child.target?.pos;
     public bool isTargetPCFaction = source.target.IsPCFaction;
+    public override bool IsAutoTurn => Child is AI_TendAnimal act && !(act.child is AI_Goto move && move.IsRunning);
+    public override int CurrentProgress => Child.progress;
+    public override int MaxProgress => Child.maxProgress;
 
     public static AutoActBrush TryCreate(AIAct source)
     {

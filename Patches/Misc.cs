@@ -20,10 +20,10 @@ static class Misc
     [HarmonyPostfix, HarmonyPatch(typeof(AIAct), nameof(AIAct.SetChild))]
     static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
     {
-        if (seq is AI_Goto go
+        if (seq is AI_Goto move
             && __instance is AI_Shear or AI_Fuck or AI_Slaughter or (TaskPoint and not TaskPlow))
         {
-            go.ignoreConnection = true;
+            move.ignoreConnection = true;
         }
     }
 
