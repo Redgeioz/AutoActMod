@@ -168,22 +168,22 @@ public class AutoAct : AIAct
         return a;
     }
 
-    public static AutoAct SetAutoAct(Chara chara, AutoAct a, bool isAct = false)
+    public static AutoAct SetAutoAct(Chara chara, AutoAct autoAct, bool isAct = false)
     {
         var hasNoGoal = chara.HasNoGoal;
         IsSetting = true;
-        a.useOriginalPos = chara.IsPC;
+        autoAct.useOriginalPos = chara.IsPC;
         chara.ai.status = hasNoGoal ? Status.Success : Status.Fail;
-        chara.SetAI(a);
+        chara.SetAI(autoAct);
         IsSetting = false;
         if (isAct
             && (scene.actionMode != ActionMode.Sim || !scene.paused)
             && hasNoGoal
             && !(chara.renderer as CharaRenderer).IsMoving)
         {
-            a.Tick();
+            autoAct.Tick();
         }
-        return a;
+        return autoAct;
     }
 
     public Status StartNextTask(bool resetRestartCount = true)
@@ -304,7 +304,7 @@ public class AutoAct : AIAct
     public override void OnCancelOrSuccess() { }
 
     // Pause the current action and execute the given action
-    public void InsertAction(AIAct action)
+    public void InsertAction(AIAct action, bool resotreTaskPos = false)
     {
         if (Enumerator.IsNull())
         {
@@ -336,6 +336,7 @@ public class AutoAct : AIAct
 #endif
             last.child.Reset();
             last.child = null;
+            useOriginalPos = true;
             yield return Status.Success;
         }
 

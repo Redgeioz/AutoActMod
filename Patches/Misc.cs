@@ -58,10 +58,19 @@ static class Misc
         }
     }
 
-    [HarmonyPostfix, HarmonyPatch(typeof(Task), nameof(Task.OnSuccess))]
-    static void Task_OnSuccess_Patch(Task __instance)
+    // [HarmonyPostfix, HarmonyPatch(typeof(Task), nameof(Task.OnSuccess))]
+    // static void Task_OnSuccess_Patch(Task __instance)
+    // {
+    //     if (__instance is not TaskBuild && __instance.parent is AutoAct autoAct)
+    //     {
+    //         autoAct.OnChildSuccess();
+    //     }
+    // }
+
+    [HarmonyPostfix, HarmonyPatch(typeof(Progress_Custom), nameof(Progress_Custom.OnProgressComplete))]
+    static void Progress_Custom_OnProgressComplete_Patch(Progress_Custom __instance)
     {
-        if (__instance is not TaskBuild && __instance.parent is AutoAct autoAct)
+        if (__instance.parent?.parent is AutoAct autoAct)
         {
             autoAct.OnChildSuccess();
         }

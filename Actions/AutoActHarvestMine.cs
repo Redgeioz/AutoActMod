@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
@@ -128,12 +127,13 @@ public class AutoActHarvestMine : AutoAct
         yield return FailOrSuccess();
     }
 
-    public void SetRange(List<Point> range)
+    public AutoActHarvestMine SetRange(List<Point> range)
     {
         this.range = range;
         hasRange = true;
         simpleIdentify = 2;
         targetSeedCount = 0;
+        return this;
     }
 
     public bool IsWoodTree(GrowSystem growth) => growth.IsTree && !growth.CanHarvest();

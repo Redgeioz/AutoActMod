@@ -163,16 +163,20 @@ internal static class RangeSelect
 
     static void SetAutoActBuild()
     {
-        var autoAct = SetAutoAct(new AutoActBuild(HotItemHeld.taskBuild)
+        var autoAct = new AutoActBuild(HotItemHeld.taskBuild)
         {
             w = Width,
             h = Height,
             hasSowRange = true,
             onStart = SetStartPos,
-        }) as AutoActBuild;
+            range = Range,
+        };
 
-        autoAct.range = Range;
         Range.RemoveAll(p => !autoAct.PointChecker(p));
+        if (Range.Count > 0)
+        {
+            SetAutoAct(autoAct);
+        }
     }
 
     static void SetAutoActDig()
@@ -316,13 +320,11 @@ internal static class RangeSelect
             return;
         }
 
-        var autoAct = SetAutoAct(new AutoActHarvestMine(taskHarvest)) as AutoActHarvestMine;
-        autoAct.SetRange(Range);
+        SetAutoAct(new AutoActHarvestMine(taskHarvest).SetRange(Range));
     }
 
     static void SetAutoActSlaughter()
     {
-        var autoAct = SetAutoAct(new AutoActSlaughter(new AI_Slaughter())) as AutoActSlaughter;
         Range.ForEach(p =>
         {
             p.Charas.ForEach(chara =>
@@ -334,6 +336,9 @@ internal static class RangeSelect
             });
         });
         Range.Clear();
-        autoAct.range = CharaRange;
+        SetAutoAct(new AutoActSlaughter(new AI_Slaughter())
+        {
+            range = CharaRange
+        });
     }
 }
