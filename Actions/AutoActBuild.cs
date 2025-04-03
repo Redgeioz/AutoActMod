@@ -75,7 +75,14 @@ public class AutoActBuild : AutoAct
 
             if (!CheckHeld())
             {
-                yield break;
+                if (range.Count == 0)
+                {
+                    yield break;
+                }
+                else
+                {
+                    yield return Fail();
+                }
             }
         }
         yield break;
@@ -135,6 +142,7 @@ public class AutoActBuild : AutoAct
 
     public Point FindNextBuildPosition()
     {
+        // Action has a fixed range
         var hasRange = true;
         var edgeOnly = false;
         var startFromCenter = h == 0;
@@ -144,6 +152,7 @@ public class AutoActBuild : AutoAct
         }
         else if (Held.trait is TraitFertilizer)
         {
+            // Range depends on farmfield size
             hasRange = false;
         }
         else if (Held.trait is not (TraitFloor or TraitPlatform))

@@ -100,6 +100,18 @@ static class Misc
                 .InstructionEnumeration();
         }
     }
+
+    [HarmonyPostfix, HarmonyPatch(typeof(HotItemHeld), nameof(HotItemHeld.OnSetCurrentItem))]
+    static void HotItemHeld_OnSetCurrentItem_Patch()
+    {
+        if (EClass.pc.ai is AutoActBuild autoAct && autoAct.IsRunning && autoAct.range.Count > 0)
+        {
+            if (!autoAct.CheckHeld())
+            {
+                autoAct.Cancel();
+            }
+        }
+    }
 #if DEBUG
     // [HarmonyPrefix]
     // [HarmonyPatch(typeof(Task), nameof(Task.Destroy))]
