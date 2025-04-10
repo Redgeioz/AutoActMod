@@ -971,6 +971,7 @@ public class AutoAct : AIAct
         public int factor1 = 0;
         public int factor2 = 0;
         public int factor3 = 0;
+        public int factor4 = 0;
 
         public Point FinalPoint
         {
@@ -1000,56 +1001,59 @@ public class AutoAct : AIAct
             factor1 = 0;
             factor2 = 0;
             factor3 = 0;
+            factor4 = 0;
             RowCheckCache.Clear();
         }
 
-        public void Set(Point p, int v1, int v2, int v3 = 0)
+        public void Set(Point p, int v1, int v2, int v3 = 0, int v4 = 0)
         {
             curtPoint = p;
             factor1 = v1;
             factor2 = v2;
             factor3 = v3;
+            factor4 = v4;
         }
 
-        public void Set(Card c, int v1, int v2, int v3 = 0)
+        public void Set(Card c, int v1, int v2, int v3 = 0, int v4 = 0)
         {
             curtPoint = c.pos;
             item = c;
             factor1 = v1;
             factor2 = v2;
             factor3 = v3;
+            factor4 = v4;
         }
 
-        public bool TrySet(Point p, int v1, int v2 = 0, int v3 = 0)
+        public bool TrySet(Point p, int v1, int v2 = 0, int v3 = 0, int v4 = 0)
         {
             if (p.IsNull()) { return false; }
             if (curtPoint.IsNull())
             {
-                Set(p, v1, v2, v3);
+                Set(p, v1, v2, v3, v4);
                 return true;
             }
 
             if (v1 < factor1 || (v1 == factor1 && v2 < factor2) || (v1 == factor1 && v2 == factor2 && v3 < factor3))
             {
-                Set(p, v1, v2, v3);
+                Set(p, v1, v2, v3, v4);
                 return true;
             }
 
             return false;
         }
 
-        public bool TrySet(Card c, int v1, int v2 = 0, int v3 = 0)
+        public bool TrySet(Card c, int v1, int v2 = 0, int v3 = 0, int v4 = 0)
         {
             if (c.IsNull()) { return false; }
             if (curtPoint.IsNull())
             {
-                Set(c, v1, v2, v3);
+                Set(c, v1, v2, v3, v4);
                 return true;
             }
 
             if (v1 < factor1 || (v1 == factor1 && v2 < factor2) || (v1 == factor1 && v2 == factor2 && v3 < factor3))
             {
-                Set(c, v1, v2, v3);
+                Set(c, v1, v2, v3, v4);
                 return true;
             }
 

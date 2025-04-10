@@ -172,7 +172,19 @@ internal static class RangeSelect
             range = Range,
         };
 
-        Range.RemoveAll(p => !autoAct.PointChecker(p));
+        var plantChecker = (Point p) => true;
+        if (EClass.pc.held.trait is TraitSeed seed)
+        {
+            if (seed.row.id == 88 && Range.Find(p => p.IsWater).HasValue())
+            {
+                plantChecker = p => p.IsWater;
+            }
+            else if (Range.Find(p => p.IsFarmField).HasValue())
+            {
+                plantChecker = p => p.IsFarmField;
+            }
+        }
+        Range.RemoveAll(p => !autoAct.PointChecker(p) || !plantChecker(p));
         if (Range.Count > 0)
         {
             SetAutoAct(autoAct);

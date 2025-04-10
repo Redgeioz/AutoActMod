@@ -324,7 +324,7 @@ public class AutoActBuild : AutoAct
                     }
                 }
 
-                selector.TrySet(p, dist2ToLastPoint, d1, d2);
+                selector.TrySet(p, Path.nodes.Count, dist2ToLastPoint, d1, d2);
             }
         }
 
