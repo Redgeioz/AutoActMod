@@ -482,6 +482,37 @@ public static class AALang
                 { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
                 { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
             }
+        },
+        {
+            "PTBR", new Dictionary<string, string> {
+                { "autoact", "Ação Automática" },
+                { "settings", "Configurações de Ação Automática" },
+                { "enemyEncounterResponse", "Resposta ao Encontro com Inimigos" },
+                { "eer0", "Parar" },
+                { "eer1", "Ignorar" },
+                { "eer2", "Atacar" },
+                { "detDist", "Distância de Detecção" },
+                { "buildRangeW", "Largura do Alcance de Construção" },
+                { "buildRangeH", "Altura do Alcance de Construção" },
+                { "sowRange", "Alcance de Plantio" },
+                { "pourDepth", "Profundidade de Derramamento" },
+                { "seedReapingCount", "Quantidade para Colheita de Sementes" },
+                { "keyMode", "Modo de Tecla" },
+                { "press", "Pressionar" },
+                { "toggle", "Alternar" },
+                { "start", "Ação Automática iniciada." },
+                { "fail", "Ação Automática foi interrompida." },
+                { "noTarget", "Ação Automática não encontrou o próximo alvo." },
+                { "aaon", "Ação Automática: Ligada." },
+                { "aaoff", "Ação Automática: Desligada." },
+                { "staminaCheck", "Parar Quando a Estamina Acabar" },
+                { "entireFarmfield", "Toda a Área da Fazenda Selecionada" },
+                { "followBuildRange", "Seguir a Área de Construção" },
+                { "simpleIdentify", "Identificação Simples" },
+                { "off", "Desligado" },
+                { "startFromCenter", "Começar pelo Centro (Apenas Quadrados)" },
+                { "sameFarmfieldOnly", "Colher Apenas na Mesma Área da Fazenda" },
+            }
         }
     };
 }
