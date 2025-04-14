@@ -333,19 +333,24 @@ public class AutoActBuild : AutoAct
 
     public bool CheckHeld()
     {
-        if (owner.held.IsNull() || owner.held.isDestroyed || owner.held.GetRootCard() != pc)
+        var held = owner.held;
+        if (owner.IsPC)
+        {
+            held ??= HotItemHeld.lastHeld;
+        }
+        if (held.IsNull() || held.isDestroyed || held.GetRootCard() != pc)
         {
             return TrySwitchHeld();
         }
 
-        if (owner.held == Held)
+        if (held == Held)
         {
             return true;
         }
 
-        if (HeldChecker?.Invoke(owner.held as Thing) is true)
+        if (HeldChecker?.Invoke(held as Thing) is true)
         {
-            Child.held = owner.held;
+            Child.held = held;
             return true;
         }
         else
