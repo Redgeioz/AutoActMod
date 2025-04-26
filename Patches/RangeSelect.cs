@@ -139,7 +139,18 @@ internal static class RangeSelect
         }
         else
         {
-            Range.ForEach(p => p.SetHighlight(8));
+            Range.RemoveAll(p =>
+            {
+                if (p.IsInBounds)
+                {
+                    p.SetHighlight(8);
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            });
         }
     }
 
