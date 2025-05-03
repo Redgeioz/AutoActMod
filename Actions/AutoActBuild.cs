@@ -481,4 +481,13 @@ public class AutoActBuild : AutoAct
 
         return (seed || hasPlant) && !fert;
     }
+
+    public override void OnCancelOrSuccess()
+    {
+        base.OnCancelOrSuccess();
+        if (owner.IsPC)
+        {
+            HotItemHeld.lastHeld = null;
+        }
+    }
 }

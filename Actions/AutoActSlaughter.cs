@@ -53,7 +53,7 @@ public class AutoActSlaughter(AIAct source) : AutoAct(source)
 
     public override void OnCancelOrSuccess()
     {
-        Child.OnCancelOrSuccess();
         base.OnCancelOrSuccess();
+        Child.OnCancelOrSuccess();
     }
 }
