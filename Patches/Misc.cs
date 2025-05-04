@@ -101,7 +101,7 @@ static class Misc
         }
     }
 
-    [HarmonyPostfix, HarmonyPatch(typeof(HotItemHeld), nameof(HotItemHeld.OnSetCurrentItem))]
+    [HarmonyPrefix, HarmonyPatch(typeof(HotItemHeld), nameof(HotItemHeld.OnSetCurrentItem))]
     static void HotItemHeld_OnSetCurrentItem_Patch()
     {
         if (EClass.pc.ai is AutoActBuild autoAct && autoAct.IsRunning && autoAct.range.Count > 0)
