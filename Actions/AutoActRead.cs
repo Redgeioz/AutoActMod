@@ -9,7 +9,7 @@ public class AutoActRead(AIAct source) : AutoAct(source)
 
     public static AutoActRead TryCreate(AIAct source)
     {
-        if (source is not AI_Read a || a.target.trait is not TraitBaseSpellbook) { return null; }
+        if (source is not AI_Read a || a.target.trait is not (TraitBaseSpellbook or TraitBookSkill)) { return null; }
         return new AutoActRead(a);
     }
 
@@ -20,16 +20,22 @@ public class AutoActRead(AIAct source) : AutoAct(source)
 
     public override IEnumerable<Status> Run()
     {
+        var originalTarget = Child.target;
         while (true)
         {
             yield return StartNextTask();
+
+            if (originalTarget.trait is TraitBookSkill)
+            {
+                Child.target = originalTarget;
+            }
 
             if (CanProgress())
             {
                 continue;
             }
 
-            if (Settings.SimpleIdentify == 0)
+            if (Settings.SimpleIdentify == 0 || Child.target.trait is not TraitBaseSpellbook)
             {
                 break;
             }
