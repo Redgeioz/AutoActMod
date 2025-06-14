@@ -17,7 +17,7 @@ public class AutoActDisarm(TraitTrap target) : AutoAct
         return new AutoActDisarm(trap);
     }
 
-    public override bool CanProgress() => canContinue;
+    public override bool CanProgress() => target.CanDisarmTrap && canContinue;
 
     public override IEnumerable<Status> Run()
     {
