@@ -40,7 +40,7 @@ public class AutoActRead(AIAct source) : AutoAct(source)
                 break;
             }
 
-            var next = owner.things.Find(t => t.trait is TraitBaseSpellbook && (t.trait is not TraitAncientbook || !t.isOn));
+            var next = owner.things.Find(t => t.trait is TraitBaseSpellbook && (t.trait is not TraitAncientbook || !t.isOn) && t.trait is not TraitUsuihon);
             if (next.HasValue())
             {
                 Child.target = next;
