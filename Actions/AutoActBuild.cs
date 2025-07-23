@@ -434,7 +434,8 @@ public class AutoActBuild : AutoAct
             }
             else if (Held.trait is TraitFloor or TraitPlatform)
             {
-                field = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface != startPos.cell.sourceSurface;
+                var rowId = (Held.trait as TraitTile).source.id;
+                field = p => !p.HasThing && !p.HasBlock && !p.HasObj && p.cell.sourceSurface.id != rowId;
             }
             else
             {
