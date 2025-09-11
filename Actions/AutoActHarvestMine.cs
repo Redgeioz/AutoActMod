@@ -13,7 +13,7 @@ public class AutoActHarvestMine : AutoAct
     public static int SeedId = -1;
     public static int OriginalSeedCount = 0;
     public int targetSeedCount = 0;
-    public List<Point> range = [];
+    public HashSet<Point> range = [];
     public BaseTaskHarvest initTask;
     public TaskHarvest taskHarvest;
     public TaskMine taskMine;
@@ -127,7 +127,7 @@ public class AutoActHarvestMine : AutoAct
         yield return FailOrSuccess();
     }
 
-    public AutoActHarvestMine SetRange(List<Point> range)
+    public AutoActHarvestMine SetRange(HashSet<Point> range)
     {
         this.range = range;
         hasRange = true;

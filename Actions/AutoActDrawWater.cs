@@ -7,7 +7,7 @@ public class AutoActDrawWater : AutoAct
     public static int priority = 120;
     public int detRangeSq = 0;
     public int simpleIdentify = 0;
-    public List<Point> range;
+    public HashSet<Point> range;
     public TaskDrawWater Child => child as TaskDrawWater;
 
     public AutoActDrawWater(TaskDrawWater source) : base(source)

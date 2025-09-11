@@ -1,33 +1,14 @@
 using System.Collections.Generic;
-using System.Linq;
 
 namespace AutoActMod.Actions;
 
-public class AutoActPourWater : AutoAct
+public class AutoActPourWater(AutoActPourWater.SubActPourWater source) : AutoAct(source)
 {
     public int w;
     public int h;
-    public List<Point> range;
-    public SubActPourWater pourWater;
+    public HashSet<Point> range;
+    public SubActPourWater pourWater = source;
     public SubActPourWater Child => pourWater;
-
-    public AutoActPourWater(SubActPourWater source) : base(source)
-    {
-        pourWater = source;
-
-        w = Settings.BuildRangeW;
-        h = Settings.BuildRangeH;
-        if (Settings.StartFromCenter)
-        {
-            h = 0;
-        }
-    }
-
-    public static AutoActPourWater TryCreate(AIAct source)
-    {
-        if (source is not TaskPourWater a) { return null; }
-        return new AutoActPourWater(new SubActPourWater(a, Settings.PourDepth));
-    }
 
     public override bool CanProgress()
     {
@@ -49,7 +30,7 @@ public class AutoActPourWater : AutoAct
                 yield return Fail();
             }
 
-            var targetPos = FindPosRefToStartPos(CanPourWater, w, h, range);
+            var targetPos = FindPosRefToStartPos(CanPourWater, range);
             if (targetPos.IsNull())
             {
                 yield break;

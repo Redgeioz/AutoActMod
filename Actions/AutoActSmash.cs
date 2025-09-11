@@ -16,7 +16,7 @@ public class AutoActSmash : AutoAct
 
     public static AutoActSmash TryCreate(string lang, Card target, Point pos)
     {
-        if (EClass.pc.ai is AutoActSmash) { return null; }
+        if (pc.ai is AutoActSmash) { return null; }
         if (lang != GetActMeleeLang()) { return null; }
         if (!CanSmash(target)) { return null; }
         return new AutoActSmash(new SubActSmash(pos, target as Thing));
@@ -24,7 +24,7 @@ public class AutoActSmash : AutoAct
 
     public static bool CanSmash(Card t)
     {
-        return t.isThing && t.trait.CanBeAttacked && t.trait.CanBeSmashedToDeath && !(t.trait is TraitTrainingDummy);
+        return t is Thing && t.trait.CanBeAttacked && t.trait.CanBeSmashedToDeath && t.trait is not TraitTrainingDummy;
     }
 
     public static string GetActMeleeLang()

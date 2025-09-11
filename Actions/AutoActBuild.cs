@@ -4,27 +4,14 @@ using System.Linq;
 
 namespace AutoActMod.Actions;
 
-public class AutoActBuild : AutoAct
+public class AutoActBuild(TaskBuild source) : AutoAct(source)
 {
-    public int w;
-    public int h;
     public bool hasSowRange;
-    public List<Point> range = [];
+    public HashSet<Point> range = [];
+    public Dictionary<Point, int> directions = [];
     public TaskBuild Child => child as TaskBuild;
     public Card Held => Child.held;
     public override int MaxRestart => 0;
-
-    public AutoActBuild(TaskBuild source) : base(source)
-    {
-        w = Settings.BuildRangeW;
-        h = Settings.BuildRangeH;
-        if (Settings.StartFromCenter)
-        {
-            h = 0;
-        }
-
-        hasSowRange = Settings.SowRangeExists;
-    }
 
     public static AutoActBuild TryCreate(AIAct source)
     {
@@ -32,7 +19,7 @@ public class AutoActBuild : AutoAct
         if (source.owner.IsPC
             && (source.owner.held is not Thing t
             || (t.Num == 1 && t.trait is not (TraitSeed or TraitFertilizer))
-            || (t.trait is not (TraitSeed or TraitFertilizer or TraitFloor or TraitPlatform or TraitBlock))))
+            || (t.trait is not (TraitSeed or TraitFertilizer))))
         {
             return null;
         }
@@ -100,62 +87,53 @@ public class AutoActBuild : AutoAct
             }
             return;
         }
+    }
 
-        if (range.Count == 0)
+    public void SetRange(HashSet<Point> range)
+    {
+        this.range = range;
+        if (!Child.recipe.IsWallOrFence)
         {
-            range = InitRange(startPos, p => !p.HasBlock);
+            return;
         }
 
-        var startFromCenter = h == 0;
-        if (startFromCenter)
+        var neighbor = new Point(0, 0);
+        foreach (var p in range)
         {
-            if (Child.recipe.IsWallOrFence || Child.recipe.IsBlock)
+            if (range.Contains(neighbor.Set(p.x - 1, p.z)) && range.Contains(neighbor.Set(p.x, p.z + 1)))
             {
-                // skip
-                useOriginalPos = false;
+                // ┘
+                directions.Add(p, 2);
             }
-        }
-        else if (Child.recipe.IsWallOrFence)
-        {
-            var dir = CalcBuildDirection(0b1001);
-            if (dir == 3)
+            else if (range.Contains(neighbor.Set(p.x - 1, p.z)) && range.Contains(neighbor.Set(p.x, p.z - 1)))
             {
-                // skip
-                useOriginalPos = false;
+                // ┐
+                directions.Add(p, 0);
+            }
+            else if (range.Contains(neighbor.Set(p.x + 1, p.z)) && range.Contains(neighbor.Set(p.x, p.z - 1))
+                && !(range.Contains(neighbor.Set(p.x - 1, p.z)) && range.Contains(neighbor.Set(p.x + 1, p.z)))
+                && !(range.Contains(neighbor.Set(p.x, p.z - 1)) && range.Contains(neighbor.Set(p.x, p.z + 1))))
+            {
+                // ┌
+                directions.Add(p, 3);
+            }
+            else if (range.Contains(neighbor.Set(p.x, p.z - 1)) || range.Contains(neighbor.Set(p.x, p.z + 1)))
+            {
+                // |
+                directions.Add(p, 1);
             }
             else
             {
-                Child.recipe._dir = dir;
+                // ——
+                directions.Add(p, 0);
             }
         }
-    }
-
-    public int CalcPositionInfo(int d1, int d2)
-    {
-        var h = this.h == 0 ? w : this.h;
-        var f1 = d1 == 0 ? 1 : 0;
-        var f2 = d2 == w - 1 ? 1 : 0;
-        var f3 = d1 == h - 1 ? 1 : 0;
-        var f4 = d2 == 0 ? 1 : 0;
-        return f1 << 3 | f2 << 2 | f3 << 1 | f4;
     }
 
     public Point FindNextBuildPosition()
     {
-        // Action has a fixed range
-        var hasRange = true;
         var edgeOnly = false;
-        var startFromCenter = h == 0;
-        if (Held.trait is TraitSeed)
-        {
-            hasRange = hasSowRange;
-        }
-        else if (Held.trait is TraitFertilizer)
-        {
-            // Range depends on farmfield size
-            hasRange = false;
-        }
-        else if (Held.trait is not (TraitFloor or TraitPlatform))
+        if (Held.trait is TraitBlock)
         {
             edgeOnly = true;
         }
@@ -166,7 +144,7 @@ public class AutoActBuild : AutoAct
             return Pos;
         }
 
-        var list = new List<(Point, int, int, int)>();
+        var list = new List<(Point, int, int)>();
         foreach (var p in range)
         {
             if (!PointChecker(p))
@@ -176,136 +154,19 @@ public class AutoActBuild : AutoAct
 
             var dist2 = CalcDist2(p);
             var dist2ToLastPoint = CalcDist2ToLastPoint(p);
-            if (startFromCenter)
-            {
-                var max = CalcMaxDeltaToStartPos(p);
-                if ((hasRange && max > w / 2) || (edgeOnly && max != w / 2))
-                {
-                    continue;
-                }
-
-                if (max > 1)
-                {
-                    list.Add((p, max, dist2, dist2ToLastPoint));
-                    continue;
-                }
-
-                if (!Child.recipe.IsWallOrFence)
-                {
-                    selector.TrySet(p, max, max - 1, dist2ToLastPoint);
-                    continue;
-                }
-
-                var refPos = new Point(startPos.x + w / 2, startPos.z + w / 2);
-                var (d1, d2) = CalcDelta(p, refPos, 0);
-                var dir = CalcBuildDirection(CalcPositionInfo(d1, d2), 0);
-                if (dir != 3 && selector.TrySet(p, max, max - 1, dist2ToLastPoint))
-                {
-                    Child.recipe._dir = dir;
-                }
-            }
-            else
-            {
-                list.Add((p, 0, dist2, dist2ToLastPoint));
-            }
+            list.Add((p, dist2, dist2ToLastPoint));
         }
 
         foreach (var item in list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
         {
-            var (p, max, dist2, dist2ToLastPoint) = item;
-            if (selector.curtPoint.HasValue() &&
-                ((startFromCenter && max > selector.factor1) ||
-                (!startFromCenter && !edgeOnly && dist2ToLastPoint > selector.factor1)))
+            var (p, dist2, dist2ToLastPoint) = item;
+            if (selector.curtPoint.HasValue() && !edgeOnly && dist2 > selector.MaxDist2)
             {
                 break;
             }
 
-            if (startFromCenter)
+            if (edgeOnly)
             {
-                Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
-                if (Path.state == PathProgress.State.Fail)
-                {
-                    continue;
-                }
-
-                if (Child.recipe.IsWallOrFence)
-                {
-                    var refPos = new Point(startPos.x + w / 2, startPos.z + w / 2);
-                    var (d1, d2) = CalcDelta(p, refPos, 0);
-                    var dir = CalcBuildDirection(CalcPositionInfo(d1, d2), 0);
-                    if (dir != 3 && selector.TrySet(p, max, Path.nodes.Count, dist2ToLastPoint))
-                    {
-                        Child.recipe._dir = dir;
-                    }
-                    continue;
-                }
-
-                selector.TrySet(p, max, Path.nodes.Count, dist2ToLastPoint);
-            }
-            else
-            {
-                var (d1, d2) = CalcStartPosDelta(p);
-                if (hasRange && (d1 < 0 || d2 < 0 || d1 >= h || d2 >= w))
-                {
-                    continue;
-                }
-
-                if (edgeOnly)
-                {
-                    var info = CalcPositionInfo(d1, d2);
-                    if (info.GetBit(3) == 1)
-                    {
-                        // nothing
-                    }
-                    else if (info.GetBit(2) == 1)
-                    {
-                        d2 = d1;
-                        d1 = 1;
-                    }
-                    else if (info.GetBit(1) == 1)
-                    {
-                        d2 = -d2;
-                        d1 = 2;
-                    }
-                    else if (info.GetBit(0) == 1)
-                    {
-                        d2 = -d1;
-                        d1 = 3;
-                    }
-                    else
-                    {
-                        range.Remove(p);
-                        continue;
-                    }
-
-                    if (dist2 > 2)
-                    {
-                        Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
-                        if (Path.state == PathProgress.State.Fail)
-                        {
-                            continue;
-                        }
-                    }
-
-                    if (!Child.recipe.IsWallOrFence)
-                    {
-                        selector.TrySet(p, d1, d2, 0);
-                        continue;
-                    }
-
-                    var dir = CalcBuildDirection(info);
-                    if (dir == 3)
-                    {
-                        continue;
-                    }
-
-                    if (selector.TrySet(p, d1, d2, 0))
-                    {
-                        Child.recipe._dir = dir;
-                    }
-                    continue;
-                }
-
                 if (dist2 > 2)
                 {
                     Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
@@ -315,17 +176,48 @@ public class AutoActBuild : AutoAct
                     }
                 }
 
-                if (d1 >= 0)
+                if (!Child.recipe.IsWallOrFence)
                 {
-                    (d1, d2) = CalcDelta(p);
-                    if (d1 < 0)
-                    {
-                        d1 = -d1 * 2;
-                    }
+                    selector.TrySet(p, dist2, dist2ToLastPoint);
+                    continue;
                 }
 
-                selector.TrySet(p, Path.nodes.Count, dist2ToLastPoint, d1, d2);
+                var dir = directions[p];
+                if (dir == 3)
+                {
+                    continue;
+                }
+
+                if (
+                    selector.TrySet(p, dist2, dist2ToLastPoint))
+                {
+                    Child.recipe._dir = dir;
+                }
+                continue;
             }
+
+            var pathLength = dist2 == 0 ? -1 : 0;
+            if (dist2 > 2)
+            {
+                Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
+                if (Path.state == PathProgress.State.Fail)
+                {
+                    continue;
+                }
+                pathLength = Path.nodes.Count;
+            }
+
+            var (d1, d2) = CalcStartPosDelta(p);
+            if (d1 >= 0)
+            {
+                (d1, d2) = CalcDelta(p);
+                if (d1 < 0)
+                {
+                    d1 = -d1 * 2;
+                }
+            }
+
+            selector.TrySet(p, pathLength, dist2ToLastPoint, d1, d2);
         }
 
         return selector.FinalPoint;
@@ -385,7 +277,26 @@ public class AutoActBuild : AutoAct
             return null;
         }
 
-        return pc.things.Find(HeldChecker);
+        Thing item = null;
+        foreach (var thing in pc.things)
+        {
+            if (!HeldChecker(thing))
+            {
+                continue;
+            }
+
+            if (thing.trait is not TraitSeed)
+            {
+                return thing;
+            }
+
+            if (item.IsNull() || thing.encLV > item.encLV)
+            {
+                item = thing;
+            }
+        }
+
+        return item;
     }
 
     public Func<Thing, bool> HeldChecker

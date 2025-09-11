@@ -11,15 +11,17 @@ public class AutoActUnlock(AIAct source) : AutoAct(source)
 
     public static AutoActUnlock TryCreate(AIAct source)
     {
-        if (source is not AI_OpenLock a || a.target.trait is TraitDoor) { return null; }
+        if (source is not AI_OpenLock a || !NeedUnlock(a.target)) { return null; }
         return new AutoActUnlock(a);
     }
+
+    public static bool NeedUnlock(Thing t) => t.trait is TraitContainer && t.c_lockLv > 0;
 
     public override IEnumerable<Status> Run()
     {
         do
         {
-            var target = FindThing(t => t.trait is TraitContainer && t.c_lockLv > 0, detRangeSq);
+            var target = FindThing(NeedUnlock, detRangeSq);
             if (target.IsNull())
             {
                 SayNoTarget();

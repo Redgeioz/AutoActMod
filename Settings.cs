@@ -29,24 +29,6 @@ public static class Settings
         set { detDistSq.Value = value; }
     }
 
-    public static int BuildRangeW
-    {
-        get { return buildRangeW.Value; }
-        set { buildRangeW.Value = value; }
-    }
-
-    public static int BuildRangeH
-    {
-        get { return buildRangeH.Value; }
-        set { buildRangeH.Value = value; }
-    }
-
-    public static bool SowRangeExists
-    {
-        get { return sowRangeExists.Value; }
-        set { sowRangeExists.Value = value; }
-    }
-
     public static int PourDepth
     {
         get { return pourDepth.Value; }
@@ -83,12 +65,6 @@ public static class Settings
         set { simpleIdentify.Value = value; }
     }
 
-    public static bool StartFromCenter
-    {
-        get { return startFromCenter.Value; }
-        set { startFromCenter.Value = value; }
-    }
-
     public static bool KeyMode
     {
         get { return keyMode.Value; }
@@ -113,56 +89,9 @@ public static class Settings
         var dynamicAct = new DynamicAct(text, () =>
         {
             var list = new UIContextMenuItem[2];
-            void ToSquare()
-            {
-                var item1 = list[0];
-                if (item1.IsNull()) { return; }
-                var item2 = list[1];
-                var min = Math.Max(Math.Min((int)item1.slider.value, (int)item2.slider.value), 3) / 2 * 2 + 1;
-                SetSquare(min);
-            }
-            void SetSquare(int v)
-            {
-                var item1 = list[0];
-                if (item1.IsNull()) { return; }
-                var item2 = list[1];
-                if (item2.IsNull()) { return; }
-                item1.slider.value = v / 2;
-                item2.slider.value = v / 2;
-                item1.slider.maxValue = 12;
-                item2.slider.maxValue = 12;
-                item1.textSlider.text = v.ToString();
-                item2.textSlider.text = v.ToString();
-                BuildRangeW = v;
-                BuildRangeH = v;
-            }
-            void ToRect()
-            {
-                var item1 = list[0];
-                if (item1.IsNull()) { return; }
-                var item2 = list[1];
-                item1.slider.maxValue = 25;
-                item2.slider.maxValue = 25;
-                item1.slider.value = item1.slider.value * 2 + 1;
-                item2.slider.value = item2.slider.value * 2 + 1;
-                item1.textSlider.text = item1.slider.value.ToString();
-                item2.textSlider.text = item2.slider.value.ToString();
-            }
             var menu = EClass.ui.CreateContextMenu();
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
-            menu.AddToggle(AALang.GetText("startFromCenter"), StartFromCenter, v =>
-            {
-                StartFromCenter = v;
-                if (v)
-                {
-                    ToSquare();
-                }
-                else
-                {
-                    ToRect();
-                }
-            });
             menu.AddSlider(
                 AALang.GetText("keyMode"),
                 v =>
@@ -212,71 +141,6 @@ public static class Settings
                 v => { },
                 3,
                 50,
-                true,
-                false
-            );
-            list[0] = menu.AddSlider(
-                AALang.GetText("buildRangeW"),
-                v =>
-                {
-                    if (StartFromCenter)
-                    {
-                        BuildRangeW = (int)v * 2 + 1;
-                        SetSquare(BuildRangeW);
-                    }
-                    else
-                    {
-                        BuildRangeW = (int)v;
-                    }
-                    return BuildRangeW.ToString();
-                },
-                StartFromCenter ? BuildRangeW / 2 : BuildRangeW,
-                v => { },
-                1,
-                StartFromCenter ? 12 : 25,
-                true,
-                false
-            );
-            list[1] = menu.AddSlider(
-                AALang.GetText("buildRangeH"),
-                v =>
-                {
-                    if (StartFromCenter)
-                    {
-                        BuildRangeH = (int)v * 2 + 1;
-                        SetSquare(BuildRangeH);
-                    }
-                    else
-                    {
-                        BuildRangeH = (int)v;
-                    }
-                    return BuildRangeH.ToString();
-                },
-                StartFromCenter ? BuildRangeH / 2 : BuildRangeH,
-                v => { },
-                1,
-                StartFromCenter ? 12 : 25,
-                true,
-                false
-            );
-            menu.AddSlider(
-                AALang.GetText("sowRange"),
-                v =>
-                {
-                    SowRangeExists = v == 0;
-                    if (SowRangeExists)
-                    {
-                        return AALang.GetText("followBuildRange");
-                    }
-                    else
-                    {
-                        return AALang.GetText("entireFarmfield");
-                    }
-                },
-                SowRangeExists ? 0 : 1,
-                v => { },
-                0,
-                1,
                 true,
                 false
             );
@@ -367,9 +231,6 @@ public static class AALang
                 { "eer1", "无视" },
                 { "eer2", "攻击" },
                 { "detDist", "探测距离" },
-                { "buildRangeW", "建造范围宽"},
-                { "buildRangeH", "建造范围高"},
-                { "sowRange", "播种范围" },
                 { "pourDepth", "倒水深度" },
                 { "seedReapingCount", "种子收获数" },
                 { "keyMode", "按键模式" },
@@ -399,9 +260,6 @@ public static class AALang
                 { "eer1", "無視" },
                 { "eer2", "攻擊" },
                 { "detDist", "探測距離" },
-                { "buildRangeW", "建造範圍寬" },
-                { "buildRangeH", "建造範圍高" },
-                { "sowRange", "播種範圍" },
                 { "pourDepth", "倒水深度" },
                 { "seedReapingCount", "種子收獲數" },
                 { "keyMode", "按鍵模式" },
@@ -430,9 +288,6 @@ public static class AALang
                 { "eer1", "無視" },
                 { "eer2", "攻擊" },
                 { "detDist", "検出距離" },
-                { "buildRangeW", "建設範囲の幅" },
-                { "buildRangeH", "建設範囲の高さ" },
-                { "sowRange", "播種範囲" },
                 { "pourDepth", "注水深さ" },
                 { "seedReapingCount", "種子収穫数" },
                 { "keyMode", "キーモード" },
@@ -461,9 +316,6 @@ public static class AALang
                 { "eer1", "Ignore" },
                 { "eer2", "Attack" },
                 { "detDist", "Detection Distance" },
-                { "buildRangeW", "Building Range Width" },
-                { "buildRangeH", "Building Range Height" },
-                { "sowRange", "Sowing Range" },
                 { "pourDepth", "Pouring Depth" },
                 { "seedReapingCount", "Count For Seed Reaping" },
                 { "keyMode", "Key Mode" },
@@ -492,9 +344,6 @@ public static class AALang
                 { "eer1", "Ignorar" },
                 { "eer2", "Atacar" },
                 { "detDist", "Distância de Detecção" },
-                { "buildRangeW", "Largura do Alcance de Construção" },
-                { "buildRangeH", "Altura do Alcance de Construção" },
-                { "sowRange", "Alcance de Plantio" },
                 { "pourDepth", "Profundidade de Derramamento" },
                 { "seedReapingCount", "Quantidade para Colheita de Sementes" },
                 { "keyMode", "Modo de Tecla" },

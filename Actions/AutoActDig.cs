@@ -8,27 +8,22 @@ public class AutoActDig : AutoAct
     public int w;
     public int h;
     public TaskDig Child => child as TaskDig;
-    public List<Point> range;
-    public bool useBuildRange;
+    public HashSet<Point> range;
     public int detRangeSq;
 
     public AutoActDig(TaskDig source) : base(source)
     {
         var surface = source.pos.cell.sourceSurface;
-        useBuildRange = surface.tag.Contains("grass") || source.pos.HasBridge;
         SetTarget(surface);
-        w = Settings.BuildRangeW;
-        h = Settings.BuildRangeH;
         detRangeSq = Settings.DetRangeSq;
-        if (Settings.StartFromCenter)
-        {
-            h = 0;
-        }
     }
 
     public static AutoActDig TryCreate(AIAct source)
     {
         if (source is not TaskDig a) { return null; }
+        var surface = a.pos.cell.sourceSurface;
+        var needBuildRange = !_zone.IsRegion && (surface.tag.Contains("grass") || a.pos.HasBridge);
+        if (needBuildRange) { return null; }
         return new AutoActDig(a);
     }
 
@@ -48,14 +43,9 @@ public class AutoActDig : AutoAct
             }
 
             Point targetPos;
-            if (useBuildRange || range.HasValue())
+            if (range.HasValue())
             {
-                targetPos = FindPosRefToStartPos(
-                      Filter,
-                      w,
-                      h,
-                      range
-                  );
+                targetPos = FindPosRefToStartPos(Filter, range);
             }
             else
             {
@@ -67,7 +57,7 @@ public class AutoActDig : AutoAct
 
             if (targetPos.IsNull())
             {
-                if (!useBuildRange && range.IsNull())
+                if (range.IsNull())
                 {
                     SayNoTarget();
                 }

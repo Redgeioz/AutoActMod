@@ -18,6 +18,8 @@ public class AutoActRead(AIAct source) : AutoAct(source)
         return !Child.target.isDestroyed && (Child.target.trait is not TraitAncientbook || !Child.target.isOn);
     }
 
+    public static bool CanRead(Thing t) => t.trait is TraitBaseSpellbook && (t.trait is not TraitAncientbook || !t.isOn) && (Settings.SimpleIdentify > 0 || t.trait is not TraitUsuihon);
+
     public override IEnumerable<Status> Run()
     {
         var originalTarget = Child.target;
@@ -40,7 +42,7 @@ public class AutoActRead(AIAct source) : AutoAct(source)
                 break;
             }
 
-            var next = owner.things.Find(t => t.trait is TraitBaseSpellbook && (t.trait is not TraitAncientbook || !t.isOn) && t.trait is not TraitUsuihon);
+            var next = owner.things.Find(CanRead);
             if (next.HasValue())
             {
                 Child.target = next;

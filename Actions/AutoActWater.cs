@@ -16,7 +16,7 @@ public class AutoActWater : AutoAct
 
     public static AutoActWater TryCreate(AIAct source)
     {
-        if (source is not TaskWater a) { return null; }
+        if (source is not TaskWater a || a.dest.cell.HasFire) { return null; }
         return new AutoActWater(a.dest) { waterFirst = true };
     }
 
@@ -78,7 +78,7 @@ public class AutoActWater : AutoAct
 
             // Why not use TaskWater?
             // Because TaskWater sorts targets by distance, while AutoAct usually sorts targets by path length
-            var range = new List<Point>();
+            var range = new HashSet<Point>();
             _map.ForeachPoint(p =>
             {
                 if (TaskWater.ShouldWater(p))

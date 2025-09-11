@@ -7,7 +7,7 @@ public class AutoActClean : AutoAct
     public int detRangeSq;
     public SubActClean Child => child as SubActClean;
     public override Point Pos => Child.pos;
-    public override bool IsAutoTurn => Child.child is SubActClean act && !(act.child is AI_Goto move && move.IsRunning);
+    public override bool IsAutoTurn => Child is SubActClean act && !(act.child is AI_Goto move && move.IsRunning);
     public override int CurrentProgress => Child.progress;
     public override int MaxProgress => Child.maxProgress;
 

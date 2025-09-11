@@ -3,39 +3,18 @@ using System.Collections.Generic;
 
 namespace AutoActMod.Actions;
 
-public class AutoActPlow : AutoAct
+public class AutoActPlow(TaskPlow source) : AutoAct(source)
 {
     public int w;
     public int h;
     public TaskPlow Child => child as TaskPlow;
-    public List<Point> range;
-
-    public AutoActPlow(TaskPlow source) : base(source)
-    {
-        w = Settings.BuildRangeW;
-        h = Settings.BuildRangeH;
-        if (Settings.StartFromCenter)
-        {
-            h = 0;
-        }
-    }
-
-    public static AutoActPlow TryCreate(AIAct source)
-    {
-        if (source is not TaskPlow a) { return null; }
-        return new AutoActPlow(a);
-    }
+    public HashSet<Point> range;
 
     public override IEnumerable<Status> Run()
     {
         do
         {
-            var targetPos = FindPosRefToStartPos(
-                Filter,
-                w,
-                h,
-                range
-            );
+            var targetPos = FindPosRefToStartPos(Filter, range);
 
             if (targetPos.IsNull())
             {

@@ -17,16 +17,6 @@ static class Misc
         }
     }
 
-    [HarmonyPostfix, HarmonyPatch(typeof(AIAct), nameof(AIAct.SetChild))]
-    static void AIAct_SetChild_Patch(AIAct __instance, AIAct seq)
-    {
-        if (seq is AI_Goto move
-            && __instance is AI_Shear or AI_Fuck or AI_Slaughter or (TaskPoint and not TaskPlow))
-        {
-            move.ignoreConnection = true;
-        }
-    }
-
     // To fix AutoAct being unable to be interrupted by attacks
     [HarmonyPrefix, HarmonyPatch(typeof(AIAct), nameof(AIAct.Success))]
     static bool AIAct_Success_Patch(AIAct __instance, ref AIAct.Status __result)
