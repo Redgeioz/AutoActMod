@@ -54,6 +54,6 @@ public class AutoActSlaughter(AIAct source) : AutoAct(source)
     public override void OnCancelOrSuccess()
     {
         base.OnCancelOrSuccess();
-        Child.OnCancelOrSuccess();
+        Child?.OnCancelOrSuccess();
     }
 }

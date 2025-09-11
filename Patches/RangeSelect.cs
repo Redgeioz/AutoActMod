@@ -21,6 +21,8 @@ internal static class RangeSelect
     internal static bool UseCenter = false;
     internal static int Width;
     internal static int Height;
+    public static long LastColorChange = 0;
+    public static int CharaHighlightColor = 0;
 
     internal static bool Active => Input.GetKey(Settings.RangeSelectKeyCode) || Selected.Count > 0;
 
@@ -62,6 +64,8 @@ internal static class RangeSelect
             {
                 Range.Remove(p);
             }
+
+            CharaRange.RemoveAll(chara => chara.pos.Equals(p));
         });
 
         UpdateRangeInfo();
@@ -157,20 +161,19 @@ internal static class RangeSelect
         {
             OnSelectComplete = SetAutoActSlaughter;
         }
-        else if (t.trait is not (TraitToolShears or TraitToolWaterCan or TraitToolMusic or TraitFertilizer))
-        {
-            OnSelectComplete = SetAutoActHarvestMine;
-        }
         else if (t.trait is TraitToolBrush && t.HasElement(237, 1))
         {
             OnSelectComplete = SetAutoActBrush;
+        }
+        else if (t.trait is not (TraitToolShears or TraitToolWaterCan or TraitToolMusic or TraitFertilizer))
+        {
+            OnSelectComplete = SetAutoActHarvestMine;
         }
         else
         {
             Reset();
             return;
         }
-
         LastHeld = t;
 
         if (LeftClickPoint.HasValue())
@@ -239,7 +242,14 @@ internal static class RangeSelect
     {
         if (CharaRange.Count > 0)
         {
-            CharaRange.ForEach(c => c.pos.SetHighlight(2));
+            var now = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            if (now - LastColorChange > 400)
+            {
+                LastColorChange = now;
+                CharaHighlightColor = (CharaHighlightColor + 1) % 2;
+            }
+            var cColor = CharaHighlightColor == 0 ? 2 : 8;
+            CharaRange.ForEach(c => c.pos.SetHighlight(cColor));
         }
         else
         {

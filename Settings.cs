@@ -8,16 +8,12 @@ namespace AutoActMod;
 public static class Settings
 {
     public static ConfigEntry<int> detDistSq;
-    public static ConfigEntry<int> buildRangeW;
-    public static ConfigEntry<int> buildRangeH;
-    public static ConfigEntry<bool> sowRangeExists;
     public static ConfigEntry<int> seedReapingCount;
     public static ConfigEntry<int> pourDepth;
     public static ConfigEntry<bool> staminaCheck;
     public static ConfigEntry<bool> sameFarmfieldOnly;
     public static ConfigEntry<int> enemyEncounterResponse;
     public static ConfigEntry<int> simpleIdentify;
-    public static ConfigEntry<bool> startFromCenter;
     public static ConfigEntry<bool> keyMode;
 
     public static ConfigEntry<KeyCode> keyCode;
@@ -243,11 +239,8 @@ public static class AALang
                 { "aaoff", "自动行动，关闭。"},
                 { "staminaCheck", "精力耗尽时停止　　　　　　　　" },
                 { "weightCheck", "超重时停止　　　　　　　　　　" },
-                { "entireFarmfield", "所选的整个田地" },
-                { "followBuildRange", "同建造范围" },
                 { "simpleIdentify", "简单识别" },
                 { "off", "关闭"},
-                { "startFromCenter", "从中心开始（限制为正方形）　　" },
                 { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
             }
         },
@@ -271,11 +264,8 @@ public static class AALang
                 { "aaon", "自動行動，啟動！"},
                 { "aaoff", "自動行動，關閉。"},
                 { "staminaCheck", "精力耗盡時停止　　　　　　　　" },
-                { "entireFarmfield", "所選的整個田地" },
-                { "followBuildRange", "同建造範圍" },
                 { "simpleIdentify", "簡單識別" },
                 { "off", "關閉"},
-                { "startFromCenter", "从中心開始（限製為正方形）　　" },
                 { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
             }
         },
@@ -299,11 +289,8 @@ public static class AALang
                 { "aaon", "自動行動：オン。"},
                 { "aaoff", "自動行動：オフ。"},
                 { "staminaCheck", "精力が尽きた時に停止する　　　" },
-                { "entireFarmfield", "選択された農地全体" },
-                { "followBuildRange", "建設範囲と同じ" },
                 { "simpleIdentify", "簡単識別" },
                 { "off", "オフ"},
-                { "startFromCenter", "中心から開始（正方形に制限）　" },
                 { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
             }
         },
@@ -327,11 +314,8 @@ public static class AALang
                 { "aaon", "Auto Act: On."},
                 { "aaoff", "Auto Act: Off."},
                 { "staminaCheck", "Stop When Stamina Runs Out　 　　　　　　　　　　　　" },
-                { "entireFarmfield", "The Entire Selected Farmfield" },
-                { "followBuildRange", "Follow The Building Range" },
                 { "simpleIdentify", "Simple Identification" },
                 { "off", "Off"},
-                { "startFromCenter", "Start From The Center (Square Only)　　　　 　　　　" },
                 { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
             }
         },
@@ -355,11 +339,8 @@ public static class AALang
                 { "aaon", "Ação Automática: Ligada." },
                 { "aaoff", "Ação Automática: Desligada." },
                 { "staminaCheck", "Parar Quando a Estamina Acabar" },
-                { "entireFarmfield", "Toda a Área da Fazenda Selecionada" },
-                { "followBuildRange", "Seguir a Área de Construção" },
                 { "simpleIdentify", "Identificação Simples" },
                 { "off", "Desligado" },
-                { "startFromCenter", "Começar pelo Centro (Apenas Quadrados)" },
                 { "sameFarmfieldOnly", "Colher Apenas na Mesma Área da Fazenda" },
             }
         }

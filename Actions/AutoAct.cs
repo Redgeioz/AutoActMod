@@ -159,6 +159,9 @@ public class AutoAct : AIAct
         AutoActMod.Log($"TrySetAutoAct: {id} | {lang}");
 #endif
 
+        var hint = $"({AALang.GetText("autoact")})";
+        lang = lang.Replace(hint, "");
+
         if (TryGetAutoAct(lang, target, p) is not AutoAct a)
         {
             return null;

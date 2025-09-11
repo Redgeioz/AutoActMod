@@ -9,7 +9,7 @@ namespace AutoActMod.Patches;
 [HarmonyPatch]
 static class NameHint
 {
-    static void EditString(ref string str) => str += $"({AALang.GetText("autoact")})";
+    public static void EditText(ref string str) => str += $"({AALang.GetText("autoact")})";
 
     [HarmonyPostfix, HarmonyPatch(typeof(Act), nameof(Act.GetText))]
     static void Act_GetText_Patch(Act __instance, ref string __result)
@@ -25,9 +25,10 @@ static class NameHint
             || (__instance is TaskDig
                 && (EClass._zone.IsRegion
                     || !(Scene.HitPoint.cell.sourceSurface.tag.Contains("grass") || Scene.HitPoint.HasBridge)))
-            || (__instance is AI_OpenLock && target is Thing t && AutoActUnlock.NeedUnlock(t)))
+            || (__instance is AI_OpenLock && target is Thing t && AutoActUnlock.NeedUnlock(t))
+            || (__instance is ActThrow && target is Chara chara && AutoActSlaughter.CanBeSlaughtered(chara)))
         {
-            EditString(ref __result);
+            EditText(ref __result);
         }
     }
 
@@ -47,11 +48,10 @@ static class NameHint
         };
         if (actions.Contains(__instance.id)
             || (target is Chara c && __instance.id == "actThrow" && AutoActThrowMilk.NeedMilk(c))
-            || (__instance.id == "AI_Slaughter" && target is Chara chara && AutoActSlaughter.CanBeSlaughtered(chara))
             || (__result == Element.Get(6011).GetName()) // steal
             || (__result == AutoActSmash.GetActMeleeLang() && AutoActSmash.CanSmash(target)))
         {
-            EditString(ref __result);
+            EditText(ref __result);
         }
     }
 
@@ -67,7 +67,7 @@ static class NameHint
         {
             if (AutoActMod.IsSwitchOn)
             {
-                EditString(ref __result);
+                EditText(ref __result);
             }
         }
     }
@@ -88,7 +88,7 @@ static class NameHint
 
         if (AutoActRead.CanRead(t) || t.trait is TraitBookSkill or TraitGachaBall)
         {
-            EditString(ref __result);
+            EditText(ref __result);
         }
     }
 

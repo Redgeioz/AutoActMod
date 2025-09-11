@@ -14,11 +14,7 @@ public class AutoActMod : BaseUnityPlugin
     internal void Awake()
     {
         Instance = this;
-        Settings.startFromCenter = Config.Bind("Settings", "StartFromCenter", true);
         Settings.detDistSq = Config.Bind("Settings", "DetectionRangeSquared", 100, "Sqaure of detection range.");
-        Settings.buildRangeW = Config.Bind("Settings", "BuildingRangeW", 5);
-        Settings.buildRangeH = Config.Bind("Settings", "BuildingRangeH", 5);
-        Settings.sowRangeExists = Config.Bind("Settings", "SowingRangeExists", false);
         Settings.pourDepth = Config.Bind("Settings", "PouringDepth", 1, "The depth of water pouring");
         Settings.seedReapingCount = Config.Bind("Settings", "SeedReapingCount", 25);
         Settings.staminaCheck = Config.Bind("Settings", "StaminaCheck", true);
