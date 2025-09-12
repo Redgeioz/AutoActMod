@@ -48,7 +48,7 @@ public class AutoActThrowMilk(Chara target) : AutoAct
     public bool TrySwitchToMilk()
     {
         Thing item = null;
-        foreach (var thing in pc.things)
+        foreach (var thing in pc.things.Flatten())
         {
             if (thing.trait is not TraitDrinkMilkMother)
             {

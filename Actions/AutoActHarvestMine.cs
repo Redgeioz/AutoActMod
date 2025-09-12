@@ -246,21 +246,13 @@ public class AutoActHarvestMine : AutoAct
         var count = 0;
         pc.party.members.ForEach(chara =>
         {
-            chara.things.ForEach(thing =>
+            foreach (var thing in chara.things.Flatten())
             {
                 if (thing.trait is TraitSeed seed && (seed.row.id == SeedId || SimpleIdentify))
                 {
                     count += thing.Num;
-                    return;
                 }
-                thing.things.ForEach(t =>
-                {
-                    if (t.trait is TraitSeed seed && (seed.row.id == SeedId || SimpleIdentify))
-                    {
-                        count += t.Num;
-                    }
-                });
-            });
+            }
         });
 
         return count;

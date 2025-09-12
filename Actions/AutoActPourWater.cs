@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoActMod.Actions;
 
@@ -38,7 +39,7 @@ public class AutoActPourWater(AutoActPourWater.SubActPourWater source) : AutoAct
 
             if (pot.owner.c_charges == 0)
             {
-                var nextPot = owner.things.Find(t => t.trait is TraitToolWaterPot twp && twp.owner.c_charges > 0);
+                var nextPot = owner.things.Flatten().FirstOrDefault(t => t.trait is TraitToolWaterPot twp && twp.owner.c_charges > 0);
                 if (nextPot.HasValue())
                 {
                     pot = nextPot.trait as TraitToolWaterPot;

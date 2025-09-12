@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using AutoActMod.Actions;
@@ -110,4 +112,21 @@ public static class Utils
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasValue(this object obj) => obj != null;
+
+    public static IEnumerable<Thing> Flatten(this ThingContainer things)
+    {
+        foreach (var t1 in things)
+        {
+            if (t1.things.Count == 0)
+            {
+                yield return t1;
+                continue;
+            }
+
+            foreach (var t2 in t1.things)
+            {
+                yield return t2;
+            }
+        }
+    }
 }

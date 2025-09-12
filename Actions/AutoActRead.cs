@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace AutoActMod.Actions;
 
@@ -42,7 +43,7 @@ public class AutoActRead(AIAct source) : AutoAct(source)
                 break;
             }
 
-            var next = owner.things.Find(CanRead);
+            var next = owner.things.Flatten().FirstOrDefault(CanRead);
             if (next.HasValue())
             {
                 Child.target = next;

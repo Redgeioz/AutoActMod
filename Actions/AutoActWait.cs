@@ -12,6 +12,12 @@ public class AutoActWait : AutoAct
 
     public AutoActWait() { }
 
+    // public static AutoActWait TryCreate(AIAct source)
+    // {
+    //     if (source is not GoalEndTurn) { return null; }
+    //     return new AutoActWait();
+    // }
+
     public override void OnStart()
     {
         SetStartPos();
@@ -20,10 +26,7 @@ public class AutoActWait : AutoAct
 
     public override bool CancelWhenDamaged => !pc.party.members.Any(chara => chara.ai.Current is GoalCombat && chara.ai is AutoAct);
 
-    public override bool CanProgress()
-    {
-        return canContinue?.Invoke() is true;
-    }
+    public override bool CanProgress() => canContinue.IsNull() || canContinue.Invoke();
 
     public override IEnumerable<Status> Run()
     {

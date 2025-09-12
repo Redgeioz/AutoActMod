@@ -797,6 +797,7 @@ public class AutoAct : AIAct
                 {
                     continue;
                 }
+
                 pathLength = Path.nodes.Count;
             }
 
@@ -842,7 +843,7 @@ public class AutoAct : AIAct
            var dist2ToLastPoint = CalcDist2ToLastPoint(p);
            if (dist2 <= 2)
            {
-               selector.TrySet(thing, dist2 == 0 ? 0 : 1, dist2ToLastPoint);
+               selector.TrySet(thing, dist2 == 0 ? -1 : 0, dist2ToLastPoint);
                return;
            }
 

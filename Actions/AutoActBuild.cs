@@ -165,6 +165,7 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
                 break;
             }
 
+            var pathLength = dist2 == 0 ? -1 : 0;
             if (edgeOnly)
             {
                 if (dist2 > 2)
@@ -174,11 +175,13 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
                     {
                         continue;
                     }
+
+                    pathLength = Path.nodes.Count;
                 }
 
                 if (!Child.recipe.IsWallOrFence)
                 {
-                    selector.TrySet(p, dist2, dist2ToLastPoint);
+                    selector.TrySet(p, pathLength, dist2ToLastPoint);
                     continue;
                 }
 
@@ -188,15 +191,13 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
                     continue;
                 }
 
-                if (
-                    selector.TrySet(p, dist2, dist2ToLastPoint))
+                if (selector.TrySet(p, pathLength, dist2ToLastPoint))
                 {
                     Child.recipe._dir = dir;
                 }
                 continue;
             }
 
-            var pathLength = dist2 == 0 ? -1 : 0;
             if (dist2 > 2)
             {
                 Path.RequestPathImmediate(owner.pos, p, 1, true, -1);
@@ -204,6 +205,7 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
                 {
                     continue;
                 }
+
                 pathLength = Path.nodes.Count;
             }
 
@@ -278,21 +280,21 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
         }
 
         Thing item = null;
-        foreach (var thing in pc.things)
+        foreach (var t1 in pc.things.Flatten())
         {
-            if (!HeldChecker(thing))
+            if (!HeldChecker(t1))
             {
                 continue;
             }
 
-            if (thing.trait is not TraitSeed)
+            if (t1.trait is not TraitSeed)
             {
-                return thing;
+                return t1;
             }
 
-            if (item.IsNull() || thing.encLV > item.encLV)
+            if (item.IsNull() || t1.encLV > item.encLV)
             {
-                item = thing;
+                item = t1;
             }
         }
 
