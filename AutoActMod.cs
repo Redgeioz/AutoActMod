@@ -123,7 +123,7 @@ public static class Utils
                 continue;
             }
 
-            foreach (var t2 in t1.things)
+            foreach (var t2 in t1.things.Flatten())
             {
                 yield return t2;
             }
