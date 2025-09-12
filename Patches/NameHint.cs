@@ -26,7 +26,7 @@ static class NameHint
                 && (EClass._zone.IsRegion
                     || !(Scene.HitPoint.cell.sourceSurface.tag.Contains("grass") || Scene.HitPoint.HasBridge)))
             || (__instance is AI_OpenLock && target is Thing t && AutoActUnlock.NeedUnlock(t))
-            || (__instance is ActThrow && target is Chara chara && AutoActSlaughter.CanBeSlaughtered(chara)))
+            || (__instance is ActThrow && target is Chara chara && AutoActThrowMilk.NeedMilk(chara)))
         {
             EditText(ref __result);
         }
@@ -47,7 +47,7 @@ static class NameHint
             "actHold",
         };
         if (actions.Contains(__instance.id)
-            || (target is Chara c && __instance.id == "actThrow" && AutoActThrowMilk.NeedMilk(c))
+            || (__instance.id == "AI_Slaughter" && target is Chara chara && AutoActSlaughter.CanBeSlaughtered(chara))
             || (__result == Element.Get(6011).GetName()) // steal
             || (__result == AutoActSmash.GetActMeleeLang() && AutoActSmash.CanSmash(target)))
         {
