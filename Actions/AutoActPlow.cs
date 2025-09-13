@@ -10,6 +10,15 @@ public class AutoActPlow(TaskPlow source) : AutoAct(source)
     public TaskPlow Child => child as TaskPlow;
     public HashSet<Point> range;
 
+    public static AutoActPlow TryCreate(AIAct source)
+    {
+        if (source is not TaskPlow a || !Filter(a.pos.cell)) { return null; }
+        return new AutoActPlow(a)
+        {
+            range = InitRange(a.pos, p => Filter(p.cell))
+        };
+    }
+
     public override IEnumerable<Status> Run()
     {
         do
@@ -32,7 +41,7 @@ public class AutoActPlow(TaskPlow source) : AutoAct(source)
         range?.Remove(Pos);
     }
 
-    public bool Filter(Cell cell) => !cell.HasBlock
+    public static bool Filter(Cell cell) => !cell.HasBlock
         && !cell.HasObj
         && cell.Installed?.trait is null or TraitLight
         && !cell.IsTopWater

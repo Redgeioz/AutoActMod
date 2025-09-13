@@ -513,7 +513,7 @@ public class AutoAct : AIAct
         return (d1, d2);
     }
 
-    public HashSet<Point> InitFarmField(Point p)
+    public static HashSet<Point> InitFarmField(Point p)
     {
         Predicate<Point> filter;
 
@@ -529,7 +529,7 @@ public class AutoAct : AIAct
         return InitRange(p, filter);
     }
 
-    public HashSet<Point> InitRange(Point start, Predicate<Point> filter)
+    public static HashSet<Point> InitRange(Point start, Predicate<Point> filter)
     {
         var range = new HashSet<Point>();
         var directions = new (int dx, int dz, int mask, int nextDir)[]

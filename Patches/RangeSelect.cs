@@ -307,11 +307,11 @@ internal static class RangeSelect
         var pointChecker = (Point p) => true;
         if (EClass.pc.held.trait is TraitSeed seed)
         {
-            if (seed.row.id == 88 && Range.First(p => p.IsWater).HasValue())
+            if (seed.row.id == 88 && Range.FirstOrDefault(p => p.IsWater).HasValue())
             {
                 pointChecker = p => p.IsWater;
             }
-            else if (Range.First(p => p.IsFarmField).HasValue())
+            else if (Range.FirstOrDefault(p => p.IsFarmField).HasValue())
             {
                 pointChecker = p => p.IsFarmField;
             }
@@ -348,6 +348,12 @@ internal static class RangeSelect
 
     static void SetAutoActPlow()
     {
+        Range.RemoveWhere(p => !AutoActPlow.Filter(p.cell));
+        if (Range.Count == 0)
+        {
+            return;
+        }
+
         var plow = new TaskPlow { pos = StartPos.Copy() };
 
         var autoAct = new AutoActPlow(plow)
@@ -358,11 +364,7 @@ internal static class RangeSelect
             range = Range
         };
 
-        Range.RemoveWhere(p => !autoAct.Filter(p.cell));
-        if (Range.Count > 0)
-        {
-            SetAutoAct(autoAct);
-        }
+        SetAutoAct(autoAct);
     }
 
     static void SetAutoActPourWaterOrDrawWater()
