@@ -41,14 +41,15 @@ static class NameHint
         }
 
         var target = EClass.scene.mouseTarget.card;
+        var targetChara = target as Chara;
         var actions = new string[] {
             "actMilk",
             "actPickOne",
             "actHold",
         };
         if (actions.Contains(__instance.id)
-            || (__instance.id == "AI_Slaughter" && target is Chara chara && AutoActSlaughter.CanBeSlaughtered(chara))
-            || (__result == Element.Get(6011).GetName()) // steal
+            || (__instance.id == "AI_Slaughter" && targetChara.HasValue() && AutoActSlaughter.CanBeSlaughtered(targetChara))
+            || (__result == Element.Get(6011).GetName() && (targetChara.IsNull() || AutoActSteal.IsTargetChara(targetChara))) // steal
             || (__result == AutoActSmash.GetActMeleeLang() && AutoActSmash.CanSmash(target)))
         {
             EditText(ref __result);

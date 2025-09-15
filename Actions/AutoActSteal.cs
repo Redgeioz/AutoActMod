@@ -42,7 +42,7 @@ public class AutoActSteal : AutoAct
         return !_zone.IsUserZone && !(c.isThing & (_zone is Zone_LittleGarden)) && (c.isNPCProperty || !c.isThing) && c.trait.CanBeStolen && c.c_lockLv <= 0 && (c.isThing || !c.IsPCFaction);
     }
 
-    public bool IsTargetChara(Chara chara) => !chara.IsPCFaction && chara.things.FindStealable().HasValue();
+    public static bool IsTargetChara(Chara chara) => !chara.IsPCFaction && (chara.things.FindStealable().HasValue() || chara.GetInt(30) < world.date.GetRaw(0));
 
     public override IEnumerable<Status> Run()
     {
