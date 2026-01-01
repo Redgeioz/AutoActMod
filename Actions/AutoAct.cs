@@ -311,7 +311,8 @@ public class AutoAct : AIAct
         RangeSelect.Reset();
     }
 
-    // Pause the current action and execute the given action
+    // Pause the current action and execute the given action.
+    // Should not be called in AIAct.OnStart
     public void InsertAction(AIAct action, bool resotreTaskPos = false)
     {
         if (Enumerator.IsNull())

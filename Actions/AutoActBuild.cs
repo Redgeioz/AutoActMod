@@ -339,7 +339,10 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
 
             if (Held.trait is TraitSeed)
             {
-                field = p => (!p.HasThing || p.Things[0].IsInstalled) && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj && p.growth.IsNull() && p.Installed?.trait is null or TraitLight;
+                field = p => (!p.HasThing || p.Things[0].IsInstalled)
+                    && (!p.HasBlock || p.HasWallOrFence) && !p.HasObj
+                    && p.growth.IsNull()
+                    && p.Installed?.trait is null or TraitLight or TraitSpot;
             }
             else if (Held.trait is TraitFertilizer)
             {

@@ -8,11 +8,16 @@ public class AutoActPick : AutoAct
     public int detRangeSq;
     public SubActPick Child => child as SubActPick;
     public override Point Pos => Child.pos;
+    public HashSet<Point> range;
 
     public AutoActPick(SubActPick source) : base(source)
     {
-        detRangeSq = Settings.DetRangeSq;
-        SetTarget(source.refThing);
+        // not range selection
+        if (source.refThing.HasValue())
+        {
+            detRangeSq = Settings.DetRangeSq;
+            SetTarget(source.refThing);
+        }
     }
 
     public static AutoActPick TryCreate(string lang, Card target, Point pos)
@@ -20,7 +25,12 @@ public class AutoActPick : AutoAct
         if ((lang == "actPickOne".lang() || lang == "actHold".lang())
             && (Settings.SimpleIdentify == 2 || target.SelfWeight < 160_000))
         {
-            return new AutoActPick(new SubActPick(pos, target as Thing, target.IsInstalled));
+            return new AutoActPick(new SubActPick()
+            {
+                pos = pos,
+                refThing = target as Thing,
+                installed = target.IsInstalled
+            });
         }
         return null;
     }
@@ -41,6 +51,22 @@ public class AutoActPick : AutoAct
     {
         while (CanProgress())
         {
+            if (range.HasValue())
+            {
+                var targetPos = FindPos(c => true, range: range);
+                if (targetPos.IsNull())
+                {
+                    SayNoTarget();
+                    yield break;
+                }
+
+                Child.pos = targetPos;
+                yield return StartNextTask();
+
+                range.Remove(targetPos);
+                continue;
+            }
+
             var targetThing = FindThing(IsTarget, detRangeSq);
             if (targetThing.IsNull())
             {
@@ -60,15 +86,8 @@ public class AutoActPick : AutoAct
         public Thing refThing;
         public Point pos;
         public bool installed;
-        public bool IsTarget(Card t) => t == refThing || t.CanStackTo(refThing);
-
-        public SubActPick() { }
-        public SubActPick(Point pos, Thing refThing, bool installed = false)
-        {
-            this.pos = pos;
-            this.refThing = refThing;
-            this.installed = installed;
-        }
+        public bool pickAll;
+        public bool IsTarget(Card t) => pickAll || t == refThing || t.CanStackTo(refThing);
 
         public override IEnumerable<Status> Run()
         {

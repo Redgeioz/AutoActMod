@@ -105,7 +105,11 @@ internal static class RangeSelect
             for (var z = zMin; z <= zMax; z++)
             {
                 if (edgeOnly && x != xMin && x != xMax && z != zMin && z != zMax) { continue; }
-                Selected.Add(new Point(x, z));
+                var p = new Point(x, z);
+                if (p.IsInBounds)
+                {
+                    Selected.Add(p);
+                }
             }
         }
     }
@@ -131,15 +135,17 @@ internal static class RangeSelect
     [HarmonyPostfix, HarmonyPatch(typeof(AM_Adv), nameof(AM_Adv._OnUpdateInput))]
     static void AM_Adv_OnUpdateInput_Patch()
     {
-        if (EClass.pc.held is not Thing t
-            || (LastHeld.HasValue() && t != LastHeld)
-            || EInput.middleMouse.down)
+        if ((LastHeld.HasValue() && LastHeld != EClass.pc.held) || EInput.middleMouse.down)
         {
             Reset();
             return;
         }
 
-        if (HotItemHeld.taskBuild.HasValue()
+        if (EClass.pc.held is not Thing t)
+        {
+            OnSelectComplete = SetAutoActPick;
+        }
+        else if (HotItemHeld.taskBuild.HasValue()
             && (t.Num > 1 || t.trait is TraitSeed)
             && t.trait is TraitSeed or TraitFloor or TraitPlatform or TraitBlock or TraitFertilizer)
         {
@@ -174,11 +180,12 @@ internal static class RangeSelect
             Reset();
             return;
         }
-        LastHeld = t;
+
+        LastHeld = EClass.pc.held as Thing;
 
         if (LeftClickPoint.HasValue())
         {
-            SetSelected(LeftClickPoint, EClass.scene.mouseTarget.pos, t.trait is TraitBlock);
+            SetSelected(LeftClickPoint, EClass.scene.mouseTarget.pos, LastHeld?.trait is TraitBlock);
         }
         else if (RightClickPoint.HasValue())
         {
@@ -209,6 +216,7 @@ internal static class RangeSelect
             }
             else if (RightClickPoint.HasValue())
             {
+                RemoveRange();
                 Selected.Clear();
                 RightClickPoint = null;
             }
@@ -280,6 +288,7 @@ internal static class RangeSelect
         autoAct.useOriginalPos = false;
         if (autoAct is AutoActPlow or AutoActDig or AutoActPourWater || (autoAct is AutoActBuild aab && aab.Child.held.trait is not TraitBlock))
         {
+            // start from the center
             if (Width == Height && (Width == 3 || Width == 5))
             {
                 var p = new Point(StartPos.x + Width / 2, StartPos.z + Width / 2);
@@ -493,5 +502,26 @@ internal static class RangeSelect
         {
             range = CharaRange
         });
+    }
+
+    static void SetAutoActPick()
+    {
+        var pick = new AutoActPick.SubActPick
+        {
+            pos = StartPos.Copy(),
+            installed = false,
+            pickAll = true,
+        };
+
+        var autoAct = new AutoActPick(pick)
+        {
+            range = Range
+        };
+
+        Range.RemoveWhere(p => p.Things.Find(t => t.placeState != PlaceState.installed).IsNull());
+        if (Range.Count > 0)
+        {
+            SetAutoAct(autoAct);
+        }
     }
 }
