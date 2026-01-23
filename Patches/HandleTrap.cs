@@ -43,7 +43,7 @@ static class HandleTrap
                 new CodeMatch(OpCodes.Ldfld),
                 new CodeMatch(OpCodes.Ldloc_3),
                 new CodeMatch(OpCodes.Ldc_I4_1),
-                new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(Chara), nameof(Chara.TryMove))))
+                new CodeMatch(OpCodes.Callvirt, AccessTools.Method(typeof(Card), nameof(Card.TryMove))))
             .RemoveInstructions(5)
             .InsertAndAdvance(
                 new CodeInstruction(OpCodes.Ldarg_0),

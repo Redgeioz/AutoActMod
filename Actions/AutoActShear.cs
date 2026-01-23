@@ -15,7 +15,7 @@ public class AutoActShear(AIAct source) : AutoAct(source)
 
     public override bool CanProgress()
     {
-        return canContinue && owner.Tool?.trait is TraitToolShears;
+        return base.CanProgress() && owner.Tool?.trait is TraitToolShears;
     }
 
     public override IEnumerable<Status> Run()
