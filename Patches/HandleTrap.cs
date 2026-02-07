@@ -15,7 +15,7 @@ static class HandleTrap
         static MethodInfo TargetMethod()
         {
             return AccessTools.Method(
-                AccessTools.FirstInner(typeof(ActWait), t => t.Name.Contains("DisplayClass8_0") || t.Name.Contains("DisplayClass6_0")),
+                AccessTools.FirstInner(typeof(ActWait), t => t.Name.Contains("DisplayClass8_0")),
                 "<Search>b__0");
         }
 

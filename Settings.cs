@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace AutoActMod;
 
@@ -84,7 +86,6 @@ public static class Settings
         var text = AALang.GetText("settings");
         var dynamicAct = new DynamicAct(text, () =>
         {
-            var list = new UIContextMenuItem[2];
             var menu = EClass.ui.CreateContextMenu();
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
@@ -198,6 +199,28 @@ public static class Settings
                 false
             );
             menu.Show();
+
+            // unify the width of each row
+            float maxWidth = 0;
+            foreach (Transform child in menu.layoutGroup.transform)
+            {
+                var childRect = child.GetComponent<RectTransform>();
+                maxWidth = Mathf.Max(childRect.rect.width, maxWidth);
+            }
+
+            foreach (Transform child in menu.layoutGroup.transform)
+            {
+                if (child.GetComponent<LayoutElement>() is not LayoutElement layoutElement
+                    || layoutElement.preferredWidth < 0)
+                {
+                    continue;
+                }
+
+                layoutElement.preferredWidth = maxWidth;
+                layoutElement.flexibleWidth = 0;
+                var childRect = child.GetComponent<RectTransform>();
+            }
+
             return false;
         }, false);
         actPlan.list.Add(new ActPlan.Item { act = dynamicAct });
@@ -237,11 +260,10 @@ public static class AALang
                 { "noTarget", "自动行动没有找到下一个目标。"},
                 { "aaon", "自动行动，启动！"},
                 { "aaoff", "自动行动，关闭。"},
-                { "staminaCheck", "精力耗尽时停止　　　　　　　　" },
-                { "weightCheck", "超重时停止　　　　　　　　　　" },
+                { "staminaCheck", "精力耗尽时停止" },
                 { "simpleIdentify", "简单识别" },
                 { "off", "关闭"},
-                { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
+                { "sameFarmfieldOnly", "只在同一田地上收割" },
             }
         },
         {
@@ -263,10 +285,10 @@ public static class AALang
                 { "noTarget", "自動行動沒有找到下一個目標。"},
                 { "aaon", "自動行動，啟動！"},
                 { "aaoff", "自動行動，關閉。"},
-                { "staminaCheck", "精力耗盡時停止　　　　　　　　" },
+                { "staminaCheck", "精力耗盡時停止" },
                 { "simpleIdentify", "簡單識別" },
                 { "off", "關閉"},
-                { "sameFarmfieldOnly", "只在同一田地上收割　　　　　　" },
+                { "sameFarmfieldOnly", "只在同一田地上收割" },
             }
         },
         {
@@ -288,10 +310,10 @@ public static class AALang
                 { "noTarget", "自動行動は次目標を発見できず。"},
                 { "aaon", "自動行動：オン。"},
                 { "aaoff", "自動行動：オフ。"},
-                { "staminaCheck", "精力が尽きた時に停止する　　　" },
+                { "staminaCheck", "精力が尽きた時に停止する" },
                 { "simpleIdentify", "簡単識別" },
                 { "off", "オフ"},
-                { "sameFarmfieldOnly", "同じ農地での収穫のみ　　　　　" },
+                { "sameFarmfieldOnly", "同じ農地での収穫のみ" },
             }
         },
         {
@@ -313,10 +335,10 @@ public static class AALang
                 { "noTarget", "Auto Act could not find the next target."},
                 { "aaon", "Auto Act: On."},
                 { "aaoff", "Auto Act: Off."},
-                { "staminaCheck", "Stop When Stamina Runs Out　 　　　　　　　　　　　　" },
+                { "staminaCheck", "Stop When Stamina Runs Out" },
                 { "simpleIdentify", "Simple Identification" },
                 { "off", "Off"},
-                { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only　　　　　　　　" },
+                { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only" },
             }
         },
         {
