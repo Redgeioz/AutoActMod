@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
 using AutoActMod.Actions;
 using HarmonyLib;
+using UnityEngine;
 
 namespace AutoActMod.Patches;
 
@@ -101,6 +103,49 @@ static class Misc
                 autoAct.Cancel();
             }
         }
+    }
+
+
+    [HarmonyPrefix, HarmonyPatch(typeof(Dialog), nameof(Dialog.OnUpdateInput))]
+    static bool Dialog_OnUpdateInput_Patch(Dialog __instance)
+    {
+        if (Settings.ChangingKey.IsNull())
+        {
+            return true;
+        }
+
+        var list1 = new List<KeyCode>
+        {
+            KeyCode.Mouse0,
+            KeyCode.Mouse1,
+            KeyCode.Mouse2,
+            KeyCode.Mouse3,
+            KeyCode.Mouse4,
+        };
+
+        var list2 = new List<KeyCode>
+        {
+            KeyCode.Escape,
+            KeyCode.Return,
+            KeyCode.Delete,
+            KeyCode.Backspace
+        };
+
+        foreach (KeyCode keyCode in Enum.GetValues(typeof(KeyCode)))
+        {
+            if (!list1.Contains(keyCode) && Input.GetKey(keyCode))
+            {
+                if (!list2.Contains(keyCode))
+                {
+                    Settings.ChangingKey.Value = keyCode;
+                    Settings.ChangingKey = null;
+                }
+                __instance.Close();
+                return false;
+            }
+        }
+
+        return true;
     }
 #if DEBUG
     // [HarmonyPrefix]

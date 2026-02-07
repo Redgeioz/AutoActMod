@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using BepInEx.Configuration;
 using UnityEngine;
 using UnityEngine.Events;
@@ -81,12 +83,30 @@ public static class Settings
         set { rangeSelectKeyCode.Value = value; }
     }
 
+    public static ConfigEntry<KeyCode> ChangingKey = null;
+
+    public static void InputKey(ConfigEntry<KeyCode> key)
+    {
+        var dialog = Layer.Create<Dialog>("DialogKeymap");
+        dialog.textDetail.SetText(AALang.GetText("inputKey"));
+        ChangingKey = key;
+        ELayer.ui.AddLayer(dialog);
+    }
+
     public static void SetupSettings(ActPlan actPlan)
     {
         var text = AALang.GetText("settings");
         var dynamicAct = new DynamicAct(text, () =>
         {
             var menu = EClass.ui.CreateContextMenu();
+            menu.AddButton(AALang.GetText("trigger"), () =>
+            {
+                InputKey(keyCode);
+            });
+            menu.AddButton(AALang.GetText("triggerRangeSelect"), () =>
+            {
+                InputKey(rangeSelectKeyCode);
+            });
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
             menu.AddSlider(
@@ -210,15 +230,13 @@ public static class Settings
 
             foreach (Transform child in menu.layoutGroup.transform)
             {
-                if (child.GetComponent<LayoutElement>() is not LayoutElement layoutElement
-                    || layoutElement.preferredWidth < 0)
+                if (child.GetComponent<LayoutElement>() is not LayoutElement layoutElement)
                 {
                     continue;
                 }
 
                 layoutElement.preferredWidth = maxWidth;
                 layoutElement.flexibleWidth = 0;
-                var childRect = child.GetComponent<RectTransform>();
             }
 
             return false;
@@ -264,6 +282,9 @@ public static class AALang
                 { "simpleIdentify", "简单识别" },
                 { "off", "关闭"},
                 { "sameFarmfieldOnly", "只在同一田地上收割" },
+                { "inputKey", "请输入要设置的按键" },
+                { "trigger", "设置自动行动触发键" },
+                { "triggerRangeSelect", "设置范围选择触发键" },
             }
         },
         {
@@ -289,6 +310,9 @@ public static class AALang
                 { "simpleIdentify", "簡單識別" },
                 { "off", "關閉"},
                 { "sameFarmfieldOnly", "只在同一田地上收割" },
+                { "inputKey", "请輸入要設置的按鍵" },
+                { "trigger", "設置自動行動觸發鍵" },
+                { "triggerRangeSelect", "設置自動行動觸發鍵" },
             }
         },
         {
@@ -314,6 +338,9 @@ public static class AALang
                 { "simpleIdentify", "簡単識別" },
                 { "off", "オフ"},
                 { "sameFarmfieldOnly", "同じ農地での収穫のみ" },
+                { "inputKey", "設定するキーを入力" },
+                { "trigger", "自動行動トリガーキーを設定" },
+                { "triggerRangeSelect", "範囲選択トリガーキーを設定" },
             }
         },
         {
@@ -339,6 +366,9 @@ public static class AALang
                 { "simpleIdentify", "Simple Identification" },
                 { "off", "Off"},
                 { "sameFarmfieldOnly", "Harvest On The Same Farmfield Only" },
+                { "inputKey", "Input the key to be set" },
+                { "trigger", "Set Auto Act Trigger Key" },
+                { "triggerRangeSelect", "Set Range Selection Trigger Key" },
             }
         },
         {
@@ -364,6 +394,9 @@ public static class AALang
                 { "simpleIdentify", "Identificação Simples" },
                 { "off", "Desligado" },
                 { "sameFarmfieldOnly", "Colher Apenas na Mesma Área da Fazenda" },
+                { "inputKey", "Digite a tecla a ser configurada" },
+                { "trigger", "Definir tecla de Acionamento de Ação Automática" },
+                { "triggerRangeSelect", "Definir Tecla de Acionamento de Seleção de Alcance" },
             }
         }
     };
