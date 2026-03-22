@@ -99,14 +99,8 @@ public static class Settings
         var dynamicAct = new DynamicAct(text, () =>
         {
             var menu = EClass.ui.CreateContextMenu();
-            menu.AddButton(AALang.GetText("trigger"), () =>
-            {
-                InputKey(keyCode);
-            });
-            menu.AddButton(AALang.GetText("triggerRangeSelect"), () =>
-            {
-                InputKey(rangeSelectKeyCode);
-            });
+            menu.AddButton(AALang.GetText("trigger"), () => InputKey(keyCode));
+            menu.AddButton(AALang.GetText("triggerRangeSelect"), () => InputKey(rangeSelectKeyCode));
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
             menu.AddSlider(

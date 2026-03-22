@@ -3,64 +3,71 @@
     <OutputType>library</OutputType>
     <TargetFramework>net472</TargetFramework>
     <LangVersion>preview</LangVersion>
+    <OutputPath>$(ElinGamePath)\Package\AutoAct\</OutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove=".history\**"/>
     <Reference Include="Plugins.UI">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Plugins.UI.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\Plugins.UI.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="Plugins.Sound">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Plugins.Sound.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\Plugins.Sound.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="Plugins.BaseCore">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Plugins.BaseCore.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\Plugins.BaseCore.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="Elin">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\Elin.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\Elin.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\UnityEngine.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\UnityEngine.UI.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.InputLegacyModule">
-      <HintPath>H:\Steam\steamapps\common\Elin\Elin_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+      <HintPath>$(ElinGamePath)\Elin_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Core">
-      <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\BepInEx.Core.dll</HintPath>
+      <HintPath>$(ElinGamePath)\BepInEx\core\BepInEx.Core.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="BepInEx.Unity">
-      <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\BepInEx.Unity.dll</HintPath>
+      <HintPath>$(ElinGamePath)\BepInEx\core\BepInEx.Unity.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
     <Reference Include="HarmonyLib">
-      <HintPath>H:\Steam\steamapps\common\Elin\BepInEx\core\0Harmony.dll</HintPath>
+      <HintPath>$(ElinGamePath)\BepInEx\core\0Harmony.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
+  <Target Name="RemovePdbFromRelease" AfterTargets="Build" Condition="'$(Configuration)' == 'Release' OR '$(Configuration)' == 'ReleaseNightly'">
+    <Delete Files="$(TargetDir)$(TargetName).pdb"/>
+  </Target>
 </Project>

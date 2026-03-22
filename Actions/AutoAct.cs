@@ -313,7 +313,7 @@ public class AutoAct : AIAct
 
     // Pause the current action and execute the given action.
     // Should not be called in AIAct.OnStart
-    public void InsertAction(AIAct action, bool resotreTaskPos = false)
+    public void InsertAction(AIAct action)
     {
         if (Enumerator.IsNull())
         {
