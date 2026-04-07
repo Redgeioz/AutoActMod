@@ -24,7 +24,7 @@ public class AutoActSlaughter(AIAct source) : AutoAct(source)
 
     public override bool CanProgress()
     {
-        return canContinue && owner.Tool?.trait is TraitToolButcher;
+        return base.CanProgress() && canContinue && owner.Tool?.trait is TraitToolButcher;
     }
 
     public static bool CanBeSlaughtered(Chara chara) => chara.IsPCFaction && chara.memberType == FactionMemberType.Livestock;

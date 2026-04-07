@@ -16,6 +16,11 @@ public class AutoActRead(AIAct source) : AutoAct(source)
 
     public override bool CanProgress()
     {
+        if (!base.CanProgress())
+        {
+            return false;
+        }
+
         return !Child.target.isDestroyed && (Child.target.trait is not TraitAncientbook || !Child.target.isOn);
     }
 

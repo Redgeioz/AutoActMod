@@ -25,6 +25,11 @@ public class AutoActDrawWater : AutoAct
 
     public override bool CanProgress()
     {
+        if (!base.CanProgress())
+        {
+            return false;
+        }
+
         var pot = Child.pot;
         return canContinue && owner.held == pot.owner && pot.owner.c_charges < pot.MaxCharge;
     }
