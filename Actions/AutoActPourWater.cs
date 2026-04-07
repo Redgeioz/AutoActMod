@@ -13,7 +13,7 @@ public class AutoActPourWater(AutoActPourWater.SubActPourWater source) : AutoAct
 
     public override bool CanProgress()
     {
-        return canContinue && owner.held?.trait is TraitToolWaterPot;
+        return base.CanProgress() && canContinue && owner.held?.trait is TraitToolWaterPot;
     }
 
     public static bool CanPourWater(Cell cell)

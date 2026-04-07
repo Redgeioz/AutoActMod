@@ -1,0 +1,133 @@
+diff --git a/Actions/AutoActDisarm.cs b/Actions/AutoActDisarm.cs
+index 0869c33..d0d7b59 100644
+--- a/Actions/AutoActDisarm.cs
++++ b/Actions/AutoActDisarm.cs
+@@ -17,7 +17,7 @@ public class AutoActDisarm(TraitTrap target) : AutoAct
+         return new AutoActDisarm(trap);
+     }
+ 
+-    public override bool CanProgress() => target.CanDisarmTrap && canContinue;
++    public override bool CanProgress() => base.CanProgress() && target.CanDisarmTrap && canContinue;
+ 
+     public override IEnumerable<Status> Run()
+     {
+diff --git a/Actions/AutoActDrawWater.cs b/Actions/AutoActDrawWater.cs
+index 4980fdd..ae6e7cb 100644
+--- a/Actions/AutoActDrawWater.cs
++++ b/Actions/AutoActDrawWater.cs
+@@ -25,6 +25,11 @@ public class AutoActDrawWater : AutoAct
+ 
+     public override bool CanProgress()
+     {
++        if (!base.CanProgress())
++        {
++            return false;
++        }
++
+         var pot = Child.pot;
+         return canContinue && owner.held == pot.owner && pot.owner.c_charges < pot.MaxCharge;
+     }
+diff --git a/Actions/AutoActPick.cs b/Actions/AutoActPick.cs
+index f2a54fd..f34dc2b 100644
+--- a/Actions/AutoActPick.cs
++++ b/Actions/AutoActPick.cs
+@@ -22,7 +22,7 @@ public class AutoActPick : AutoAct
+ 
+     public static AutoActPick TryCreate(string lang, Card target, Point pos)
+     {
+-        if ((lang == "actPickOne".lang() || lang == "actHold".lang())
++        if ((lang == "actPickOne".lang() || lang == "actHold".lang() || lang == "actHarvest".lang())
+             && (Settings.SimpleIdentify == 2 || target.SelfWeight < 160_000))
+         {
+             return new AutoActPick(new SubActPick()
+diff --git a/Actions/AutoActPourWater.cs b/Actions/AutoActPourWater.cs
+index 95d4d5a..c2817a9 100644
+--- a/Actions/AutoActPourWater.cs
++++ b/Actions/AutoActPourWater.cs
+@@ -13,7 +13,7 @@ public class AutoActPourWater(AutoActPourWater.SubActPourWater source) : AutoAct
+ 
+     public override bool CanProgress()
+     {
+-        return canContinue && owner.held?.trait is TraitToolWaterPot;
++        return base.CanProgress() && canContinue && owner.held?.trait is TraitToolWaterPot;
+     }
+ 
+     public static bool CanPourWater(Cell cell)
+diff --git a/Actions/AutoActRead.cs b/Actions/AutoActRead.cs
+index 0cebbe3..582125f 100644
+--- a/Actions/AutoActRead.cs
++++ b/Actions/AutoActRead.cs
+@@ -16,6 +16,11 @@ public class AutoActRead(AIAct source) : AutoAct(source)
+ 
+     public override bool CanProgress()
+     {
++        if (!base.CanProgress())
++        {
++            return false;
++        }
++
+         return !Child.target.isDestroyed && (Child.target.trait is not TraitAncientbook || !Child.target.isOn);
+     }
+ 
+diff --git a/Actions/AutoActSlaughter.cs b/Actions/AutoActSlaughter.cs
+index 75095c1..2fe2023 100644
+--- a/Actions/AutoActSlaughter.cs
++++ b/Actions/AutoActSlaughter.cs
+@@ -24,7 +24,7 @@ public class AutoActSlaughter(AIAct source) : AutoAct(source)
+ 
+     public override bool CanProgress()
+     {
+-        return canContinue && owner.Tool?.trait is TraitToolButcher;
++        return base.CanProgress() && canContinue && owner.Tool?.trait is TraitToolButcher;
+     }
+ 
+     public static bool CanBeSlaughtered(Chara chara) => chara.IsPCFaction && chara.memberType == FactionMemberType.Livestock;
+diff --git a/Actions/AutoActThrowMilk.cs b/Actions/AutoActThrowMilk.cs
+index c106440..282ad75 100644
+--- a/Actions/AutoActThrowMilk.cs
++++ b/Actions/AutoActThrowMilk.cs
+@@ -17,7 +17,7 @@ public class AutoActThrowMilk(Chara target) : AutoAct
+         return new AutoActThrowMilk(t);
+     }
+ 
+-    public override bool CanProgress() => owner.held?.trait is TraitDrinkMilkMother;
++    public override bool CanProgress() => base.CanProgress() && owner.held?.trait is TraitDrinkMilkMother;
+ 
+     public static bool NeedMilk(Chara chara) => chara.Evalue(1232) > 0 && chara.IsPCFaction;
+ 
+diff --git a/Actions/AutoActWait.cs b/Actions/AutoActWait.cs
+index b1deb9c..c442021 100644
+--- a/Actions/AutoActWait.cs
++++ b/Actions/AutoActWait.cs
+@@ -22,9 +22,22 @@ public class AutoActWait(AIAct source) : AutoAct(source)
+         child?.Reset();
+     }
+ 
+-    public new bool CancelWhenDamaged => !EClass.pc.party.members.Any(chara => chara.ai.Current is GoalCombat && chara.ai is AutoAct);
++    public new bool CancelWhenDamaged => EClass.pc?.party?.members?.Any(chara => chara.ai.Current is GoalCombat && chara.ai is AutoAct) ?? false;
+ 
+-    public override bool CanProgress() => canContinue == null || canContinue();
++    public override bool CanProgress()
++    {
++        if (!base.CanProgress())
++        {
++            return false;
++        }
++
++        if (CancelWhenDamaged)
++        {
++            return false;
++        }
++
++        return canContinue == null || canContinue();
++    }
+ 
+     public override IEnumerable<Status> Run()
+     {
+@@ -33,4 +46,4 @@ public class AutoActWait(AIAct source) : AutoAct(source)
+             yield return KeepRunning();
+         }
+     }
+-}
++}
+\ No newline at end of file

@@ -17,7 +17,7 @@ public class AutoActThrowMilk(Chara target) : AutoAct
         return new AutoActThrowMilk(t);
     }
 
-    public override bool CanProgress() => owner.held?.trait is TraitDrinkMilkMother;
+    public override bool CanProgress() => base.CanProgress() && owner.held?.trait is TraitDrinkMilkMother;
 
     public static bool NeedMilk(Chara chara) => chara.Evalue(1232) > 0 && chara.IsPCFaction;
 

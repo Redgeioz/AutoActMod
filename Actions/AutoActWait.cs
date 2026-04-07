@@ -22,9 +22,22 @@ public class AutoActWait(AIAct source) : AutoAct(source)
         child?.Reset();
     }
 
-    public new bool CancelWhenDamaged => !EClass.pc.party.members.Any(chara => chara.ai.Current is GoalCombat && chara.ai is AutoAct);
+    public new bool CancelWhenDamaged => EClass.pc?.party?.members?.Any(chara => chara.ai.Current is GoalCombat && chara.ai is AutoAct) ?? false;
 
-    public override bool CanProgress() => canContinue == null || canContinue();
+    public override bool CanProgress()
+    {
+        if (!base.CanProgress())
+        {
+            return false;
+        }
+
+        if (CancelWhenDamaged)
+        {
+            return false;
+        }
+
+        return canContinue == null || canContinue();
+    }
 
     public override IEnumerable<Status> Run()
     {

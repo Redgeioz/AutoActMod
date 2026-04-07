@@ -22,7 +22,7 @@ public class AutoActPick : AutoAct
 
     public static AutoActPick TryCreate(string lang, Card target, Point pos)
     {
-        if ((lang == "actPickOne".lang() || lang == "actHold".lang())
+        if ((lang == "actPickOne".lang() || lang == "actHold".lang() || lang == "actHarvest".lang())
             && (Settings.SimpleIdentify == 2 || target.SelfWeight < 160_000))
         {
             return new AutoActPick(new SubActPick()
