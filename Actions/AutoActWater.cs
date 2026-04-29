@@ -34,7 +34,7 @@ public class AutoActWater : AutoAct
 
     public override bool CanProgress()
     {
-        return base.CanProgress() && waterCan?.Equals(owner.held?.trait) is true;
+        return waterCan?.Equals(owner.held?.trait) is true;
     }
 
     public override IEnumerable<Status> Run()
