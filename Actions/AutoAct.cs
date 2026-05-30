@@ -624,7 +624,7 @@ public class AutoAct : AIAct
 
     public Point FindPos(Predicate<Cell> filter, int detRangeSq = 2, int tryBetterPath = 0, HashSet<Point> range = null)
     {
-        if (useOriginalPos)
+        if (useOriginalPos && Pos.IsInBounds)
         {
             useOriginalPos = false;
             return Pos;
@@ -745,7 +745,7 @@ public class AutoAct : AIAct
 
     public Point FindPosRefToStartPos(Predicate<Cell> filter, HashSet<Point> range)
     {
-        if (useOriginalPos)
+        if (useOriginalPos && Pos.IsInBounds)
         {
             useOriginalPos = false;
             return Pos;
@@ -810,7 +810,7 @@ public class AutoAct : AIAct
 
     public Thing FindThing(Predicate<Thing> filter, int detRangeSq)
     {
-        if (useOriginalPos)
+        if (useOriginalPos && Pos.IsInBounds)
         {
             useOriginalPos = false;
             var t = Pos.cell.Things.Find(filter);
@@ -873,7 +873,7 @@ public class AutoAct : AIAct
 
     public Chara FindChara(Predicate<Chara> filter, int detRangeSq = 80000, List<Chara> range = null)
     {
-        if (useOriginalPos)
+        if (useOriginalPos && Pos.IsInBounds)
         {
             useOriginalPos = false;
             var chara = Pos.cell.Charas.Find(filter);

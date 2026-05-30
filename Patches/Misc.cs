@@ -150,7 +150,15 @@ static class Misc
 #if DEBUG
     // [HarmonyPrefix]
     // [HarmonyPatch(typeof(Task), nameof(Task.Destroy))]
-    // static bool Task_Destroy_Prefix(Task __instance)
+    // static bool Task_Destroy_Prefix()
+    // {
+    //     Utils.Trace();
+    //     return true;
+    // }
+
+    // [HarmonyPrefix]
+    // [HarmonyPatch(typeof(AIAct), nameof(AIAct.Cancel))]
+    // static bool AIAct_Cancel_Prefix()
     // {
     //     Utils.Trace();
     //     return true;
@@ -163,7 +171,7 @@ static class Misc
     //     // return true;
     //     if (__instance is AutoAct a && a is not AutoActWait)
     //     {
-    //         if (__instance.owner.IsPC)
+    //         if (!__instance.owner.IsPC)
     //         {
     //             return true;
     //         }

@@ -54,18 +54,18 @@ static class HandleTrap
     static Card.MoveResult CheckTrap(AI_Goto move)
     {
         var chara = move.owner;
-        if (!chara.IsPC || chara.ai is not AutoAct)
+        if (!chara.IsPC || chara.ai is not AutoAct autoAct)
         {
             return chara.TryMove(Point.shared);
         }
 
-        var trap = Point.shared.Things.Find(t => !t.isHidden && t.trait is TraitTrap)?.trait as TraitTrap;
-        if (trap.IsNull())
+        var t = Point.shared.Things.Find(t => !t.isHidden && t.trait is TraitTrap trap && trap.CanDisarmTrap);
+        if (t?.trait is not TraitTrap trap)
         {
             return chara.TryMove(Point.shared);
         }
 
-        move.SetChild(new AutoActDisarm(trap));
+        autoAct.InsertAction(new AutoActDisarm(trap));
         return Card.MoveResult.Success;
     }
 }
