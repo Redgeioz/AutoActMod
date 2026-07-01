@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace AutoActMod.Actions;
 
@@ -124,20 +125,38 @@ public class AutoActWater : AutoAct
                 yield return Cancel();
             }
 
-            dest.cell.isWatered = true;
-            if (!dest.cell.blocked && rnd(5) == 0)
+            var num = parent.waterCan.owner.Evalue(770);
+            num = (num <= 0) ? 1 : Mathf.Min(parent.waterCan.owner.c_charges, 2 + num / 10);
+            if (num > 1)
             {
-                _map.SetLiquid(dest.x, dest.z, 1);
+                var list2 = _map.ListPointsInSquare(dest, num - 1, false, false);
+                list2.Sort((a, b) => a.Distance(dest) - b.Distance(dest));
+                foreach (var item in list2)
+                {
+                    Water(item);
+                }
             }
-
-            if (dest.cell.HasFire)
+            else
             {
-                dest.ModFire(-50, true);
+                Water(dest);
             }
 
             owner.PlaySound("water_farm");
             owner.Say("water_farm", owner, dest.cell.GetFloorName());
-            parent.waterCan.owner.ModCharge(-1);
+            parent.waterCan.owner.ModCharge(-num);
+        }
+
+        public void Water(Point point)
+        {
+            point.cell.isWatered = true;
+            if (!point.cell.blocked && rnd(5) == 0)
+            {
+                _map.SetLiquid(point.x, point.z, 1);
+            }
+            if (point.cell.HasFire)
+            {
+                point.ModFire(-50, true);
+            }
             owner.ModExp(286, 15);
         }
     }
