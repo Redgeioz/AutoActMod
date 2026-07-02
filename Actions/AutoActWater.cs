@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -129,7 +130,7 @@ public class AutoActWater : AutoAct
             num = (num <= 0) ? 1 : Mathf.Min(parent.waterCan.owner.c_charges, 2 + num / 10);
             if (num > 1)
             {
-                var list2 = _map.ListPointsInSquare(dest, num - 1, false, false);
+                var list2 = ListPointsInSquare(dest, num - 1, false, false);
                 list2.Sort((a, b) => a.Distance(dest) - b.Distance(dest));
                 foreach (var item in list2)
                 {
@@ -158,6 +159,39 @@ public class AutoActWater : AutoAct
                 point.ModFire(-50, true);
             }
             owner.ModExp(286, 15);
+        }
+
+        public List<Point> ListPointsInSquare(Point center, int radius, bool mustBeWalkable = true, bool los = true)
+        {
+            var list = new List<Point>();
+            ForeachSquare(center.x, center.z, radius, p =>
+            {
+                if ((!mustBeWalkable || !p.cell.blocked) && (!los || Los.IsVisible(center, p)))
+                {
+                    list.Add(p.Copy());
+                }
+            });
+            return list;
+        }
+
+        public void ForeachSquare(int _x, int _z, int r, Action<Point> action)
+        {
+            var point = new Point();
+            for (int i = _x - r; i < _x + r + 1; i++)
+            {
+                if (i < 0 || i >= _map.Size)
+                {
+                    continue;
+                }
+                for (int j = _z - r; j < _z + r + 1; j++)
+                {
+                    if (j >= 0 && j < _map.Size)
+                    {
+                        point.Set(i, j);
+                        action(point);
+                    }
+                }
+            }
         }
     }
 }
