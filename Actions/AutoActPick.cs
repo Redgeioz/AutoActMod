@@ -87,7 +87,7 @@ public class AutoActPick : AutoAct
         public Point pos;
         public bool installed;
         public bool pickAll;
-        public bool IsTarget(Card t) => pickAll || t == refThing || t.CanStackTo(refThing);
+        public bool IsTarget(Card t) => (pickAll && !t.IsInstalled) || t == refThing || t.CanStackTo(refThing);
 
         public override IEnumerable<Status> Run()
         {
