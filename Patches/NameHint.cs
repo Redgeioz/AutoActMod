@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Reflection;
 using AutoActMod.Actions;
@@ -20,7 +19,7 @@ static class NameHint
         }
 
         var target = EClass.scene.mouseTarget.card;
-        if (__instance is ActDrawWater or AI_TendAnimal or TaskMine or TaskHarvest or TaskDrawWater
+        if (__instance is ActDrawWater or AI_TendAnimal or TaskMine or TaskDrawWater
             || (__instance is TaskWater taskWater && taskWater.dest.cell.HasFire)
             || (__instance is TaskDig
                 && (EClass._zone.IsRegion
@@ -62,6 +61,7 @@ static class NameHint
         static IEnumerable<MethodInfo> TargetMethods() => [
             AccessTools.Method(typeof(AI_Shear), nameof(AI_Shear.GetText)),
             AccessTools.Method(typeof(TaskClean), nameof(TaskClean.GetText)),
+            AccessTools.Method(typeof(TaskHarvest), nameof(TaskHarvest.GetBaseText)),
         ];
 
         static void Postfix(ref string __result)
