@@ -52,6 +52,7 @@ public class AutoActChat(Chara target) : AutoAct
             AutoActMod.Log($"AutoActChat done: {Describe(target)}");
 #endif
             visited.Add(target);
+            yield return KeepRunning();
 
             target = FindChara(CanChat, detRangeSq);
 #if DEBUG
