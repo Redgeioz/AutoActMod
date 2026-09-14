@@ -66,15 +66,15 @@ public class AutoActChat(Chara target) : AutoAct
         yield return FailOrSuccess();
     }
 
-    static void TalkUntilBored(Chara c)
+    static void TalkUntilBored(Chara chara)
     {
-        c.ShowDialog();
+        chara.ShowDialog();
         var layer = ui.GetLayer<LayerDrama>();
         if (layer.IsNull()) { return; }
 
         var letsTalk = "letsTalk".lang();
         UIButton clicked = null;
-        while (layer.drama._choices.Find(x => x.text == letsTalk) is DramaChoice choice
+        while (layer.drama._choices.Find(c => c.text == letsTalk) is DramaChoice choice
             && choice.button.HasValue()
             && !ReferenceEquals(choice.button, clicked))
         {
