@@ -4,9 +4,10 @@ namespace AutoActMod.Actions;
 
 public class AutoActChat(Chara target) : AutoAct
 {
+    public int detRangeSq = Settings.DetRangeSq;
     public Chara target = target;
     public bool isTargetSpeaking = target.IsHumanSpeak;
-    public readonly HashSet<Chara> visited = [];
+    public HashSet<Chara> visited = [];
     public override Point Pos => target.pos;
     public override int MaxRestart => 0;
 
@@ -45,12 +46,14 @@ public class AutoActChat(Chara target) : AutoAct
                 owner.Kick(target);
                 yield return DoGoto(Pos, 1, true);
             }
+
             TalkUntilBored(target);
 #if DEBUG
             AutoActMod.Log($"AutoActChat done: {Describe(target)}");
 #endif
             visited.Add(target);
-            target = FindChara(CanChat, Settings.DetRangeSq);
+
+            target = FindChara(CanChat, detRangeSq);
 #if DEBUG
             AutoActMod.Log($"AutoActChat next: {(target.IsNull() ? "none" : Describe(target))} targetSpeaking={isTargetSpeaking}");
 #endif
