@@ -22,3 +22,4 @@ Automatically perform the same type of action, triggered by holding down the Shi
 |Steal               |
 |Pick Lock          |
 |Water Crops(Auto refill)|
+|Talk               |
