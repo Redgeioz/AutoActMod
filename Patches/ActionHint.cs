@@ -25,7 +25,8 @@ static class NameHint
                 && (EClass._zone.IsRegion
                     || !(Scene.HitPoint.cell.sourceSurface.tag.Contains("grass") || Scene.HitPoint.HasBridge)))
             || (__instance is AI_OpenLock && target is Thing t && AutoActUnlock.NeedUnlock(t))
-            || (__instance is ActThrow && target is Chara chara && AutoActThrowMilk.NeedMilk(chara)))
+            || (__instance is ActThrow && target is Chara chara && AutoActThrowMilk.NeedMilk(chara))
+            || __instance is ActChat)
         {
             EditText(ref __result);
         }

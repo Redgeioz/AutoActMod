@@ -253,7 +253,7 @@ public static class AALang
     static public string GetText(string text)
     {
         var lang = EClass.core.config.lang;
-        if (!langData.ContainsKey(lang))
+        if (!langData.ContainsKey(lang) || !langData[lang].ContainsKey(text))
         {
             lang = "EN";
         }

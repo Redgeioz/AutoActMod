@@ -13,7 +13,7 @@ public class AutoActChat(Chara target) : AutoAct
 
     public static AutoActChat TryCreate(string lang, Card target, Point pos)
     {
-        if (lang != ACT.Chat.GetText() || target is not Chara c || c.IsPC) { return null; }
+        if (lang != ACT.Chat.source.GetName() || target is not Chara c || c.IsPC) { return null; }
 #if DEBUG
         AutoActMod.Log($"AutoActChat start: {Describe(c)} simpleIdentify={Settings.SimpleIdentify}");
 #endif
@@ -31,12 +31,23 @@ public class AutoActChat(Chara target) : AutoAct
         && (!c.IsDeadOrSleeping || (Settings.WakeSleeping && c.conSleep.HasValue()))
         && !visited.Contains(c)
         && (c.IsHumanSpeak || pc.HasElement(1640))
-        && (Settings.SimpleIdentify == 2 || c.IsHumanSpeak == isTargetSpeaking);
+        && (Settings.SimpleIdentify == 2 || c.IsHumanSpeak == isTargetSpeaking)
+        && (!c.IsUnique || Lang.GetDialogSheet("unique").map.ContainsKey(c.id));
 
     public override IEnumerable<Status> Run()
     {
         while (CanProgress())
         {
+            target = FindChara(CanChat, detRangeSq);
+#if DEBUG
+            AutoActMod.Log($"AutoActChat next: {(target.IsNull() ? "none" : Describe(target))} targetSpeaking={isTargetSpeaking}");
+#endif
+            if (target.IsNull())
+            {
+                SayNoTarget();
+                yield break;
+            }
+
             yield return DoGoto(Pos, 1, true);
             if (Settings.WakeSleeping && target.conSleep.HasValue())
             {
@@ -53,16 +64,6 @@ public class AutoActChat(Chara target) : AutoAct
 #endif
             visited.Add(target);
             yield return KeepRunning();
-
-            target = FindChara(CanChat, detRangeSq);
-#if DEBUG
-            AutoActMod.Log($"AutoActChat next: {(target.IsNull() ? "none" : Describe(target))} targetSpeaking={isTargetSpeaking}");
-#endif
-            if (target.IsNull())
-            {
-                SayNoTarget();
-                yield break;
-            }
         }
         yield return FailOrSuccess();
     }
