@@ -392,6 +392,34 @@ public static class AALang
                 { "trigger", "Definir tecla de Acionamento de Ação Automática" },
                 { "triggerRangeSelect", "Definir Tecla de Acionamento de Seleção de Alcance" },
             }
+        },
+        {
+            "RU", new Dictionary<string, string> {
+                { "autoact", "Auto Act" },
+                { "settings", "Настройки Auto Act" },
+                { "enemyEncounterResponse", "Реакция на врага" },
+                { "eer0", "Стоп" },
+                { "eer1", "Игнорировать" },
+                { "eer2", "Атаковать" },
+                { "detDist", "Радиус поиска" },
+                { "pourDepth", "Уровень воды" },
+                { "seedReapingCount", "Лимит семян" },
+                { "keyMode", "Режим клавиши" },
+                { "press", "Удержание" },
+                { "toggle", "Переключение" },
+                { "start", "Auto Act запущен." },
+                { "fail", "Auto Act прерван." },
+                { "noTarget", "Auto Act: цель не найдена." },
+                { "aaon", "Auto Act: вкл." },
+                { "aaoff", "Auto Act: выкл." },
+                { "staminaCheck", "Остановиться, когда кончилась стамина" },
+                { "simpleIdentify", "Упрощённый поиск" },
+                { "off", "Выкл." },
+                { "sameFarmfieldOnly", "Собирать урожай только на том же поле" },
+                { "inputKey", "Нажмите новую клавишу" },
+                { "trigger", "Клавиша Auto Act" },
+                { "triggerRangeSelect", "Клавиша выбора области" },
+            }
         }
     };
 }
