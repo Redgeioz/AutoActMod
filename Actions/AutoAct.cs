@@ -672,9 +672,9 @@ public class AutoAct : AIAct
             _map.bounds.ForeachPoint(p => ForEach(p.Copy()));
         }
 
-        foreach (var (p, dist2, dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
+        foreach (var (p, dist2, dist2ToLastPoint) in list.OrderBy(tuple => CalcMaxDelta(tuple.Item1)).ThenBy(tuple => tuple.Item2))
         {
-            if (selector.curtPoint.HasValue() && dist2 > selector.MaxDist2)
+            if (selector.curtPoint.HasValue() && CalcMaxDelta(p) > selector.factor1)
             {
                 break;
             }
@@ -779,12 +779,12 @@ public class AutoAct : AIAct
         }
 
         IOrderedEnumerable<(Point, int, int)> iterator = null;
-        iterator = list.OrderBy(tuple => tuple.Item2);
+        iterator = list.OrderBy(tuple => CalcMaxDelta(tuple.Item1)).ThenBy(tuple => tuple.Item2);
 
         foreach (var item in iterator)
         {
             var (p, dist2, dist2ToLastPoint) = item;
-            if (selector.curtPoint.HasValue() && dist2 > selector.MaxDist2)
+            if (selector.curtPoint.HasValue() && CalcMaxDelta(p) > selector.factor1)
             {
                 break;
             }
@@ -851,9 +851,9 @@ public class AutoAct : AIAct
            list.Add((thing, dist2, dist2ToLastPoint));
        });
 
-        foreach (var (thing, dist2, dist2ToLastPoint) in list.OrderBy(tuple => tuple.Item2))
+        foreach (var (thing, dist2, dist2ToLastPoint) in list.OrderBy(tuple => CalcMaxDelta(tuple.Item1.pos)).ThenBy(tuple => tuple.Item2))
         {
-            if (selector.curtPoint.HasValue() && dist2 > selector.MaxDist2)
+            if (selector.curtPoint.HasValue() && CalcMaxDelta(thing.pos) > selector.factor1)
             {
                 break;
             }
@@ -916,9 +916,9 @@ public class AutoAct : AIAct
             _map.charas.ForEach(ForEach);
         }
 
-        foreach (var (chara, dist2) in list.OrderBy(Tuple => Tuple.Item2))
+        foreach (var (chara, dist2) in list.OrderBy(Tuple => CalcMaxDelta(Tuple.Item1.pos)).ThenBy(Tuple => Tuple.Item2))
         {
-            if (selector.curtPoint.HasValue() && dist2 > selector.MaxDist2)
+            if (selector.curtPoint.HasValue() && CalcMaxDelta(chara.pos) > selector.factor1)
             {
                 break;
             }
@@ -962,8 +962,6 @@ public class AutoAct : AIAct
                 return target;
             }
         }
-
-        public int MaxDist2 => (int)Math.Pow(factor1 + 1.5f, 2);
 
         public void Reset()
         {

@@ -157,10 +157,10 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
             list.Add((p, dist2, dist2ToLastPoint));
         }
 
-        foreach (var item in list.OrderBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
+        foreach (var item in list.OrderBy(tuple => CalcMaxDelta(tuple.Item1)).ThenBy(tuple => tuple.Item2).ThenBy(tuple => tuple.Item3))
         {
             var (p, dist2, dist2ToLastPoint) = item;
-            if (selector.curtPoint.HasValue() && !edgeOnly && dist2 > selector.MaxDist2)
+            if (selector.curtPoint.HasValue() && !edgeOnly && CalcMaxDelta(p) > selector.factor1)
             {
                 break;
             }
