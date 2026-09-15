@@ -433,6 +433,7 @@ public static class AALang
                 { "inputKey", "Нажмите новую клавишу" },
                 { "trigger", "Клавиша Auto Act" },
                 { "triggerRangeSelect", "Клавиша выбора области" },
+                { "wakeSleeping", "Будить спящих NPC пинком" },
             }
         }
     };
