@@ -23,6 +23,7 @@ public class AutoActMod : BaseUnityPlugin
         Settings.enemyEncounterResponse = Config.Bind("Settings", "enemyEncounterResponse", 2);
         Settings.simpleIdentify = Config.Bind("Settings", "SimpleIdentify", 0);
         Settings.sameFarmfieldOnly = Config.Bind("Settings", "SameFarmfieldOnly", true, "Only auto harvest the plants on the same farmfield.");
+        Settings.wakeSleeping = Config.Bind("Settings", "WakeSleeping", false, "Kick sleeping NPCs awake before auto chatting with them.");
         Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
         Settings.keyCode = Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
         Settings.rangeSelectKeyCode = Config.Bind("Settings", "RangeSelectKeyCode", KeyCode.LeftAlt);

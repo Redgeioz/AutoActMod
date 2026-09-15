@@ -103,6 +103,7 @@ public static class Settings
             menu.AddButton(AALang.GetText("triggerRangeSelect"), () => InputKey(rangeSelectKeyCode));
             menu.AddToggle(AALang.GetText("sameFarmfieldOnly"), SameFarmfieldOnly, v => SameFarmfieldOnly = v);
             menu.AddToggle(AALang.GetText("staminaCheck"), StaminaCheck, v => StaminaCheck = v);
+            menu.AddToggle(AALang.GetText("wakeSleeping"), WakeSleeping, v => WakeSleeping = v);
             menu.AddSlider(
                 AALang.GetText("keyMode"),
                 v =>
@@ -237,6 +238,14 @@ public static class Settings
         }, false);
         actPlan.list.Add(new ActPlan.Item { act = dynamicAct });
     }
+
+    public static ConfigEntry<bool> wakeSleeping;
+
+    public static bool WakeSleeping
+    {
+        get { return wakeSleeping.Value; }
+        set { wakeSleeping.Value = value; }
+    }
 }
 
 public static class AALang
@@ -279,6 +288,7 @@ public static class AALang
                 { "inputKey", "请输入要设置的按键" },
                 { "trigger", "设置自动行动触发键" },
                 { "triggerRangeSelect", "设置范围选择触发键" },
+                { "wakeSleeping", "踢醒睡着的NPC再交谈" },
             }
         },
         {
@@ -307,6 +317,7 @@ public static class AALang
                 { "inputKey", "请輸入要設置的按鍵" },
                 { "trigger", "設置自動行動觸發鍵" },
                 { "triggerRangeSelect", "設置自動行動觸發鍵" },
+                { "wakeSleeping", "踢醒睡著的NPC再交談" },
             }
         },
         {
@@ -335,6 +346,7 @@ public static class AALang
                 { "inputKey", "設定するキーを入力" },
                 { "trigger", "自動行動トリガーキーを設定" },
                 { "triggerRangeSelect", "範囲選択トリガーキーを設定" },
+                { "wakeSleeping", "寝ているNPCを蹴って起こす" },
             }
         },
         {
@@ -363,6 +375,7 @@ public static class AALang
                 { "inputKey", "Input the key to be set" },
                 { "trigger", "Set Auto Act Trigger Key" },
                 { "triggerRangeSelect", "Set Range Selection Trigger Key" },
+                { "wakeSleeping", "Kick Sleeping NPCs Awake" },
             }
         },
         {
@@ -391,6 +404,7 @@ public static class AALang
                 { "inputKey", "Digite a tecla a ser configurada" },
                 { "trigger", "Definir tecla de Acionamento de Ação Automática" },
                 { "triggerRangeSelect", "Definir Tecla de Acionamento de Seleção de Alcance" },
+                { "wakeSleeping", "Chutar NPCs Dormindo para Acordá-los" },
             }
         },
         {
