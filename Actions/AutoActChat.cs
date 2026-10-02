@@ -36,6 +36,8 @@ public class AutoActChat(Chara target) : AutoAct
 
     public override IEnumerable<Status> Run()
     {
+        var firstTime = true;
+        var originalTarget = target;
         while (CanProgress())
         {
             target = FindChara(CanChat, detRangeSq);
@@ -44,6 +46,10 @@ public class AutoActChat(Chara target) : AutoAct
 #endif
             if (target.IsNull())
             {
+                if (firstTime)
+                {
+                    originalTarget.ShowDialog();
+                }
                 SayNoTarget();
                 yield break;
             }
@@ -63,6 +69,7 @@ public class AutoActChat(Chara target) : AutoAct
             AutoActMod.Log($"AutoActChat done: {Describe(target)}");
 #endif
             visited.Add(target);
+            firstTime = false;
             yield return KeepRunning();
         }
         yield return FailOrSuccess();
