@@ -29,6 +29,7 @@ public class AutoActSteal : AutoAct
 
     public static AutoActSteal TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Steal)) { return null; }
         if (source is not AI_Steal a) { return null; }
         return new AutoActSteal(a);
     }

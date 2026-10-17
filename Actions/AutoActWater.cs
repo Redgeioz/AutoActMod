@@ -18,12 +18,14 @@ public class AutoActWater : AutoAct
 
     public static AutoActWater TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.WaterCrops)) { return null; }
         if (source is not TaskWater a || a.dest.cell.HasFire) { return null; }
         return new AutoActWater(a.dest) { waterFirst = true };
     }
 
     public static AutoActWater TryCreate(string lang, Card target, Point pos)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.WaterCrops)) { return null; }
         if (lang != "ActDrawWater".lang()) { return null; }
         return new AutoActWater(pos);
     }

@@ -20,6 +20,7 @@ public class AutoActDig : AutoAct
 
     public static AutoActDig TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Dig)) { return null; }
         if (source is not TaskDig a) { return null; }
         var surface = a.pos.cell.sourceSurface;
         var needBuildRange = !_zone.IsRegion && (surface.tag.Contains("grass") || a.pos.HasBridge);

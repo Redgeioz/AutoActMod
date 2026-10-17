@@ -16,6 +16,7 @@ public class AutoActBuild(TaskBuild source) : AutoAct(source)
     public static AutoActBuild TryCreate(AIAct source)
     {
         if (source is not TaskBuild a) { return null; }
+        if (!ActionFilter.IsEnabled(ActionFilter.GetBuildAction(a.held))) { return null; }
         if (source.owner.IsPC
             && (source.owner.held is not Thing t
             || (t.Num == 1 && t.trait is not (TraitSeed or TraitFertilizer))

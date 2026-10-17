@@ -12,6 +12,7 @@ public class AutoActPlow(TaskPlow source) : AutoAct(source)
 
     public static AutoActPlow TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Plow)) { return null; }
         if (source is not TaskPlow a || !Filter(a.pos.cell)) { return null; }
         return new AutoActPlow(a)
         {

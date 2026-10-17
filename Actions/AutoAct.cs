@@ -84,6 +84,7 @@ public class AutoAct : AIAct
 
     public static AIAct TryGetAutoAct(AIAct source)
     {
+        if (!ActionFilter.CanCreate(source)) { return null; }
         var act = source;
         do
         {
@@ -105,6 +106,7 @@ public class AutoAct : AIAct
 
     public static AutoAct TryGetAutoAct(string lang, Card target, Point p)
     {
+        if (!ActionFilter.IsEnabled(ActionFilter.GetAction(lang, target))) { return null; }
         foreach (var TryCreate in TryCreateByActMethods)
         {
             var a = TryCreate(lang, target, p);
@@ -135,9 +137,7 @@ public class AutoAct : AIAct
             return null;
         }
 
-        SetAutoAct(chara, a);
-
-        return a;
+        return SetAutoAct(chara, a);
     }
 
     public static AutoAct TrySetAutoAct(Chara chara, Act source, Card target, Point p)
@@ -167,9 +167,7 @@ public class AutoAct : AIAct
             return null;
         }
 
-        SetAutoAct(chara, a, true);
-
-        return a;
+        return SetAutoAct(chara, a, true);
     }
 
     public static AutoAct SetAutoAct(Chara chara, AutoAct autoAct, bool isAct = false)

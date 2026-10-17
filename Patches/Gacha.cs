@@ -16,6 +16,7 @@ public static class Gacha
     static void InvOwner_OnRightClick_Patch(InvOwner __instance, ButtonGrid button)
     {
         if (!AutoActMod.IsSwitchOn
+            || !ActionFilter.IsEnabled(AutoAction.FeedCoin)
             || __instance.destInvOwner is not InvOwnerGacha
             || button.card is not Thing t
             || t.isDestroyed)
@@ -31,7 +32,7 @@ public static class Gacha
     [HarmonyPostfix, HarmonyPatch(typeof(TraitGachaBall), nameof(TraitGachaBall.OnUse))]
     static void TraitGachaBall_OnUse_Patch(TraitGachaBall __instance)
     {
-        if (!AutoActMod.IsSwitchOn || GachaBall.HasValue())
+        if (!AutoActMod.IsSwitchOn || !ActionFilter.IsEnabled(AutoAction.OpenGacha) || GachaBall.HasValue())
         {
             return;
         }
@@ -43,7 +44,7 @@ public static class Gacha
     [HarmonyPrefix, HarmonyPatch(typeof(AutoActMod), nameof(AutoActMod.Update))]
     internal static void Update()
     {
-
+        if (ActionFilterConfig.IsOpen) return;
         if (Input.GetMouseButtonDown(0)
          || Input.GetMouseButtonDown(1))
         {
@@ -103,4 +104,5 @@ public static class Gacha
         Coin = null;
         GachaBall = null;
     }
+
 }

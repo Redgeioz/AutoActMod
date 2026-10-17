@@ -16,6 +16,7 @@ public class AutoActSmash : AutoAct
 
     public static AutoActSmash TryCreate(string lang, Card target, Point pos)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Smash)) { return null; }
         if (pc.ai is AutoActSmash) { return null; }
         if (lang != GetActMeleeLang()) { return null; }
         if (!CanSmash(target)) { return null; }

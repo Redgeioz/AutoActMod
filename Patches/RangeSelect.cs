@@ -24,7 +24,26 @@ internal static class RangeSelect
     public static long LastColorChange = 0;
     public static int CharaHighlightColor = 0;
 
-    internal static bool Active => Input.GetKey(Settings.RangeSelectKeyCode) || Selected.Count > 0;
+    internal static bool Active => !ActionFilterConfig.IsOpen && HeldActionEnabled()
+        && (Input.GetKey(Settings.RangeSelectKeyCode) || Selected.Count > 0);
+
+    static bool HeldActionEnabled()
+    {
+        if (EClass.pc.held is not Thing t) return ActionFilter.IsEnabled(AutoAction.Pick);
+        if (HotItemHeld.taskBuild.HasValue()
+            && (t.Num > 1 || t.trait is TraitSeed)
+            && t.trait is TraitSeed or TraitFloor or TraitPlatform or TraitBlock or TraitFertilizer)
+            return ActionFilter.IsEnabled(ActionFilter.GetBuildAction(t));
+        if (t.trait is TraitTool && t.HasElement(230, 1)) return ActionFilter.IsEnabled(AutoAction.Dig);
+        if (t.trait is TraitTool && t.HasElement(286, 1)) return ActionFilter.IsEnabled(AutoAction.Plow);
+        if (t.trait is TraitToolWaterPot)
+            return ActionFilter.IsEnabled(AutoAction.DrawWater) || ActionFilter.IsEnabled(AutoAction.PourWater);
+        if (t.trait is TraitToolButcher) return ActionFilter.IsEnabled(AutoAction.Slaughter);
+        if (t.trait is TraitToolBrush && t.HasElement(237, 1)) return ActionFilter.IsEnabled(AutoAction.Brush);
+        if (t.trait is TraitToolShears or TraitToolWaterCan or TraitToolMusic or TraitFertilizer) return false;
+        return ActionFilter.IsEnabled(AutoAction.Mine) || ActionFilter.IsEnabled(AutoAction.Collect)
+            || ActionFilter.IsEnabled(AutoAction.ReapSeed);
+    }
 
     static void AddRange()
     {
@@ -125,16 +144,22 @@ internal static class RangeSelect
         Selected.Clear();
         CharaRange.Clear();
         LeftClickPoint = null;
+        RightClickPoint = null;
         LastHeld = null;
         OnSelectComplete = null;
     }
 
     [HarmonyPrefix, HarmonyPatch(typeof(AM_Adv), nameof(AM_Adv.SetPressedAction))]
-    static bool SetPressedAction_Patch() => !Active;
+    static bool SetPressedAction_Patch() => !ActionFilterConfig.IsOpen && !Active;
 
     [HarmonyPostfix, HarmonyPatch(typeof(AM_Adv), nameof(AM_Adv._OnUpdateInput))]
     static void AM_Adv_OnUpdateInput_Patch()
     {
+        if (ActionFilterConfig.IsOpen || !HeldActionEnabled())
+        {
+            Reset();
+            return;
+        }
         if ((LastHeld.HasValue() && LastHeld != EClass.pc.held) || EInput.middleMouse.down)
         {
             Reset();
@@ -201,6 +226,7 @@ internal static class RangeSelect
             if ((Range.Count > 0 || CharaRange.Count > 0) && EClass.pc.ai is not AutoAct)
             {
                 OnSelectComplete?.Invoke();
+                Reset();
             }
             return;
         }
@@ -285,6 +311,11 @@ internal static class RangeSelect
     static AutoAct SetAutoAct(AutoAct a)
     {
         var autoAct = AutoAct.SetAutoAct(EClass.pc, a);
+        if (autoAct.IsNull())
+        {
+            Reset();
+            return null;
+        }
         autoAct.useOriginalPos = false;
         if (autoAct is AutoActPlow or AutoActDig or AutoActPourWater || (autoAct is AutoActBuild aab && aab.Child.held.trait is not TraitBlock))
         {
@@ -305,6 +336,7 @@ internal static class RangeSelect
 
     static void SetAutoActBuild()
     {
+        if (!ActionFilter.IsEnabled(ActionFilter.GetBuildAction(EClass.pc.held))) return;
         var autoAct = new AutoActBuild(HotItemHeld.taskBuild)
         {
             hasSowRange = true,
@@ -334,6 +366,7 @@ internal static class RangeSelect
 
     static void SetAutoActDig()
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Dig)) return;
         var dig = new TaskDig
         {
             pos = StartPos.Copy(),
@@ -357,6 +390,7 @@ internal static class RangeSelect
 
     static void SetAutoActPlow()
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Plow)) return;
         Range.RemoveWhere(p => !AutoActPlow.Filter(p.cell));
         if (Range.Count == 0)
         {
@@ -391,6 +425,7 @@ internal static class RangeSelect
 
     static void SetAutoActDrawWater(TraitToolWaterPot pot)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.DrawWater)) return;
         Range.RemoveWhere(p => !AutoActDrawWater.CanDrawWaterSimple(p.cell));
         if (Range.Count == 0)
         {
@@ -413,6 +448,7 @@ internal static class RangeSelect
 
     static void SetAutoActPourWater(TraitToolWaterPot pot)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.PourWater)) return;
         Range.RemoveWhere(p => !AutoActPourWater.CanPourWater(p.cell));
         if (Range.Count == 0)
         {
@@ -437,36 +473,17 @@ internal static class RangeSelect
 
     static void SetAutoActHarvestMine()
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Mine) && !ActionFilter.IsEnabled(AutoAction.Collect)
+            && !ActionFilter.IsEnabled(AutoAction.ReapSeed)) return;
         var taskHarvest = new TaskHarvest { pos = StartPos };
         Range.RemoveWhere(p =>
         {
-            SourceData.BaseRow row;
-            if (p.HasObj)
+            if (!p.HasObj && !p.HasBlock) return true;
+            if (AutoActHarvestMine.CanHarvest(EClass.pc, p))
             {
-                row = p.sourceObj;
+                return !ActionFilter.IsEnabled(ActionFilter.GetHarvestAction(p, EClass.pc));
             }
-            else if (p.HasBlock)
-            {
-                row = p.sourceBlock;
-            }
-            else
-            {
-                return true;
-            }
-
-            if (TaskMine.CanMine(p, EClass.pc.held))
-            {
-                return false;
-            }
-
-            if (AutoAct.RowCheckCache.TryGetValue(row, out var result))
-            {
-                return result;
-            }
-
-            result = !AutoActHarvestMine.CanHarvest(EClass.pc, p);
-            AutoAct.RowCheckCache.Add(row, result);
-            return result;
+            return !ActionFilter.IsEnabled(AutoAction.Mine) || !TaskMine.CanMine(p, EClass.pc.held);
         });
         AutoAct.RowCheckCache.Clear();
 
@@ -480,6 +497,7 @@ internal static class RangeSelect
 
     static void SetAutoActSlaughter()
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Slaughter)) return;
         if (CharaRange.Count == 0)
         {
             return;
@@ -493,6 +511,7 @@ internal static class RangeSelect
 
     static void SetAutoActBrush()
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Brush)) return;
         if (CharaRange.Count == 0)
         {
             return;
@@ -506,6 +525,7 @@ internal static class RangeSelect
 
     static void SetAutoActPick()
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Pick)) return;
         var pick = new AutoActPick.SubActPick
         {
             pos = StartPos.Copy(),

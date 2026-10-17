@@ -19,8 +19,9 @@ static class NameHint
         }
 
         var target = EClass.scene.mouseTarget.card;
+        if (!ActionFilter.CanShowHint(__instance, target, __result)) return;
         if (__instance is ActDrawWater or AI_TendAnimal or TaskMine or TaskDrawWater
-            || (__instance is TaskWater taskWater && taskWater.dest.cell.HasFire)
+            || (__instance is TaskWater taskWater && !taskWater.dest.cell.HasFire)
             || (__instance is TaskDig
                 && (EClass._zone.IsRegion
                     || !(Scene.HitPoint.cell.sourceSurface.tag.Contains("grass") || Scene.HitPoint.HasBridge)))
@@ -41,6 +42,7 @@ static class NameHint
         }
 
         var target = EClass.scene.mouseTarget.card;
+        if (!ActionFilter.CanShowHint(__instance, target, __result)) return;
         var targetChara = target as Chara;
         var actions = new string[] {
             "actMilk",
@@ -65,9 +67,10 @@ static class NameHint
             AccessTools.Method(typeof(TaskHarvest), nameof(TaskHarvest.GetBaseText)),
         ];
 
-        static void Postfix(ref string __result)
+        static void Postfix(Act __instance, ref string __result)
         {
-            if (AutoActMod.IsSwitchOn)
+            if (AutoActMod.IsSwitchOn
+                && ActionFilter.CanShowHint(__instance, EClass.scene.mouseTarget.card, __result))
             {
                 EditText(ref __result);
             }
@@ -88,7 +91,8 @@ static class NameHint
             return;
         }
 
-        if (AutoActRead.CanRead(t) || t.trait is TraitBookSkill or TraitGachaBall)
+        if ((ActionFilter.IsEnabled(AutoAction.Read) && (AutoActRead.CanRead(t) || t.trait is TraitBookSkill))
+            || (ActionFilter.IsEnabled(AutoAction.OpenGacha) && t.trait is TraitGachaBall))
         {
             EditText(ref __result);
         }

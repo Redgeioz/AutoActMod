@@ -11,6 +11,7 @@ public class AutoActUnlock(AIAct source) : AutoAct(source)
 
     public static AutoActUnlock TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Unlock)) { return null; }
         if (source is not AI_OpenLock a || !NeedUnlock(a.target)) { return null; }
         return new AutoActUnlock(a);
     }

@@ -11,7 +11,7 @@ using UnityEngine;
 namespace AutoActMod;
 
 [BepInPlugin("redgeioz.plugin.AutoAct", "AutoAct", "1.0.0")]
-public class AutoActMod : BaseUnityPlugin
+public class AutoActMod : BaseUnityPlugin, IModConfig
 {
     internal void Awake()
     {
@@ -27,6 +27,7 @@ public class AutoActMod : BaseUnityPlugin
         Settings.keyMode = Config.Bind("Settings", "KeyMode", false, "false = Press, true = Toggle");
         Settings.keyCode = Config.Bind("Settings", "KeyCode", KeyCode.LeftShift);
         Settings.rangeSelectKeyCode = Config.Bind("Settings", "RangeSelectKeyCode", KeyCode.LeftAlt);
+        ActionFilter.Initialize(Config);
 
         AutoAct.Register(Assembly.GetExecutingAssembly());
 
@@ -40,7 +41,7 @@ public class AutoActMod : BaseUnityPlugin
             return;
         }
 
-        if (Input.GetKeyDown(Settings.KeyCode))
+        if (Settings.ChangingKey == null && !ActionFilterConfig.IsOpen && Input.GetKeyDown(Settings.KeyCode))
         {
             SwitchOn = !SwitchOn;
             Say(AALang.GetText(SwitchOn ? "aaon" : "aaoff"));
@@ -51,6 +52,8 @@ public class AutoActMod : BaseUnityPlugin
     {
         AutoAct.InitTryCreateMethods();
     }
+
+    public void OnBuildConfig(UINote note) => ActionFilterConfig.Build(note, Config);
 
     public static void Say(string text)
     {

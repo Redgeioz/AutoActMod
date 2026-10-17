@@ -19,6 +19,7 @@ public class AutoActClean : AutoAct
 
     public static AutoActClean TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Clean)) { return null; }
         if (source is not TaskClean a) { return null; }
         return new AutoActClean(a.dest);
     }

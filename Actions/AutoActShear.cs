@@ -9,6 +9,7 @@ public class AutoActShear(AIAct source) : AutoAct(source)
 
     public static AutoActShear TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Shear)) { return null; }
         if (source is not AI_Shear a) { return null; }
         return new AutoActShear(a);
     }

@@ -10,7 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Tests\**"/>
     <None Remove=".history\**"/>
+    <Reference Include="ElinModdingKit">
+      <HintPath>$(ElinGamePath)\Package\_ModdingKit\ElinModdingKit.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Plugins.UI">
       <HintPath>$(ElinGamePath)\Elin_Data\Managed\Plugins.UI.dll</HintPath>
       <EmbedInteropTypes>False</EmbedInteropTypes>

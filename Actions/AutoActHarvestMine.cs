@@ -18,6 +18,7 @@ public class AutoActHarvestMine : AutoAct
     public TaskHarvest taskHarvest;
     public TaskMine taskMine;
     public bool isHarvest;
+    readonly ActionFilter.CreationPolicy creationPolicy = ActionFilter.CaptureCreationPolicy();
     public BaseTaskHarvest Child => child as BaseTaskHarvest;
     public bool SimpleIdentify => simpleIdentify > 0;
 
@@ -52,6 +53,7 @@ public class AutoActHarvestMine : AutoAct
     {
         if (source is TaskMine or TaskHarvest)
         {
+            if (!ActionFilter.CanCreate(source)) { return null; }
             return new AutoActHarvestMine(source as BaseTaskHarvest);
         }
         return null;
@@ -83,6 +85,11 @@ public class AutoActHarvestMine : AutoAct
                 continue;
             }
 
+            if (useOriginalPos && !creationPolicy.IsEnabled(taskHarvest.CanProgress()
+                ? ActionFilter.GetHarvestAction(taskHarvest) : AutoAction.Mine))
+            {
+                useOriginalPos = false;
+            }
             if (hasRange)
             {
                 targetPos = FindPos(CommonFilter, range: range);
@@ -90,11 +97,12 @@ public class AutoActHarvestMine : AutoAct
             else
             {
                 var tryBetterPath = 0;
-                if (isHarvest && Child is TaskMine)
+                if (creationPolicy.IsEnabled(AutoAction.Mine) && isHarvest && Child is TaskMine)
                 {
                     tryBetterPath = 2;
                 }
-                else if (!SimpleIdentify && owner.held?.HasElement(220, 1) is true)
+                else if (creationPolicy.IsEnabled(AutoAction.Mine)
+                    && !SimpleIdentify && owner.held?.HasElement(220, 1) is true)
                 {
                     tryBetterPath = 1;
                 }
@@ -314,31 +322,43 @@ public class AutoActHarvestMine : AutoAct
             return false;
         }
 
-        if (RowCheckCache.TryGetValue(row, out var result))
-        {
-            return result;
-        }
-
-        result = false;
         var originalX = Child.pos.x;
         var originalZ = Child.pos.z;
         Child.pos.Set(cell.x, cell.z);
-        if (taskHarvest.CanProgress())
+        try
         {
-            if (!taskHarvest.IsObj)
+            // Check the actual operation at every position, before the material cache.
+            // Harvesting can turn into collecting, and a range can mix plants and blocks.
+            var harvest = taskHarvest.CanProgress();
+            var mine = !harvest && TaskMine.CanMine(Pos, owner.held);
+            var action = harvest ? ActionFilter.GetHarvestAction(taskHarvest) : AutoAction.Mine;
+            if ((!harvest && !mine) || !creationPolicy.IsEnabled(action))
             {
-                taskHarvest.SetTarget(owner);
+                return false;
             }
-            result = taskHarvest.difficulty != 3;
+
+            if (RowCheckCache.TryGetValue(row, out var result))
+            {
+                return result;
+            }
+
+            if (harvest)
+            {
+                if (!taskHarvest.IsObj) { taskHarvest.SetTarget(owner); }
+                result = taskHarvest.difficulty != 3;
+            }
+            else
+            {
+                taskMine.SetTarget(owner);
+                result = taskMine.difficulty != 3;
+            }
+            RowCheckCache.Add(row, result);
+            return result;
         }
-        else if (TaskMine.CanMine(Pos, owner.held))
+        finally
         {
-            taskMine.SetTarget(owner);
-            result = taskMine.difficulty != 3;
+            Child.pos.Set(originalX, originalZ);
         }
-        Child.pos.Set(originalX, originalZ);
-        RowCheckCache.Add(row, result);
-        return result;
     }
 
     public void SetPosition(Point p)

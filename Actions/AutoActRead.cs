@@ -10,6 +10,7 @@ public class AutoActRead(AIAct source) : AutoAct(source)
 
     public static AutoActRead TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Read)) { return null; }
         if (source is not AI_Read a || a.target.trait is not (TraitBaseSpellbook or TraitBookSkill)) { return null; }
         return new AutoActRead(a);
     }

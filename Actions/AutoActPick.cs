@@ -22,6 +22,7 @@ public class AutoActPick : AutoAct
 
     public static AutoActPick TryCreate(string lang, Card target, Point pos)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Pick)) { return null; }
         if ((lang == "actPickOne".lang() || lang == "actHold".lang())
             && (Settings.SimpleIdentify == 2 || target.SelfWeight < 160_000))
         {

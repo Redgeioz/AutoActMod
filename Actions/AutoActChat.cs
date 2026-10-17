@@ -13,6 +13,7 @@ public class AutoActChat(Chara target) : AutoAct
 
     public static AutoActChat TryCreate(string lang, Card target, Point pos)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Chat)) { return null; }
         if (lang != ACT.Chat.source.GetName() || target is not Chara c || c.IsPC) { return null; }
 #if DEBUG
         AutoActMod.Log($"AutoActChat start: {Describe(c)} simpleIdentify={Settings.SimpleIdentify}");

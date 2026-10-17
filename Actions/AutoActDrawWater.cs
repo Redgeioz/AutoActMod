@@ -19,6 +19,7 @@ public class AutoActDrawWater : AutoAct
 
     public static AutoActDrawWater TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.DrawWater)) { return null; }
         if (source is not TaskDrawWater a) { return null; }
         return new AutoActDrawWater(a);
     }

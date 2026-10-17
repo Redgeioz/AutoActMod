@@ -11,12 +11,14 @@ public class AutoActSlaughter(AIAct source) : AutoAct(source)
 
     public static AutoActSlaughter TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Slaughter)) { return null; }
         if (source is not AI_Slaughter a) { return null; }
         return new AutoActSlaughter(a);
     }
 
     public static AutoActSlaughter TryCreate(string lang, Card target, Point pos)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Slaughter)) { return null; }
         if (lang != "AI_Slaughter".lang()) { return null; }
         var source = new AI_Slaughter { target = target };
         return new AutoActSlaughter(source);

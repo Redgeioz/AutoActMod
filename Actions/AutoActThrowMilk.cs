@@ -10,6 +10,7 @@ public class AutoActThrowMilk(Chara target) : AutoAct
 
     public static AutoActThrowMilk TryCreate(string lang, Card target, Point pos)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.FeedBaby)) { return null; }
         if ((lang != "ActThrow".lang() && lang != "actMilk".lang())
             || pc.held.trait is not TraitDrinkMilkMother
             || pos.FindChara(NeedMilk) is not Chara t)

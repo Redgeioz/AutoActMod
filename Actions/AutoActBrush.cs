@@ -15,6 +15,7 @@ public class AutoActBrush(AI_TendAnimal source) : AutoAct(source)
 
     public static AutoActBrush TryCreate(AIAct source)
     {
+        if (!ActionFilter.IsEnabled(AutoAction.Brush)) { return null; }
         if (source is not AI_TendAnimal a) { return null; }
         return new AutoActBrush(a);
     }
