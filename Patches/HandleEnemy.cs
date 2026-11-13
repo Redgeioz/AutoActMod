@@ -59,7 +59,7 @@ static class HandleEnemy
             return;
         }
 
-        if (!AutoActMod.Active || Settings.EnemyEncounterResponse == 0)
+        if (!AutoActMod.Active)
         {
             if (EClass.core.config.game.haltOnSpotEnemy)
             {
@@ -67,6 +67,11 @@ static class HandleEnemy
             }
 
             return;
+        }
+
+        if (Settings.EnemyEncounterResponse == 0)
+        {
+            EClass.player.enemySpotted = true;
         }
 
         if (Settings.EnemyEncounterResponse == 2)
